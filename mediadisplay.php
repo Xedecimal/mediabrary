@@ -7,7 +7,6 @@ class MediaDisplay extends Module
 	function Get()
 	{
 		$t = new Template();
-		$t->Set($this->_metadata[$this->_items[0]]);
 		$t->ReWrite('item', array($this, 'TagItem'));
 		return $t->Parsefile($this->_template);
 	}

@@ -88,7 +88,9 @@ class ModScrapeTMDB
 		$url = xpath_attr($sx, $xp_thumb, 'url');
 		$src_pinfo = pathinfo($url);
 		$data = file_get_contents($url);
-		file_put_contents("img/meta/movie/thm_{$dst_pinfo['filename']}.{$src_pinfo['extension']}", $data);
+		if (!file_put_contents("img/meta/movie/thm_".
+			"{$dst_pinfo['filename']}.{$src_pinfo['extension']}", $data))
+			trigger_error("Cannot write the cover image.", ERR_FATAL);
 
 		# Scrape a large backdrop
 
