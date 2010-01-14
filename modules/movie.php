@@ -11,15 +11,15 @@ class ModMovie extends MediaDisplay
 
 		$this->_class = 'movie';
 		$this->_fs_scrapes = array(
-		'#([^/\(]+)\((\d+)\)\.(\S+)$#' => array(
-			1 => 'med_title',
-			2 => 'med_date',
-			3 => 'med_ext'),
-		'#([^.]+)\.(\S+)$#' => array(
-			1 => 'med_title',
-			2 => 'med_ext'
-		)
-	);
+			'#([^/\(]+)\s*\((\d+)\)\.(\S+)$#' => array(
+				1 => 'med_title',
+				2 => 'med_date',
+				3 => 'med_ext'),
+			'#([^.]+)\.(\S+)$#' => array(
+				1 => 'med_title',
+				2 => 'med_ext'
+			)
+		);
 	}
 
 	function Get()
@@ -34,7 +34,7 @@ class ModMovie extends MediaDisplay
 		{
 			$file = filenoext($_d['q'][2]);
 
-			$url = 'http://71.59.128.158:9898/movies/'.rawurlencode($_d['q'][2]);
+			$url = $_d['config']['movie_url'].'/'.rawurlencode($_d['q'][2]);
 			$data = <<<EOF
 #EXTINF:-1,{$file}
 {$url}

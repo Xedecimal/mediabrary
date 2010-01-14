@@ -18,7 +18,7 @@ class ModScrapeTMDB
 		$xp_thumb = 'images/image[@type="poster"][@size="cover"]';
 		$sx_thumb = $sx_movie->xpath($xp_thumb);
 		if (empty($sx_thumb))
-			$ret['thumb'] = 'img/missing.jpg';
+			$ret['thumb'] = 'img/missing-movie.jpg';
 		else
 		{
 			$el_thumb = array_pop($sx_thumb);
@@ -38,13 +38,13 @@ class ModScrapeTMDB
 		$t = new Template();
 		$ret = null;
 
-		usort($sx_movies, 'ModScrapeTMDB::cmp_title');
+		usort($sx_movies, array('ModScrapeTMDB', 'cmp_title'));
 
 		foreach ($sx_movies as $sx_movie)
 		{
 			$m = ModScrapeTMDB::Decode($sx_movie);
 			$t->Set($m);
-			$ret .= $t->ParseFile('t_search_result.xml');
+			$ret .= $t->ParseFile('t_movie_search_result.xml');
 		}
 		
 		if (empty($ret))
@@ -59,6 +59,7 @@ class ModScrapeTMDB
 	{
 		similar_text($GLOBALS['_movie']['med_title'], (string)$title1->name, $t11);
 		similar_text($GLOBALS['_movie']['med_date'], date('Y', MyDateTimestamp($title1->released)), $t12);
+
 		$cmp1 = $t11+$t12;
 
 		similar_text($GLOBALS['_movie']['med_title'], (string)$title2->name, $t21);
@@ -79,6 +80,7 @@ class ModScrapeTMDB
 		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
 	
 		$dst_pinfo = pathinfo($movie['med_path']);
+		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
 
 		# Scrape a cover thumbnail
 

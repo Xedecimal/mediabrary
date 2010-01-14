@@ -52,6 +52,7 @@ class MediaDisplay extends Module
 		// Collect the cover
 
 		$pinfo = pathinfo($path);
+		$pinfo['filename'] = filenoext($pinfo['basename']);
 		$images = glob("img/meta/{$this->_class}/thm_{$pinfo['filename']}.*");
 
 		if (!empty($images))
