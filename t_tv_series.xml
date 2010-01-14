@@ -1,0 +1,9 @@
+<div id="tv-series">
+<a href="#" id="scrape-tv-link" title="{{med_series}}">Search</a>
+<item>
+	<div class="tv-episode" title="{{med_path}}" id="item:{{mov_id}}">
+	S{{med_season}}E{{med_episode}} - <a class="episode-link" href="tv/watch/{{med_series}}/{{med_filename}}">{{med_title}}</a><br />
+	<input type="hidden" id="backdrop:{{mov_id}}" value="{{mov_backdrop}}" />
+	</div>
+</item>
+</div>

@@ -1,0 +1,10 @@
+<div class="search-result">
+<img src="{{thumb}}" style="left" />
+<ul>
+	<li>Name: {{name}}</li>
+	<li>Released: {{released}}</li>
+	<li>Score: {{score}}</li>
+	<li>Overview: {{overview}}</li>
+	<li><a href="#" class="scrape" id="{{id}}">Scrape</a></li>
+</ul>
+</div>

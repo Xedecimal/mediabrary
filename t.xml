@@ -1,0 +1,14 @@
+<html doctype="trans">
+<head>
+<title></title>
+<script type="text/javascript" src="xedlib/js/jquery.js"></script>
+<script type="text/javascript" src="xedlib/js/jquery.ui.js"></script>
+<script type="text/javascript" src="js.js"></script>
+<link rel="stylesheet" type="text/css" href="css.css" />
+<link rel="stylesheet" type="text/css" href="xedlib/css/smoothness/jquery.ui.css" />
+</head>
+<body>
+<!-- <img id="backdrop" /> -->
+<block name="default" />
+</body>
+</html>

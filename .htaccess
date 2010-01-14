@@ -1,0 +1,15 @@
+Options Indexes FollowSymLinks MultiViews
+
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+
+	RewriteBase /Media
+
+	# ignore existing files
+	RewriteCond %{REQUEST_FILENAME} !-f
+
+	# ignore existing directories
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	RewriteRule ^(.*)$ index.php?q=$1 [L,QSA]
+</IfModule>

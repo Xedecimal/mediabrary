@@ -1,0 +1,7 @@
+<null>
+<ul>
+	<li><a href="#" class="search" id="a:search:{{mov_id}}">Search</a></li>
+	<li><a href="movie/play/{{med_filename}}">Play</a></li>
+	<li>Rename</li>
+</ul>
+</null>

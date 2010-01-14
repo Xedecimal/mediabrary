@@ -1,0 +1,10 @@
+<null>
+<script type="text/javascript" src="_tv.js" />
+
+<item>
+	<div class="tv-item" title="{{med_title}}" id="item:{{mov_id}}">
+	<img class="tv-image" src="{{med_thumb}}" alt="{{mov_title}}" />
+	<input type="hidden" id="backdrop:{{mov_id}}" value="{{mov_backdrop}}" />
+	</div>
+</item>
+</null>
