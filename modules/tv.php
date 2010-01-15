@@ -1,8 +1,8 @@
 <?php
 
-require_once('mediadisplay.php');
+require_once('medialibrary.php');
 
-class ModTVSeries extends MediaDisplay
+class ModTVSeries extends MediaLibrary
 {
 	function __construct()
 	{
@@ -67,7 +67,7 @@ EOF;
 
 Module::RegisterModule('ModTVSeries');
 
-class ModTVEpisode extends MediaDisplay
+class ModTVEpisode extends MediaLibrary
 {
 	function __construct()
 	{

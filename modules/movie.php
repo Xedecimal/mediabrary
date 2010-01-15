@@ -1,8 +1,8 @@
 <?php
 
-require_once('mediadisplay.php');
+require_once('medialibrary.php');
 
-class ModMovie extends MediaDisplay
+class ModMovie extends MediaLibrary
 {
 	function __construct()
 	{
@@ -55,7 +55,7 @@ EOF;
 			$m = $_d['movie.ds']->GetOne(array('match' => array(
 				'med_path' => $_POST['target'])));
 			if (empty($m)) $m = $this->ScrapeFS($_POST['target']);
-			die(ModScrape::Find($m));
+			die(ModScrapeTMDB::Find($m));
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
@@ -93,6 +93,11 @@ EOF;
 
 			return parent::Get();
 		}
+	}
+
+	function Check()
+	{
+		return array('StrictNames' => 'File X has an incorrect name');
 	}
 }
 

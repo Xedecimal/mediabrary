@@ -2,7 +2,7 @@
 
 require_once('h_main.php');
 
-class MediaDisplay extends Module
+class MediaLibrary extends Module
 {
 	function Get()
 	{
@@ -60,6 +60,8 @@ class MediaDisplay extends Module
 
 		return $this->_metadata[$path];
 	}
+
+	function Check() { return array(); }
 }
 
 ?>

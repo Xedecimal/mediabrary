@@ -8,7 +8,6 @@
 <link rel="stylesheet" type="text/css" href="xedlib/css/smoothness/jquery.ui.css" />
 </head>
 <body>
-<!-- <img id="backdrop" /> -->
 <block name="default" />
 </body>
 </html>
