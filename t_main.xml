@@ -1,8 +1,1 @@
-<div id="main">
-	<a href="{{app_abs}}/movie"><img src="img/main-movies.png" alt="Movies" /></a>
-	<a href="{{app_abs}}/tv"><img src="img/main-tv.png" alt="TV" /></a>
-	<a href="{{app_abs}}/music"><img src="img/main-music.png" alt="Music" /></a>
-	<a href="{{app_abs}}/pic"><img src="img/main-pics.png" alt="Pictures" /></a>
-	
-	<p><a href="check">Check</a></p>
-</div>
+

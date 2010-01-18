@@ -15,4 +15,10 @@ $_d['db']->Open($_d['config']['db_url']);
 
 $_d['q'] = explode('/', GetVar('q'));
 
+function has_roman($title)
+{
+	$v = preg_match('/\s+M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\s+/', ' '.$title.' ', $ms);
+	foreach ($ms as $m) if (strlen(trim($m)) > 0) return 1;
+}
+
 ?>

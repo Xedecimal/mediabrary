@@ -40,4 +40,16 @@ html, body { margin: 0; padding: 0; height: 100%; }
 	position: absolute;
 }
 
-#main { text-align: center; }
+#main { text-align: center; margin: auto; }
+#a-movie,#a-tv,#a-pics,#a-music
+{
+	display: block;
+	float: left;
+	width: 200px;
+	height: 300px;
+}
+#a-movie { background: url('img/main-movies.jpg'); }
+#a-tv { background: url('img/main-shows.jpg'); }
+#a-pics { background: url('img/main-pics.jpg'); }
+#a-music { background: url('img/main-music.jpg'); }
+#a-check { clear: both; display: block; text-align: center; margin: auto; }

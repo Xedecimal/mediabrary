@@ -24,6 +24,7 @@ class ModTVSeries extends MediaLibrary
 	{
 		global $_d;
 
+		if (empty($_d['q'][0])) return '<a href="{{app_abs}}/tv" id="a-tv">Television</a>';
 		if (@$_d['q'][0] != 'tv') return;
 		else if (@$_d['q'][1] == 'watch')
 		{

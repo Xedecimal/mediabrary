@@ -38,6 +38,7 @@ class MediaLibrary extends Module
 			{
 				if (preg_match($preg, $path, $m))
 				{
+					//varinfo("Matched: {$preg} on {$path}");
 					foreach ($matches as $idx => $col)
 						$this->_metadata[$path][$col] = $m[$idx];
 					break;

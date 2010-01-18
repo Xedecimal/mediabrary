@@ -27,13 +27,29 @@ class ModScrapeTMDB
 		return $ret;
 	}
 
+	static function FindXML(&$title)
+	{
+		$title = str_replace('.', ' ', $title);
+		$title = preg_replace('/ -.*$/', '', $title);
+		$title = urlencode($title);
+		$xml = file_get_contents(TMDB_FIND.$title);
+
+		if (preg_match('/Nothing found/m', $xml))
+			if (preg_match('/.*[0-9]+.*/', $title))
+				$xml = file_get_contents(TMDB_FIND.preg_replace('/[0-9]/',
+					'', $title));
+
+		$sx = simplexml_load_string($xml);
+		$sx_movies = $sx->xpath('//movies/movie');
+
+		return $sx_movies;
+	}
+	
 	static function Find($movie)
 	{
 		$GLOBALS['_movie'] = $movie;
 
-		$xml = file_get_contents(TMDB_FIND.urlencode($movie['med_title']));
-		$sx = simplexml_load_string($xml);
-		$sx_movies = $sx->xpath('//movies/movie');
+		$sx_movies = ModScrapeTMDB::FindXML($movie['med_title']);
 
 		$t = new Template();
 		$ret = null;
@@ -55,18 +71,16 @@ class ModScrapeTMDB
 		return $ret;
 	}
 
-	static function cmp_title($title1, $title2)
+	static function cmp_title($cmp1, $cmp2)
 	{
-		similar_text($GLOBALS['_movie']['med_title'], (string)$title1->name, $t11);
-		similar_text($GLOBALS['_movie']['med_date'], date('Y', MyDateTimestamp($title1->released)), $t12);
+		similar_text($GLOBALS['_movie']['med_title'], (string)$cmp1->name, $title1);
+		similar_text($GLOBALS['_movie']['med_date'], date('Y', MyDateTimestamp($cmp1->released)), $date1);
 
-		$cmp1 = $t11+$t12;
+		similar_text($GLOBALS['_movie']['med_title'], (string)$cmp2->name, $title2);
+		similar_text($GLOBALS['_movie']['med_date'], date('Y', MyDateTimestamp($cmp2->released)), $date2);
 
-		similar_text($GLOBALS['_movie']['med_title'], (string)$title2->name, $t21);
-		similar_text($GLOBALS['_movie']['med_date'], date('Y', MyDateTimestamp($title2->released)), $t22);
-		$cmp2 = $t21+$t22;
-
-		return $cmp1 <= $cmp2;
+		if ($title1 != $title2) return $title1 <= $title2;
+		return $date1 <= $date2;
 	}
 
 	static function Scrape($movie, $id)
@@ -77,6 +91,7 @@ class ModScrapeTMDB
 
 		// Scrape some general information
 		list($movie['med_title']) = $sx->xpath('//movies/movie/name');
+		$movie['med_title'] = trim((string)$movie['med_title']);
 		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
 	
 		$dst_pinfo = pathinfo($movie['med_path']);
@@ -85,9 +100,10 @@ class ModScrapeTMDB
 		# Scrape a cover thumbnail
 
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
-		$url = xpath_attr($sx, $xp_thumb, 'url');
+		$urls = xpath_attrs($sx, $xp_thumb, 'url');
+		foreach ($urls as $url)
+			if ($data = @file_get_contents($url)) break;
 		$src_pinfo = pathinfo($url);
-		$data = file_get_contents($url);
 		if (!file_put_contents("img/meta/movie/thm_".
 			"{$dst_pinfo['filename']}.{$src_pinfo['extension']}", $data))
 			trigger_error("Cannot write the cover image.", ERR_FATAL);
