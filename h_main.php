@@ -15,10 +15,19 @@ $_d['db']->Open($_d['config']['db_url']);
 
 $_d['q'] = explode('/', GetVar('q'));
 
-function has_roman($title)
+$_d['head'] = '';
+
+class ModMain extends Module
 {
-	$v = preg_match('/\s+M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\s+/', ' '.$title.' ', $ms);
-	foreach ($ms as $m) if (strlen(trim($m)) > 0) return 1;
+	function Get()
+	{
+		global $_d;
+		
+		if (empty($_d['q'][0])) $_d['head'] .=
+			'<link rel="stylesheet" type="text/css" href="_main.css" />';
+	}
 }
+
+Module::RegisterModule('ModMain');
 
 ?>

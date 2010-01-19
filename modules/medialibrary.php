@@ -22,6 +22,7 @@ class MediaLibrary extends Module
 		foreach ($this->_items as $i)
 		{
 			$m = $this->_metadata[$i];
+			foreach (array_keys($m) as $k) $m[$k] = htmlspecialchars($m[$k]);
 			$ret .= $vp->ParseVars($g, $m);
 		}
 

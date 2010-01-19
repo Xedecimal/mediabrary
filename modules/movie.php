@@ -7,7 +7,7 @@ class ModMovie extends MediaLibrary
 	function __construct()
 	{
 		global $_d;
-		$_d['movie.ds'] = new DataSet($_d['db'], 'movie');
+		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'med_id');
 
 		$this->_class = 'movie';
 		$this->_fs_scrapes = array(
@@ -31,10 +31,10 @@ class ModMovie extends MediaLibrary
 	{
 		global $_d;
 
-		//$t = new Template();
-
 		if (empty($_d['q'][0]))
 		{
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="_movie.css" />';
+
 			preg_match('/(\S+)/', `du -h {$_d['config']['movie_path']}`, $m);
 			$size = $m[1];
 			$total = count(glob($_d['config']['movie_path'].'/*'));
@@ -42,14 +42,14 @@ class ModMovie extends MediaLibrary
 
 			return '<a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a>';
 		}
-		
-		if (@$_d['q'][0] != 'movie') return;
 
+		if (@$_d['q'][0] != 'movie') return;
+		
 		if (@$_d['q'][1] == 'play')
 		{
 			$file = filenoext($_d['q'][2]);
 
-			$url = $_d['config']['movie_url'].'/'.rawurlencode($_d['q'][2]);
+			$url = 'http://'.GetVar('HTTP_HOST').'/'.rawurlencode($_d['q'][2]);
 			$data = <<<EOF
 #EXTINF:-1,{$file}
 {$url}
@@ -61,23 +61,24 @@ EOF;
 		else if (@$_d['q'][1] == 'detail')
 		{
 			$t = new Template();
-			$m = array('med_id' => $_d['q'][2]);
-			$t->Set($mov = $_d['movie.ds']->GetOne(array('match' => $m)));
+			$m = array('med_path' => GetVar('path'));
+			$t->Set($this->ScrapeFS(GetVar('path')));
+			$t->Set($_d['movie.ds']->GetOne(array('match' => $m)));
 			die($t->ParseFile('t_movie_detail.xml'));
 		}
-		else if (@$_d['q'][1] == 'search')
+		else if (@$_d['q'][1] == 'find')
 		{
 			$m = $_d['movie.ds']->GetOne(array('match' => array(
-				'med_path' => $_POST['target'])));
-			if (empty($m)) $m = $this->ScrapeFS($_POST['target']);
+				'med_path' => GetVar('path'))));
+			if (empty($m)) $m = $this->ScrapeFS(GetVar('path'));
 			die(ModScrapeTMDB::Find($m));
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
-			$item = $this->ScrapeFS($_POST['target']);
+			$item = $this->ScrapeFS(GetVar('target'));
 
 			$dsitem = $_d['movie.ds']->GetOne(array(
-				'match' => array('med_path' => $_POST['target']),
+				'match' => array('med_path' => GetVar('target')),
 				'args' => GET_ASSOC
 			));
 
@@ -89,17 +90,24 @@ EOF;
 				$item = array_merge($item, $dsitem);
 			}
 
-			$item = ModScrapeTMDB::Scrape($item, $_POST['tmdb_id']);
+			$item = ModScrapeTMDB::Scrape($item, GetVar('tmdb_id'));
 
-			unset($item['med_thumb']);
+			$cats = $item['med_cats'];
+
+			unset($item['med_thumb'], $item['med_cats']);
+
 			$_d['movie.ds']->Add($item, true);
+			if (!isset($item['med_id'])) $id = $_d['movie.ds']->GetCustom('SELECT LAST_INSERT_ID()');
+			else $id = $item['med_id'];
+
+			foreach ($cats as $cat)
+				$_d['cat.ds']->Add(array('cat_movie' => $id, 'cat_name' => $cat));
 
 			$p = $item['med_path'];
 			$this->_items[0] = $p;
 			$this->_metadata[$p] = array_merge($item, $this->ScrapeFS($p));
-			$t = new Template();
-			$t->ReWrite('item', array($this, 'TagItem'));
-			die($t->ParseFile('t_movie.xml'));
+			die('We need json_encode!');
+			//die(json_encode($this->_metadata[$p]));
 		}
 		else if (@$_d['q'][1] == 'fix')
 		{
@@ -132,7 +140,7 @@ EOF;
 
 			die('Fixed');
 		}
-		else
+		else if (@$_d['q'][1] == 'cat')
 		{
 			// Load up and present ourselves fully.
 
@@ -143,6 +151,13 @@ EOF;
 			foreach ($this->_items as $i) $this->ScrapeFS($i);
 
 			return parent::Get();
+		}
+		else
+		{
+			$items = $_d['cat.ds']->Get(array(
+				'cols' => array('med_title' => SqlUnquote('DISTINCT cat_name'))
+			));
+			varinfo($items);
 		}
 	}
 

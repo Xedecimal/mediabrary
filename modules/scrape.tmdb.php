@@ -59,6 +59,7 @@ class ModScrapeTMDB
 		foreach ($sx_movies as $sx_movie)
 		{
 			$m = ModScrapeTMDB::Decode($sx_movie);
+			$t->Set($movie);
 			$t->Set($m);
 			$ret .= $t->ParseFile('t_movie_search_result.xml');
 		}
@@ -89,13 +90,21 @@ class ModScrapeTMDB
 
 		$sx = simplexml_load_string($xml);
 
-		// Scrape some general information
+		# Scrape some general information
+
 		list($movie['med_title']) = $sx->xpath('//movies/movie/name');
 		$movie['med_title'] = trim((string)$movie['med_title']);
 		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
 	
 		$dst_pinfo = pathinfo($movie['med_path']);
 		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
+
+		# Scrape Categories
+		
+		$elcats = $sx->xpath('//movies/movie/categories/category');
+		
+		foreach ($elcats as $e)
+			$movie['med_cats'][] = $e['name'];
 
 		# Scrape a cover thumbnail
 

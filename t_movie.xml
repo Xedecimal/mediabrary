@@ -1,6 +1,11 @@
+<div id="movies">
+<script type="text/javascript" src="_movie.js" />
+<link type="text/css" rel="stylesheet" href="_movie.css" />
+
+<div id="dialog-movie" class="hidden">Movie Here!</div>
+
 <item>
-	<div class="movie-item" title="{{med_path}}" id="item:{{med_id}}">
-	<img class="movie-image" src="{{med_thumb}}" alt="{{med_title}}" />
-	<input type="hidden" id="backdrop:{{med_id}}" value="{{med_backdrop}}" />
-	</div>
+	<a href="{{med_path}}" class="movie-item"><img class="movie-image"
+		src="{{med_thumb}}" alt="{{med_title}}" /></a>
 </item>
+</div>
