@@ -1,7 +1,5 @@
 <?php
 
-require_once('medialibrary.php');
-
 class ModMovie extends MediaLibrary
 {
 	function __construct()
@@ -35,9 +33,13 @@ class ModMovie extends MediaLibrary
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="_movie.css" />';
 
-			preg_match('/(\S+)/', `du -h {$_d['config']['movie_path']}`, $m);
-			$size = $m[1];
-			$total = count(glob($_d['config']['movie_path'].'/*'));
+			$total = $size = 0;
+			varinfo(glob($_d['config']['movie_path'].'\\*'));
+			foreach (glob($_d['config']['movie_path'].'/*') as $f)
+			{
+				$size += filesize($f);
+				$total++;
+			}
 			$text = "{$size} of {$total} Movies";
 
 			return '<a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a>';
