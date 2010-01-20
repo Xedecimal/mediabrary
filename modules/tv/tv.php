@@ -1,7 +1,5 @@
 <?php
 
-require_once('medialibrary.php');
-
 class ModTVSeries extends MediaLibrary
 {
 	function __construct()
@@ -24,7 +22,11 @@ class ModTVSeries extends MediaLibrary
 	{
 		global $_d;
 
-		if (empty($_d['q'][0])) return '<a href="{{app_abs}}/tv" id="a-tv">Television</a>';
+		if (empty($_d['q'][0]))
+		{
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/tv.css" />';
+			return '<a href="{{app_abs}}/tv" id="a-tv">Television</a>';
+		}
 		if (@$_d['q'][0] != 'tv') return;
 		else if (@$_d['q'][1] == 'watch')
 		{

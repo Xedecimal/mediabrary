@@ -58,7 +58,7 @@ class MediaLibrary extends Module
 
 		if (!empty($images))
 			$this->_metadata[$path]['med_thumb'] = URL($images[0]);
-		else $this->_metadata[$path]['med_thumb'] = "img/missing-{$this->_class}.jpg";
+		else $this->_metadata[$path]['med_thumb'] = $this->_missing_image;
 
 		return $this->_metadata[$path];
 	}

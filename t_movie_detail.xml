@@ -1,8 +1,0 @@
-<div id="movie-detail">
-	<a href="{{med_path}}" class="search"><img src="img/find.png"
-		alt="Find" /></a>
-	<a href="movie/play/{{med_filename}}"><img src="img/play.png"
-		alt="Play" /></a>
-	<a href="movie/vote/up/{{med_path}}"><img src="img/vote.png"
-		alt="Vote" /></a>
-</div>

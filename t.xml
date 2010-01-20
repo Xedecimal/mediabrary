@@ -10,5 +10,7 @@
 </head>
 <body>
 <block name="default" />
+<div class="vbreak"></div>
+<block name="foot" />
 </body>
 </html>

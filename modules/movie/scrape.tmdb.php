@@ -29,9 +29,9 @@ class ModScrapeTMDB
 
 	static function FindXML(&$title)
 	{
-		$title = str_replace('.', ' ', $title);
-		$title = preg_replace('/ -.*$/', '', $title);
-		$title = urlencode($title);
+		$reps = array('/ -.*$/' => '', '/the/i' => '', '/[.]+/' => ' ', '/[,]/' => '');
+		$title = preg_replace(array_keys($reps), array_values($reps), $title);
+		$title = urlencode(trim($title));
 		$xml = file_get_contents(TMDB_FIND.$title);
 
 		if (preg_match('/Nothing found/m', $xml))
@@ -61,7 +61,7 @@ class ModScrapeTMDB
 			$m = ModScrapeTMDB::Decode($sx_movie);
 			$t->Set($movie);
 			$t->Set($m);
-			$ret .= $t->ParseFile('t_movie_search_result.xml');
+			$ret .= $t->ParseFile('modules/movie/t_movie_search_result.xml');
 		}
 		
 		if (empty($ret))
@@ -111,11 +111,22 @@ class ModScrapeTMDB
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');
 		foreach ($urls as $url)
-			if ($data = @file_get_contents($url)) break;
-		$src_pinfo = pathinfo($url);
-		if (!file_put_contents("img/meta/movie/thm_".
-			"{$dst_pinfo['filename']}.{$src_pinfo['extension']}", $data))
-			trigger_error("Cannot write the cover image.", ERR_FATAL);
+			if ($data = file_get_contents($url)) break;
+
+		if (!empty($data))
+		{
+			// Clean up existing covers
+
+			foreach (glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*') as $f)
+				unlink($f);
+
+			$src_pinfo = pathinfo($url);
+			$dst = "img/meta/movie/thm_".
+				"{$dst_pinfo['filename']}.{$src_pinfo['extension']}";
+
+			if (!file_put_contents($dst, $data))
+				trigger_error("Cannot write the cover image.", ERR_FATAL);
+		}
 
 		# Scrape a large backdrop
 

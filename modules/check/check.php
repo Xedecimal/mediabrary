@@ -2,11 +2,17 @@
 
 class ModCheck extends Module
 {
+	public $Block = 'foot';
+
 	function Get()
 	{
 		global $_d;
-		
-		if (empty($_d['q'][0])) return '<a href="check" id="a-check">Click here to check your library.</a>';
+
+		if (empty($_d['q'][0]))
+		{
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/check/check.css" />';
+			return '<a href="check" id="a-check">Click here to check your library.</a>';
+		}
 		if ($_d['q'][0] != 'check') return;
 
 		global $mods;
@@ -26,7 +32,7 @@ class ModCheck extends Module
 
 		$t = new Template();
 		$t->Set('msgs', $msgout);
-		return $t->ParseFile('t_check.xml');
+		return $t->ParseFile('modules/check/t_check.xml');
 	}
 }
 

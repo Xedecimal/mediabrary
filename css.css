@@ -1,9 +1,5 @@
 html, body { margin: 0; padding: 0; height: 100%; }
 a img { border: 0; }
 
-#a-tv { background: url('img/main-shows.jpg'); }
-#a-pics { background: url('img/main-pics.jpg'); }
-#a-music { background: url('img/main-music.jpg'); }
-#a-check { clear: both; display: block; text-align: center; margin: auto; }
-
 .hidden { display: none; }
+.vbreak { clear: both; }

@@ -1,6 +1,6 @@
 <div id="movies">
-<script type="text/javascript" src="_movie.js" />
-<link type="text/css" rel="stylesheet" href="_movie.css" />
+<script type="text/javascript" src="modules/movie/_movie.js" />
+<link type="text/css" rel="stylesheet" href="modules/movie/_movie.css" />
 
 <div id="dialog-movie" class="hidden">Movie Here!</div>
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once('scrape.tmdb.php');
+
 class ModMovie extends MediaLibrary
 {
 	function __construct()
@@ -8,6 +10,7 @@ class ModMovie extends MediaLibrary
 		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'med_id');
 
 		$this->_class = 'movie';
+		$this->_missing_image = 'modules/movie/img/missing.jpg';
 		$this->_fs_scrapes = array(
 			'#/([^/]+) \((\d+)\)\.(\S+)$#' => array(
 				1 => 'med_title',
@@ -31,15 +34,15 @@ class ModMovie extends MediaLibrary
 
 		if (empty($_d['q'][0]))
 		{
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="_movie.css" />';
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/movie/_movie.css" />';
 
 			$total = $size = 0;
-			varinfo(glob($_d['config']['movie_path'].'\\*'));
 			foreach (glob($_d['config']['movie_path'].'/*') as $f)
 			{
 				$size += filesize($f);
 				$total++;
 			}
+			$size = GetSizeString($size);
 			$text = "{$size} of {$total} Movies";
 
 			return '<a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a>';
@@ -51,7 +54,7 @@ class ModMovie extends MediaLibrary
 		{
 			$file = filenoext($_d['q'][2]);
 
-			$url = 'http://'.GetVar('HTTP_HOST').'/'.rawurlencode($_d['q'][2]);
+			$url = 'http://'.GetVar('HTTP_HOST').'/nas/Movies/'.rawurlencode($_d['q'][2]);
 			$data = <<<EOF
 #EXTINF:-1,{$file}
 {$url}
@@ -65,8 +68,9 @@ EOF;
 			$t = new Template();
 			$m = array('med_path' => GetVar('path'));
 			$t->Set($this->ScrapeFS(GetVar('path')));
-			$t->Set($_d['movie.ds']->GetOne(array('match' => $m)));
-			die($t->ParseFile('t_movie_detail.xml'));
+			$dr = $_d['movie.ds']->GetOne(array('match' => $m));
+			if (!empty($dr)) $t->Set($dr);
+			die($t->ParseFile('modules/movie/t_movie_detail.xml'));
 		}
 		else if (@$_d['q'][1] == 'find')
 		{
@@ -77,10 +81,11 @@ EOF;
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
-			$item = $this->ScrapeFS(GetVar('target'));
+			$target = stripslashes(GetVar('target'));
+			$item = $this->ScrapeFS($target);
 
 			$dsitem = $_d['movie.ds']->GetOne(array(
-				'match' => array('med_path' => GetVar('target')),
+				'match' => array('med_path' => $target),
 				'args' => GET_ASSOC
 			));
 
@@ -93,23 +98,31 @@ EOF;
 			}
 
 			$item = ModScrapeTMDB::Scrape($item, GetVar('tmdb_id'));
-
-			$cats = $item['med_cats'];
+			
+			$cats = @$item['med_cats'];
 
 			unset($item['med_thumb'], $item['med_cats']);
 
 			$_d['movie.ds']->Add($item, true);
-			if (!isset($item['med_id'])) $id = $_d['movie.ds']->GetCustom('SELECT LAST_INSERT_ID()');
+			if (!isset($item['med_id']))
+				$id = $_d['movie.ds']->GetCustom('SELECT LAST_INSERT_ID()');
 			else $id = $item['med_id'];
 
+			$_d['cat.ds']->Remove(array('cat_movie' => $id));
+			if (!empty($cats))
 			foreach ($cats as $cat)
 				$_d['cat.ds']->Add(array('cat_movie' => $id, 'cat_name' => $cat));
 
 			$p = $item['med_path'];
 			$this->_items[0] = $p;
 			$this->_metadata[$p] = array_merge($item, $this->ScrapeFS($p));
-			die('We need json_encode!');
-			//die(json_encode($this->_metadata[$p]));
+			die(json_encode($this->_metadata[$p]));
+		}
+		else if (@$_d['q'][1] == 'remove')
+		{
+			$path = GetVar('path');
+			if (!empty($path))
+				$_d['movie.ds']->Remove(array('med_path' => $path));
 		}
 		else if (@$_d['q'][1] == 'fix')
 		{
@@ -117,9 +130,11 @@ EOF;
 			$src = '/'.str_replace(':', '&', implode('/', array_splice($_d['q'], 2)));
 
 			$pinfo = pathinfo($src);
-			$meta = $_d['movie.ds']->GetOne(array(
+			$meta = $this->ScrapeFS($src);
+			$dr = $_d['movie.ds']->GetOne(array(
 				'match' => array('med_path' => $src)
 			));
+			if (!empty($dr)) $meta = array_merge($meta, $dr);
 
 			$ftitle = $meta['med_title'];
 			$this->CleanTitleForFile($ftitle);
@@ -129,7 +144,10 @@ EOF;
 
 			// Apply File Transformations
 
+			//varinfo($src);
+			//varinfo($dst);
 			rename($src, $dst);
+
 			preg_rename(
 				'img/meta/movie/*'.filenoext($pinfo['basename']).'*',
 				'#img/meta/movie/(.*)'.preg_quote(filenoext($pinfo['basename'])).'(\..*)$#',
@@ -142,24 +160,17 @@ EOF;
 
 			die('Fixed');
 		}
-		else if (@$_d['q'][1] == 'cat')
+		else
 		{
 			// Load up and present ourselves fully.
 
-			$this->_template = 't_movie.xml';
+			$this->_template = 'modules/movie/t_movie.xml';
 
 			$this->_items = glob($_d['config']['movie_path'].'/*');
 			$this->_metadata = DataToArray($_d['movie.ds']->Get(), 'med_path');
 			foreach ($this->_items as $i) $this->ScrapeFS($i);
 
 			return parent::Get();
-		}
-		else
-		{
-			$items = $_d['cat.ds']->Get(array(
-				'cols' => array('med_title' => SqlUnquote('DISTINCT cat_name'))
-			));
-			varinfo($items);
 		}
 	}
 
@@ -211,7 +222,7 @@ EOF;
 			$this->CleanTitleForFile($title);
 
 			// Validate strict naming conventions.
-			if (!preg_match('#'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $i))
+			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $i))
 			{
 				$dst = str_replace(' ', '%20', $i);
 				$dst = str_replace('&', ':', $dst);

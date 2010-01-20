@@ -2,7 +2,7 @@
 
 require_once('config.php');
 require_once('xedlib/h_utility.php');
-//HandleErrors();
+HandleErrors();
 require_once('xedlib/h_module.php');
 require_once('xedlib/h_data.php');
 
