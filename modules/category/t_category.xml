@@ -1,4 +1,6 @@
 <div id="categories">
-<item><div class="category"><img src="modules/category/{{med_thumb}}" />
-	<a href="category/{{med_title}}">{{med_count}} items</a></div></item>
+<category>
+	<a href="?category={{med_title}}">{{med_title}}</a>
+	({{med_count}})
+</category>
 </div>

@@ -166,9 +166,22 @@ EOF;
 
 			$this->_template = 'modules/movie/t_movie.xml';
 
-			$this->_items = glob($_d['config']['movie_path'].'/*');
-			$this->_metadata = DataToArray($_d['movie.ds']->Get(), 'med_path');
-			foreach ($this->_items as $i) $this->ScrapeFS($i);
+			$query = @$_d['movie.cb.query'];
+			$this->_metadata = DataToArray($_d['movie.ds']->Get($query), 'med_path');
+
+			if (!$_d['movie.skipfs'])
+			{
+				$this->_items = glob($_d['config']['movie_path'].'/*');
+			 	foreach ($this->_items as $i) $this->ScrapeFS($i);
+			}
+			else
+			{
+				foreach ($this->_metadata as $md)
+				{
+					$md += $this->ScrapeFS($md['med_path']);
+					$this->_items[] = $md['med_path'];
+				}
+			}
 
 			return parent::Get();
 		}

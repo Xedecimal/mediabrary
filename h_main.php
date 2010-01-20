@@ -14,7 +14,7 @@ $_d['db'] = new Database();
 $_d['db']->Open($_d['config']['db_url']);
 
 $_d['q'] = explode('/', GetVar('q'));
-
+$_d['app_abs'] = GetRelativePath(dirname(__FILE__));
 $_d['head'] = '';
 
 class ModMain extends Module

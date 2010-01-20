@@ -2,10 +2,13 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title></title>
-<script type="text/javascript" src="xedlib/js/jquery.js"></script>
-<script type="text/javascript" src="xedlib/js/jquery.ui.js"></script>
-<link rel="stylesheet" type="text/css" href="css.css" />
-<link rel="stylesheet" type="text/css" href="xedlib/css/smoothness/jquery.ui.css" />
+<script type="text/javascript">
+app_abs = '{{app_abs}}';
+</script>
+<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.js"></script>
+<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.ui.js"></script>
+<link rel="stylesheet" type="text/css" href="{{app_abs}}/css.css" />
+<link rel="stylesheet" type="text/css" href="{{app_abs}}/xedlib/css/smoothness/jquery.ui.css" />
 {{head}}
 </head>
 <body>

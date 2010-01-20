@@ -7,7 +7,7 @@ $(function () {
 	});
 
 	$('.movie-item').live('click', function () {
-		$('#dialog-movie').load('movie/detail',
+		$('#dialog-movie').load(app_abs+'/movie/detail',
 			{path: $(this).attr('href')},
 			function () { $('#dialog-movie').dialog('open'); }
 		);
