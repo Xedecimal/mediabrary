@@ -25,7 +25,7 @@ class ModTVSeries extends MediaLibrary
 		if (empty($_d['q'][0]))
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/tv.css" />';
-			return '<a href="{{app_abs}}/tv" id="a-tv">Television</a>';
+			return '<a href="tv" id="a-tv">Television</a>';
 		}
 		if (@$_d['q'][0] != 'tv') return;
 		else if (@$_d['q'][1] == 'watch')
@@ -56,12 +56,17 @@ EOF;
 		}
 		else
 		{
-			$this->_template = 't_tv.xml';
-			$this->_metadata = DataToArray($_d['tv.ds']->Get(), 'tv_path');
-			$this->_items = Comb($_d['config']['tv_path'], null, OPT_DIRS);
-			unset($this->_items[0]);
-			foreach ($this->_items as $i) $this->ScrapeFS($i);
-			$this->_img_missing = 'img/missing-tv.png';
+			$this->_template = 'modules/tv/t_tv.xml';
+			$this->_missing_image = 'modules/tv/img/missing.jpg';
+
+			$this->_items = DataToArray($_d['tv.ds']->Get(), 'tv_path');
+			foreach (Comb($_d['config']['tv_path'], null, OPT_DIRS) as $f)
+			{
+				$this->_items[$f] = $this->ScrapeFS($f);
+				$this->GetMedia($this->_items[$f]);
+			}
+			
+			unset($this->_items[$_d['config']['tv_path']]);
 
 			return parent::Get();
 		}
@@ -74,7 +79,7 @@ class ModTVEpisode extends MediaLibrary
 {
 	function __construct()
 	{
-		$this->_template = 't_tv_series.xml';
+		$this->_template = 'modules/tv/t_tv_series.xml';
 		$this->_class = 'episode';
 		$this->_fs_scrapes = array(
 			//path/{series}/{series} - S{season}E{episode} - {title}.ext
@@ -91,18 +96,18 @@ class ModTVEpisode extends MediaLibrary
 				3 => 'med_season',
 				4 => 'med_episode'),
 			//path/{series}/S{season}E{episode} - {title}.ext
-			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s([^.]+).*$#' => array(
+			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s(.+)\.[^.]+$#' => array(
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode',
 				4 => 'med_title'),
 			//path/{series}/S{season}E{episode}.ext
-			'#/([^/]+)/S([0-9]+)E([0-9]+)\..*#' => array(
+			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#' => array(
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode'),
 			//path/{series}/{season}{episode} - {title}.ext
-			'#/([^/]+)/([0-9]+)([0-9]{2})\s*-\s*(.+)\.[^.]*$#' => array(
+			'#/([^/]+)/([0-9]+)([0-9]{2})\s*-\s*(.+)\.[^.]+$#' => array(
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode',
@@ -115,8 +120,8 @@ class ModTVEpisode extends MediaLibrary
 	{
 		global $_d;
 
-		$this->_items = glob($_d['config']['tv_path'].'/'.$this->Series.'/*');
-		foreach ($this->_items as $i) $this->ScrapeFS($i);
+		foreach (glob($_d['config']['tv_path'].'/'.$this->Series.'/*') as $f)
+			$this->_items[$f] = $this->ScrapeFS($f);
 		return parent::Get();
 	}
 }

@@ -1,5 +1,5 @@
 <null>
-<script type="text/javascript" src="_tv.js" />
+<script type="text/javascript" src="modules/tv/_tv.js" />
 
 <item>
 	<div class="tv-item" title="{{med_title}}" id="item:{{mov_id}}">

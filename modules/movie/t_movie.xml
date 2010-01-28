@@ -7,7 +7,7 @@
 <callback ds="_d" name="movie.cb.head" />
 
 <item>
-	<a href="{{med_path}}" class="movie-item"><img class="movie-image"
+	<a href="{{fs_path}}" class="movie-item"><img class="movie-image"
 		src="{{med_thumb}}" alt="{{med_title}}" /></a>
 </item>
 </div>

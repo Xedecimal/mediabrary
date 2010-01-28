@@ -3,7 +3,8 @@ $(function () {
 		'modal': true,
 		autoOpen: false,
 		width: '80%',
-		position: 'top'
+		position: 'top',
+		hide: 'blind'
 	});
 
 	$('.movie-item').live('click', function () {
@@ -36,13 +37,18 @@ $(function () {
 	$('.scrape').live('click', function () {
 		m_id = $(this).attr('id');
 		path = $(this).attr('href').replace("'", "\\'");
-		$('a[href="'+path+'"] img[class=movie-image]').attr('src', 'modules/movie/img/missing.jpg');
+		$('a[href="'+path+'"] img[class=movie-image]').attr('src', 'modules/movie/img/loading.jpg');
 		basename = path.match(/([^/]+)\.([^.]+)$/)[0];
 		$.get('movie/scrape', {target: path, tmdb_id: m_id}, function (data) {
-			//$('#dialog-movie').html(data);
-			$('a[href="'+data.med_path.replace("'","\\'")+'"] img[class=movie-image]').attr('src', data.med_thumb);
-			$('#dialog-movie').dialog('close');
+			$('a[href="'+data.fs_path.replace("'","\\'")+'"] img[class=movie-image]').attr('src', data.med_thumb);
 		}, 'json');
+		$('#dialog-movie').dialog('close');
+
+		return false;
+	});
+
+	$('.a-movie-scrape').live('click', function () {
+		$('#dialog-movie').html(data);
 		return false;
 	});
 });

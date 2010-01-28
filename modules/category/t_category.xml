@@ -1,6 +1,5 @@
 <div id="categories">
 <category>
-	<a href="?category={{med_title}}">{{med_title}}</a>
-	({{med_count}})
+	<a href="?category={{cat_name}}" style="font-size: {{cat_size}}px">{{cat_name}}</a>
 </category>
 </div>

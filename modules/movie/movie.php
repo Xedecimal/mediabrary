@@ -13,17 +13,18 @@ class ModMovie extends MediaLibrary
 		$this->_missing_image = 'modules/movie/img/missing.jpg';
 		$this->_fs_scrapes = array(
 			'#/([^/]+) \((\d+)\)\.(\S+)$#' => array(
-				1 => 'med_title',
-				2 => 'med_date',
-				3 => 'med_ext'),
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'),
+
 			'#/([^/[]+)\[([0-9]{4})\].*\.(.*)$#' => array(
-				1 => 'med_title',
-				2 => 'med_date',
-				3 => 'med_ext'
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'
 			),
 			'#([^/]+)\s*\.(\S+)$#' => array(
-				1 => 'med_title',
-				2 => 'med_ext'
+				1 => 'fs_title',
+				2 => 'fs_ext'
 			)
 		);
 	}
@@ -49,7 +50,7 @@ class ModMovie extends MediaLibrary
 		}
 
 		if (@$_d['q'][0] != 'movie') return;
-		
+
 		if (@$_d['q'][1] == 'play')
 		{
 			$file = filenoext($_d['q'][2]);
@@ -74,9 +75,10 @@ EOF;
 		}
 		else if (@$_d['q'][1] == 'find')
 		{
-			$m = $_d['movie.ds']->GetOne(array('match' => array(
+			$m = $this->ScrapeFS(GetVar('path'));
+			$d = $_d['movie.ds']->GetOne(array('match' => array(
 				'med_path' => GetVar('path'))));
-			if (empty($m)) $m = $this->ScrapeFS(GetVar('path'));
+			if (!empty($d)) $m += $d;
 			die(ModScrapeTMDB::Find($m));
 		}
 		else if (@$_d['q'][1] == 'scrape')
@@ -98,9 +100,11 @@ EOF;
 			}
 
 			$item = ModScrapeTMDB::Scrape($item, GetVar('tmdb_id'));
-			
+
 			$cats = @$item['med_cats'];
 
+			$item['med_path'] = $item['fs_path'];
+			foreach (array_keys($item) as $k) if ($k[0] != 'm') unset($item[$k]);
 			unset($item['med_thumb'], $item['med_cats']);
 
 			$_d['movie.ds']->Add($item, true);
@@ -114,9 +118,9 @@ EOF;
 				$_d['cat.ds']->Add(array('cat_movie' => $id, 'cat_name' => $cat));
 
 			$p = $item['med_path'];
-			$this->_items[0] = $p;
-			$this->_metadata[$p] = array_merge($item, $this->ScrapeFS($p));
-			die(json_encode($this->_metadata[$p]));
+			$this->_items[$p] = array_merge($item, $this->ScrapeFS($p));
+			$this->GetMedia($this->_items[$p]);
+			die(json_encode($this->_items[$p]));
 		}
 		else if (@$_d['q'][1] == 'remove')
 		{
@@ -144,8 +148,6 @@ EOF;
 
 			// Apply File Transformations
 
-			//varinfo($src);
-			//varinfo($dst);
 			rename($src, $dst);
 
 			preg_rename(
@@ -154,7 +156,7 @@ EOF;
 				'img/meta/movie/\1'.$meta['med_title'].' ('.$fyear.')\2');
 
 			// Apply Database Transformations
-			
+
 			$_d['movie.ds']->Update(array('med_path' => $src),
 				array('med_path' => $dst, 'med_filename' => basename($dst)));
 
@@ -165,23 +167,30 @@ EOF;
 			// Load up and present ourselves fully.
 
 			$this->_template = 'modules/movie/t_movie.xml';
-
 			$query = @$_d['movie.cb.query'];
-			$this->_metadata = DataToArray($_d['movie.ds']->Get($query), 'med_path');
+			$this->_items = array();
 
-			if (!$_d['movie.skipfs'])
+			// Collect Filesystem Metadata
+
+			if (empty($_d['movie.skipfs']))
+			foreach (glob($_d['config']['movie_path'].'/*') as $f)
+				$this->_items[$f] += $this->ScrapeFS($f);
+
+			// Collect Database Metadata
+
+			foreach ($_d['movie.ds']->Get($query) as $i)
 			{
-				$this->_items = glob($_d['config']['movie_path'].'/*');
-			 	foreach ($this->_items as $i) $this->ScrapeFS($i);
-			}
-			else
-			{
-				foreach ($this->_metadata as $md)
+				if (@$_d['movie.skipfs'])
 				{
-					$md += $this->ScrapeFS($md['med_path']);
-					$this->_items[] = $md['med_path'];
+					// We'll need to emulate a filesystem.
+					$i['fs_path'] = $i['med_path'];
+					$i['fs_title'] = $i['med_title'];
+					$this->_items[$i['med_path']] = $i;
 				}
+				else $this->_items[$i['med_path']] += $i;
 			}
+
+			foreach ($this->_items as $i) $this->GetMedia($i);
 
 			return parent::Get();
 		}
@@ -191,95 +200,124 @@ EOF;
 	{
 		global $_d;
 
-		$this->_items = glob($_d['config']['movie_path'].'/*');
-		$this->_metadata = DataToArray($_d['movie.ds']->Get(), 'med_path');
+		// Collect known data
+
+		foreach(glob($_d['config']['movie_path'].'/*') as $f)
+			$this->_items[$f] = $this->ScrapeFS($f);
+
+		foreach ($_d['movie.ds']->Get() as $dr)
+		{
+			$p = $dr['med_path'];
+			if (!isset($this->_items[$p])) $this->_items[$p] = array();
+			$this->_items[$p] += $dr;
+		}
 
 		$ret = array();
 
 		// Walk through all known movies.
 
-		foreach ($this->_items as $i)
+		foreach ($this->_items as $md)
 		{
-			// Collect filename based information.
-			$this->ScrapeFS($i);
+			// Filesystem based checks
+
+			if ($md['fs_ext'] != 'avi')
+				$ret['extension'][] = "File {$md['fs_path']} has a bad extension.";
 
 			// Metadata Related
 
+			if (!file_exists($md['fs_path']))
+			{
+				$ret['cleanup'][] = "Removed database entry for non-existing '"
+					.$md['med_path']."'";
+				$_d['movie.ds']->Remove(array('med_path' => $md['med_path']));
+			}
+
 			// Check if this movie has been scraped.
-			$md = $this->_metadata[$i];
 
 			if (empty($md['med_date']))
 			{
-				$ret['Scrape'][] = "File {$i} needs to be scraped.<br/>\n";
+				$ret['Scrape'][] = "File {$md['fs_path']} needs to be scraped.<br/>\n";
 				continue;
 			}
 
 			// Date Related
 
 			$date = $md['med_date'];
-
 			$year = substr($date, 0, 4);
 
 			// Missing month and day.
 
 			if (strlen($date) < 10)
 			{
-				$ret['Scrape'][] = "File {$i} has incorrectly scraped year ".
-					"\"{$year}\"";
+				$ret['Scrape'][] = "File {$md['med_path']} has incorrectly
+					scraped year \"{$year}\"";
 			}
 
 			// Title Related
 
-			$title = $this->_metadata[$i]['med_title'];
+			$title = $md['med_title'];
 
 			$this->CleanTitleForFile($title);
 
 			// Validate strict naming conventions.
-			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $i))
+			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['med_path']))
 			{
-				$dst = str_replace(' ', '%20', $i);
+				$dst = str_replace(' ', '%20', $md['fs_path']);
 				$dst = str_replace('&', ':', $dst);
-				$ret['StrictNames'][] = "File {$i} has invalid name, should be".
+				$ret['StrictNames'][] = "File {$md['fs_path']} has invalid name, should be".
 					" \"{$title} ({$year}).{$md['med_ext']}\"".
 					' <a href="movie/fix/'.$dst.'" class="a-fix">Fix</a>';
 			}
-			
+
 			// Media Related
-			
+
 			if (count(glob("img/meta/movie/thm_{$title} ($year).*")) < 1)
 				$ret['Media'][] = "Cover missing for {$title} ({$year})";
 		}
 
-		// Now process all metadata and compare local files.
-
-		foreach ($this->_metadata as $md)
-		{
-			if (!file_exists($md['med_path']))
-			{
-				$ret['cleanup'][] = "Removed database entry for non-existing '"
-					.$md['med_path']."'";
-				$_d['movie.ds']->Remove(array('med_path' => $md['med_path']));
-			}
-		}
-		
 		// Process all cached media
 
+		$fi = new finfo(FILEINFO_MIME);
 		foreach (glob('img/meta/movie/*') as $f)
 		{
-			$fname = basename($f);
-			
-			// Backdrop
-			if (preg_match('#.*bd_([^/]+)\.(.*)$#', $fname, $m))
+			if ($fi)
+			switch ($mt = $fi->file($f))
 			{
-				if (count(glob($_d['config']['movie_path'].'/'.$m[1].'*')) < 1)
+				case 'image/jpeg; charset=binary':
+					$ext = 'jpg';
+					break;
+				case 'image/png; charset=binary':
+					$ext = 'png';
+					break;
+				default:
+					varinfo($mt);
+			}
+
+			$fname = basename($f);
+
+			// Backdrop
+			if (preg_match('#(.*bd_)([^/]+)\.(.*)$#', $fname, $m))
+			{
+				if ($m[3] != $ext)
+				{
+					rename($f, dirname($f).'/'.$m[1].$m[2].'.'.$ext);
+					$ret['cleanup'][] = "Renamed {$f}: invalid extension "
+						."{$m[2]} should be {$ext}";
+				}
+				if (count(glob($_d['config']['movie_path'].'/'.$m[2].'*')) < 1)
 				{
 					unlink($f);
 					$ret['cleanup'][] = 'Removed backdrop for missing movie: '.$f;
 				}
 			}
-			else if (preg_match('#.*thm_([^/]+)\.(.*)$#', $fname, $m))
+			else if (preg_match('#(.*thm_)([^/]+)\.(.*)$#', $fname, $m))
 			{
-				if (count(glob($_d['config']['movie_path'].'/'.$m[1].'*')) < 1)
+				if ($m[3] != $ext)
+				{
+					rename($f, dirname($f).'/'.$m[1].$m[2].'.'.$ext);
+					$ret['cleanup'][] = "Renamed {$f}: invalid extension {$m[2]} should be {$ext}";
+				}
+				if (count(glob($_d['config']['movie_path'].'/'.$m[2].'*')) < 1)
 				{
 					unlink($f);
 					$ret['cleanup'][] = 'Removed thumbnail for missing movie: '.$f;
@@ -287,12 +325,12 @@ EOF;
 			}
 			else
 			{
-				varinfo('Unknown file: '.$f);
+				unlink($f);
+				$ret['cleanup'][] = 'Removed unassociated file: '.$f;
 			}
 		}
 
-		$ret['Stats'][] = 'Checked '.count($this->_items).' movie files.';
-		$ret['Stats'][] = 'Checked '.count($this->_metadata).' metadata entries.';
+		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
 		$ret['Stats'][] = 'Checked '.count(glob('img/meta/movie/*')).' media files.';
 
 		return $ret;
