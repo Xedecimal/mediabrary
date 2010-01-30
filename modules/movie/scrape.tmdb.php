@@ -116,45 +116,50 @@ class ModScrapeTMDB
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');
 
-		// Collect all cover sizes
+		// Covers are available to grab
 
-		foreach ($urls as $url)
+		if (!empty($urls))
 		{
-			$size = @getimagesize($url);
-			$sizes[(string)$url] = $size[0]*$size[1];
-		}
+			// Collect all cover sizes
 
-		arsort($sizes);
+			foreach ($urls as $url)
+			{
+				$size = @getimagesize($url);
+				$sizes[(string)$url] = $size[0]*$size[1];
+			}
 
-		// Find a size that is available.
-		foreach (array_keys($sizes) as $url)
-			if ($data = file_get_contents($url)) break;
+			arsort($sizes);
 
-		if (!empty($data))
-		{
-			// Clean up existing covers
+			// Find a size that is available.
+			foreach (array_keys($sizes) as $url)
+				if ($data = file_get_contents($url)) break;
 
-			foreach (glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*') as $f)
-				unlink($f);
+			if (!empty($data))
+			{
+				// Clean up existing covers
 
-			$src_pinfo = pathinfo($url);
-			$dst = "img/meta/movie/thm_".
-				"{$dst_pinfo['filename']}.{$src_pinfo['extension']}";
+				foreach (glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*') as $f)
+					unlink($f);
 
-			if (!file_put_contents($dst, $data))
-				trigger_error("Cannot write the cover image.", ERR_FATAL);
-		}
+				$src_pinfo = pathinfo($url);
+				$dst = "img/meta/movie/thm_".
+					"{$dst_pinfo['filename']}.{$src_pinfo['extension']}";
 
-		# Scrape a large backdrop
+				if (!file_put_contents($dst, $data))
+					trigger_error("Cannot write the cover image.", ERR_FATAL);
+			}
 
-		$xp_back = '//movies/movie/images/image[@type="backdrop"][@size="poster"]';
-		$url = xpath_attr($sx, $xp_back, 'url');
-		if (!empty($url))
-		{
-			$src_pinfo = pathinfo($url);
-			$data = file_get_contents($url);
-			file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
-				"{$src_pinfo['extension']}", $data);
+			# Scrape a large backdrop
+
+			$xp_back = '//movies/movie/images/image[@type="backdrop"][@size="poster"]';
+			$url = xpath_attr($sx, $xp_back, 'url');
+			if (!empty($url))
+			{
+				$src_pinfo = pathinfo($url);
+				$data = file_get_contents($url);
+				file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
+					"{$src_pinfo['extension']}", $data);
+			}
 		}
 
 		return $movie;
