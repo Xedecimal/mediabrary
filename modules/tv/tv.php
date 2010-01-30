@@ -52,6 +52,7 @@ EOF;
 		}
 		else if (@$_d['q'][1] == 'search')
 		{
+			require_once('scrape.tvdb.php');
 			return ModScrapeTVDB::Find($_d['q'][2]);
 		}
 		else
@@ -65,7 +66,7 @@ EOF;
 				$this->_items[$f] = $this->ScrapeFS($f);
 				$this->GetMedia($this->_items[$f]);
 			}
-			
+
 			unset($this->_items[$_d['config']['tv_path']]);
 
 			return parent::Get();
@@ -112,10 +113,16 @@ class ModTVEpisode extends MediaLibrary
 				2 => 'med_season',
 				3 => 'med_episode',
 				4 => 'med_title'
+			),
+			//path/{series}/{series}.S{season}E{episode}.*
+			'#/([^/]+)/[^.]+\.S([0-9]+)E([0-9]+).*#' => array(
+				1 => 'med_series',
+				2 => 'med_season',
+				3 => 'med_episode'
 			)
 		);
 	}
-	
+
 	function Get()
 	{
 		global $_d;
