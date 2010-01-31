@@ -89,38 +89,39 @@ class ModTVEpisode extends MediaLibrary
 		$this->_class = 'episode';
 		$this->_fs_scrapes = array(
 			//path/{series}/{series} - S{season}E{episode} - {title}.ext
-			'#/([^/]+)/([^/-]+)\s*-\s*S([0-9]+)E([0-9]+)\s*-\s*([^.]+)\.[^.]+$#' => array(
+			'#/([^/]+)/([^/-]+)\s*-\s*S([0-9]+)E([0-9]+)\s*-\s*([^.]+)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_series',
 				3 => 'med_season',
 				4 => 'med_episode',
 				5 => 'med_title'),
 			//path/{series}/{title} - S{season}E{episode}.ext
-			'#/([^/]+)/([^/-]+)\s-\sS([0-9]+)E([0-9]+)\..*$#' => array(
+			'#/([^/]+)/([^/-]+)\s-\sS([0-9]+)E([0-9]+)\..*$#i' => array(
 				1 => 'med_series',
 				2 => 'med_title',
 				3 => 'med_season',
 				4 => 'med_episode'),
 			//path/{series}/S{season}E{episode} - {title}.ext
-			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s(.+)\.[^.]+$#' => array(
+			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s(.+)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode',
 				4 => 'med_title'),
 			//path/{series}/S{season}E{episode}.ext
-			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#' => array(
+			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#i' => array(
+				0 => 'med_title',
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode'),
 			//path/{series}/{season}{episode} - {title}.ext
-			'#/([^/]+)/([0-9]+)([0-9]{2})\s*-\s*(.+)\.[^.]+$#' => array(
+			'#/([^/]+)/([0-9]+)([0-9]{2})\s*-\s*(.+)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode',
 				4 => 'med_title'
 			),
 			//path/{series}/{title}S{season}E{episode}
-			'#/([^/]+)/([^/]+)S([0-9]+)E([0-9]+)(.*)#' => array(
+			'#/([^/]+)/([^/]+)S([0-9]+)E([0-9]+)(.*)#i' => array(
 				1 => 'med_series',
 				2 => 'med_title',
 				3 => 'med_season',
