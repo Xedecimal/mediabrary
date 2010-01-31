@@ -16,11 +16,11 @@ class ModCategory extends MediaLibrary
 		global $_d;
 
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
-		/*$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
-			'cat_movie = med_id', 'LEFT JOIN');*/
-		//$cat = GetVar('category', SqlIs('NULL'));
-		//$_d['movie.cb.query']['match']['cat_name'] = $cat;
-		//$_d['movie.skipfs'] = true;
+		$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
+			'cat_movie = med_id', 'LEFT JOIN');
+		$cat = GetVar('category');
+		if (!empty($cat)) $_d['movie.cb.query']['match']['cat_name'] = $cat;
+		$_d['movie.skipfs'] = true;
 	}
 
 	function Prepare()
@@ -73,7 +73,7 @@ class ModCategory extends MediaLibrary
 
 		// Get relative sizes for a tag cloud display
 		foreach ($cats as $c) $trel[$c['cat_name']] = $c['cat_count'];
-		$sizes = get_relative_sizes($trel, 10, 40);
+		$sizes = get_relative_sizes($trel, 12, 24);
 
 		$vp = new VarParser();
 		foreach ($cats as $c)

@@ -6,6 +6,8 @@ class ModMovie extends MediaLibrary
 {
 	function __construct()
 	{
+		parent::__construct();
+
 		global $_d;
 		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'med_id');
 
@@ -164,6 +166,11 @@ EOF;
 		}
 		else
 		{
+			if ($q = GetVar('query'))
+			{
+				$_d['movie.cb.query']['match']['med_title'] = SqlLike("%{$q}%");
+			}
+
 			// Load up and present ourselves fully.
 
 			$this->_template = 'modules/movie/t_movie.xml';

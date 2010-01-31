@@ -2,7 +2,9 @@
 <script type="text/javascript" src="{{app_abs}}/modules/movie/_movie.js" />
 <link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/_movie.css" />
 
-<div id="dialog-movie" class="hidden">Movie Here!</div>
+Search: <input type="text" id="movie-search" />
+
+<div id="dialog-movie" class="hidden"></div>
 
 <callback ds="_d" name="movie.cb.head" />
 
