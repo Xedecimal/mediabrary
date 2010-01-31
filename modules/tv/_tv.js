@@ -12,7 +12,7 @@ $(function () {
 	});
 
 	$('#scrape-tv-link').live('click', function () {
-		$.get('tv/search/'+$(this).attr('title'), function (data) {
+		$.get('tv/search/'+$(this).attr('href'), function (data) {
 			$('#scrape-tv-link').after(data);
 		}, 'html')
 		return false;

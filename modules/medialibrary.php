@@ -4,12 +4,18 @@ require_once('h_main.php');
 
 class MediaLibrary extends Module
 {
+	function __construct() { $this->_vars = array(); }
+
 	function Get()
 	{
-		ksort($this->_items);
-		$t = new Template();
-		$t->ReWrite('item', array($this, 'TagItem'));
-		return $t->Parsefile($this->_template);
+		if (!empty($this->_items))
+		{
+			ksort($this->_items);
+			$t = new Template();
+			$t->ReWrite('item', array($this, 'TagItem'));
+			$t->Set($this->_vars);
+			return $t->Parsefile($this->_template);
+		}
 	}
 
 	function TagItem($t, $g)

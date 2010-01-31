@@ -4,6 +4,8 @@ class ModTVSeries extends MediaLibrary
 {
 	function __construct()
 	{
+		parent::__construct();
+
 		global $_d;
 
 		$_d['tv.ds'] = new DataSet($_d['db'], 'tv');
@@ -47,6 +49,7 @@ EOF;
 		{
 			$series = GetVar('name');
 			$m = new ModTVEpisode();
+			$m->_vars['series'] = $series;
 			$m->Series = $series;
 			return $m->Get();
 		}
@@ -80,6 +83,8 @@ class ModTVEpisode extends MediaLibrary
 {
 	function __construct()
 	{
+		parent::__construct();
+
 		$this->_template = 'modules/tv/t_tv_series.xml';
 		$this->_class = 'episode';
 		$this->_fs_scrapes = array(
@@ -114,11 +119,12 @@ class ModTVEpisode extends MediaLibrary
 				3 => 'med_episode',
 				4 => 'med_title'
 			),
-			//path/{series}/{series}.S{season}E{episode}.*
-			'#/([^/]+)/[^.]+\.S([0-9]+)E([0-9]+).*#' => array(
+			//path/{series}/{title}S{season}E{episode}
+			'#/([^/]+)/([^/]+)S([0-9]+)E([0-9]+)(.*)#' => array(
 				1 => 'med_series',
-				2 => 'med_season',
-				3 => 'med_episode'
+				2 => 'med_title',
+				3 => 'med_season',
+				4 => 'med_episode'
 			)
 		);
 	}
@@ -127,8 +133,9 @@ class ModTVEpisode extends MediaLibrary
 	{
 		global $_d;
 
-		foreach (glob($_d['config']['tv_path'].'/'.$this->Series.'/*') as $f)
+		foreach (glob($_d['config']['tv_path'].'/'.$this->_vars['series'].'/*') as $f)
 			$this->_items[$f] = $this->ScrapeFS($f);
+
 		return parent::Get();
 	}
 }
