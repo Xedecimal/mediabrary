@@ -29,7 +29,7 @@ class ModScrapeTMDB
 
 	static function FindXML(&$title)
 	{
-		$reps = array('/ -.*$/' => '', /*'/the /i' => '',*/ '/[.]+/' => ' ');
+		$reps = array('#\'#' => '', '# -.*$#' => '', '#([.]{1} |\.|-)#' => ' ');
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
 		$title = urlencode(trim($title));
 		$xml = file_get_contents(TMDB_FIND.$title);
@@ -79,11 +79,15 @@ class ModScrapeTMDB
 
 	static function cmp_title($cmp1, $cmp2)
 	{
-		similar_text($GLOBALS['_movie']['fs_title'], (string)$cmp1->name, $title1);
-		similar_text($GLOBALS['_movie']['fs_date'], date('Y', MyDateTimestamp($cmp1->released)), $date1);
+		global $_movie;
 
-		similar_text($GLOBALS['_movie']['fs_title'], (string)$cmp2->name, $title2);
-		similar_text($GLOBALS['_movie']['fs_date'], date('Y', MyDateTimestamp($cmp2->released)), $date2);
+		similar_text($_movie['fs_title'], (string)$cmp1->name, $title1);
+		similar_text($_movie['fs_title'], (string)$cmp2->name, $title2);
+		if (isset($_movie['fs_date']))
+		{
+			similar_text($_movie['fs_date'], date('Y', MyDateTimestamp($cmp1->released)), $date1);
+			similar_text($_movie['fs_date'], date('Y', MyDateTimestamp($cmp2->released)), $date2);
+		}
 
 		if ($title1 != $title2) return $title1 <= $title2;
 		return $date1 <= $date2;
@@ -92,11 +96,11 @@ class ModScrapeTMDB
 	static function Scrape($movie, $id)
 	{
 		$xml = file_get_contents(TMDB_INFO.$id);
-
 		$sx = simplexml_load_string($xml);
 
 		# Scrape some general information
 
+		$movie['med_tmdbid'] = $id;
 		list($movie['med_title']) = $sx->xpath('//movies/movie/name');
 		$movie['med_title'] = trim((string)$movie['med_title']);
 		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
@@ -163,6 +167,14 @@ class ModScrapeTMDB
 		}
 
 		return $movie;
+	}
+
+	static function GetCovers($id)
+	{
+		$xml = file_get_contents(TMDB_INFO.$id);
+		$sx = simplexml_load_string($xml);
+		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
+		return xpath_attrs($sx, $xp_thumb, 'url');
 	}
 }
 

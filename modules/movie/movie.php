@@ -14,14 +14,27 @@ class ModMovie extends MediaLibrary
 		$this->_class = 'movie';
 		$this->_missing_image = 'modules/movie/img/missing.jpg';
 		$this->_fs_scrapes = array(
+			'#([^/]+)([0-9]{4}).*\.([^.]+)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'
+			),
+			'#([^/\[]+)\[([0-9]{4})\].*\.([^.]+)#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'
+			),
 			'#/([^/]+) \((\d+)\)\.(\S+)$#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
 				3 => 'fs_ext'),
-
 			'#/([^/[]+)\[([0-9]{4})\].*\.(.*)$#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
+				3 => 'fs_ext'
+			),
+			'#([^/]+)(dvdrip|xvid|limited).*\.([^.]+)$#i' => array(
+				1 => 'fs_title',
 				3 => 'fs_ext'
 			),
 			'#([^/]+)\s*\.(\S+)$#' => array(
@@ -111,7 +124,10 @@ EOF;
 
 			$_d['movie.ds']->Add($item, true);
 			if (!isset($item['med_id']))
+			{
 				$id = $_d['movie.ds']->GetCustom('SELECT LAST_INSERT_ID()');
+				$id = $id[0][0];
+			}
 			else $id = $item['med_id'];
 
 			$_d['cat.ds']->Remove(array('cat_movie' => $id));
@@ -155,7 +171,7 @@ EOF;
 			preg_rename(
 				'img/meta/movie/*'.filenoext($pinfo['basename']).'*',
 				'#img/meta/movie/(.*)'.preg_quote(filenoext($pinfo['basename'])).'(\..*)$#',
-				'img/meta/movie/\1'.$meta['med_title'].' ('.$fyear.')\2');
+				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
 
 			// Apply Database Transformations
 
@@ -163,6 +179,26 @@ EOF;
 				array('med_path' => $dst, 'med_filename' => basename($dst)));
 
 			die('Fixed');
+		}
+		else if (@$_d['q'][1] == 'covers')
+		{
+			$path = GetVar('path');
+			$match = array('med_path' => $path);
+			$item = $_d['movie.ds']->Get(array('match' => $match));
+
+			if (empty($item) || empty($item[0]['med_tmdbid']))
+				return "This movie doesn't seem fully scraped.";
+
+			$covers = ModScrapeTMDB::GetCovers($item[0]['med_tmdbid']);
+			foreach ($covers as $ix => $c) @$ret .= '<a href="'.$path.'" id="a-grab-cover"><img src="'.$c.'" />';
+			return $ret;
+		}
+		else if (@$_d['q'][1] == 'cover')
+		{
+			$dst = 'img/meta/movie/thm_'.filenoext(basename(GetVar('path'))).'.'.
+				fileext(GetVar('img'));
+			file_put_contents($dst, file_get_contents(GetVar('img')));
+			return json_encode(array('fs_path' => GetVar('path'), 'med_thum' => $dst));
 		}
 		else
 		{
@@ -181,7 +217,10 @@ EOF;
 
 			if (empty($_d['movie.skipfs']))
 			foreach (glob($_d['config']['movie_path'].'/*') as $f)
+			{
+				if (is_dir($f)) continue;
 				$this->_items[$f] += $this->ScrapeFS($f);
+			}
 
 			// Collect Database Metadata
 
@@ -272,7 +311,7 @@ EOF;
 				$dst = str_replace(' ', '%20', $md['fs_path']);
 				$dst = str_replace('&', ':', $dst);
 				$ret['StrictNames'][] = "File {$md['fs_path']} has invalid name, should be".
-					" \"{$title} ({$year}).{$md['med_ext']}\"".
+					" \"{$title} ({$year}).{$md['fs_ext']}\"".
 					' <a href="movie/fix/'.$dst.'" class="a-fix">Fix</a>';
 			}
 
@@ -295,6 +334,13 @@ EOF;
 					break;
 				case 'image/png; charset=binary':
 					$ext = 'png';
+					break;
+				case 'image/gif; charset=binary':
+					$ext = 'gif';
+					break;
+				case 'application/x-empty; charset=binary':
+					unlink($f);
+					$ret['cleanup'][] = "Empty image {$f}, deleted.";
 					break;
 				default:
 					varinfo($mt);

@@ -19,8 +19,11 @@ class ModCategory extends MediaLibrary
 		$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
 			'cat_movie = med_id', 'LEFT JOIN');
 		$cat = GetVar('category');
-		if (!empty($cat)) $_d['movie.cb.query']['match']['cat_name'] = $cat;
-		$_d['movie.skipfs'] = true;
+		if (!empty($cat))
+		{
+			$_d['movie.cb.query']['match']['cat_name'] = $cat;
+			$_d['movie.skipfs'] = true;
+		}
 	}
 
 	function Prepare()

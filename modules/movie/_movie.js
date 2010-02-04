@@ -3,8 +3,7 @@ $(function () {
 		'modal': true,
 		autoOpen: false,
 		width: '80%',
-		position: 'top',
-		hide: 'blind'
+		position: 'top'
 	});
 
 	$('.movie-item').live('click', function () {
@@ -41,14 +40,10 @@ $(function () {
 		basename = path.match(/([^/]+)\.([^.]+)$/)[0];
 		$.get('movie/scrape', {target: path, tmdb_id: m_id}, function (data) {
 			$('a[href="'+data.fs_path.replace("'","\\'")+'"] img[class=movie-image]').attr('src', data.med_thumb);
+			//$('#dialog-movie').html(data);
 		}, 'json');
-		$('#dialog-movie').dialog('close');
+		 $('#dialog-movie').dialog('close');
 
-		return false;
-	});
-
-	$('.a-movie-scrape').live('click', function () {
-		$('#dialog-movie').html(data);
 		return false;
 	});
 
@@ -57,4 +52,22 @@ $(function () {
 			$('#movies').html(data);
 		}, 'html');
 	}});
+
+	$('#a-movie-cover').live('click', function () {
+		$.get('movie/covers', {path: $(this).attr('href')}, function (data) {
+			$('#movie-details').html(data);
+		});
+		return false;
+	});
+
+	$('#a-grab-cover').live('click', function () {
+		path = $(this).attr('href');
+		img = $(this).find('img').attr('src');
+		$.get('movie/cover', {path: path, img: img}, function (data) {
+			$('a[href="'+data.fs_path.replace("'","\\'")+'"] img[class=movie-image]').attr('src', data.med_thumb);
+		}, 'json');
+		$('a[href="'+path+'"] img[class=movie-image]').attr('src', img);
+		$('#dialog-movie').dialog('close');
+		return false;
+	});
 });
