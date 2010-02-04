@@ -45,6 +45,7 @@ class MediaLibrary extends Module
 			{
 				if (preg_match($preg, $path, $m))
 				{
+					//varinfo("ScrapeFS matched preg: {$preg}");
 					foreach ($matches as $idx => $col)
 						$this->_items[$path][$col] = $m[$idx];
 					break;

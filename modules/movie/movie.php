@@ -14,11 +14,6 @@ class ModMovie extends MediaLibrary
 		$this->_class = 'movie';
 		$this->_missing_image = 'modules/movie/img/missing.jpg';
 		$this->_fs_scrapes = array(
-			'#([^/]+)([0-9]{4}).*\.([^.]+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'
-			),
 			'#([^/\[]+)\[([0-9]{4})\].*\.([^.]+)#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
@@ -33,6 +28,12 @@ class ModMovie extends MediaLibrary
 				2 => 'fs_date',
 				3 => 'fs_ext'
 			),
+			'#([^/]+)([0-9]{4}).*\.([^.]+)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'
+			),
+
 			'#([^/]+)(dvdrip|xvid|limited).*\.([^.]+)$#i' => array(
 				1 => 'fs_title',
 				3 => 'fs_ext'
@@ -393,6 +394,7 @@ EOF;
 	{
 		// Clean up actual title -> filename characters.
 		$title = str_replace(': ', ' - ', $title);
+		$title = str_replace(':', '-', $title);
 		$title = str_replace('?', '', $title);
 
 		// Transpose 'The {title} - {subtitle}
