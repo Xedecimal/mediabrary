@@ -29,7 +29,7 @@ class ModScrapeTMDB
 
 	static function FindXML(&$title)
 	{
-		$reps = array('#\'#' => '', '# -.*$#' => '', '#([.]{1} |\.|-)#' => ' ');
+		$reps = array('# -.*$#' => '', '#([.]{1} |\.|-)#' => ' ');
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
 		$title = urlencode(trim($title));
 		$xml = file_get_contents(TMDB_FIND.$title);
