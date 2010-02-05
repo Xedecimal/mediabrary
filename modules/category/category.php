@@ -74,6 +74,12 @@ class ModCategory extends MediaLibrary
 		$cats = $_d['cat.ds']->Get(array('cols' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
 
+		$cats[] = array(
+			'cat_name' => 'All',
+			'cat_count' => 0,
+			'cat_link' => '?'
+		);
+
 		// Get relative sizes for a tag cloud display
 		foreach ($cats as $c) $trel[$c['cat_name']] = $c['cat_count'];
 		$sizes = get_relative_sizes($trel, 12, 24);
@@ -82,6 +88,8 @@ class ModCategory extends MediaLibrary
 		foreach ($cats as $c)
 		{
 			$c['cat_size'] = $sizes[$c['cat_name']];
+			if (isset($c['cat_link'])) $c['cat_uri'] = $c['cat_link'];
+			else $c['cat_uri'] = '?category='.$c['cat_name'];
 			@$ret .= $vp->ParseVars($g, $c);
 		}
 		return $ret;

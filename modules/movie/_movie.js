@@ -7,6 +7,13 @@ $(function () {
 	});
 
 	$('.movie-item').live('click', function () {
+		if ($(this).find('img').attr('src') == 'modules/movie/img/loading.jpg')
+		{
+			alert('Please wait until this item is done loading, multiple \
+				requests will most likely cause you headaches.');
+			return false;
+		}
+
 		$('#dialog-movie').load(app_abs+'/movie/detail',
 			{path: $(this).attr('href')},
 			function () { $('#dialog-movie').dialog('open'); }
@@ -64,9 +71,9 @@ $(function () {
 		path = $(this).attr('href');
 		img = $(this).find('img').attr('src');
 		$.get('movie/cover', {path: path, img: img}, function (data) {
-			$('a[href="'+data.fs_path.replace("'","\\'")+'"] img[class=movie-image]').attr('src', data.med_thumb);
+			$('a[href="'+data.fs_path+'"] img[class=movie-image]').css('opacity', 1);
 		}, 'json');
-		$('a[href="'+path+'"] img[class=movie-image]').attr('src', img);
+		$('a[href="'+path+'"] img[class=movie-image]').attr('src', img).css('opacity', 0.25);
 		$('#dialog-movie').dialog('close');
 		return false;
 	});

@@ -7,7 +7,7 @@
 		alt="Play" /></a>
 	<a href="movie/vote/up/{{fs_path}}"><img src="img/vote.png"
 		alt="Vote" /></a>
-	<a href="{{fs_path}}" id="a-movie-cover"><img src="img/cover.png"
+	<a href="{{fs_path}}" id="a-movie-cover"><img src="modules/movie/img/covers.png"
 		alt="Select New Cover" /></a></p>
 	<p>Details for {{fs_path}}</p>
 

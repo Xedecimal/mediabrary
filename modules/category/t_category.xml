@@ -1,5 +1,5 @@
 <div id="categories">
 <category>
-	<a href="?category={{cat_name}}" style="font-size: {{cat_size}}px">{{cat_name}}</a>
+	<a href="{{cat_uri}}" style="font-size: {{cat_size}}px">{{cat_name}}</a>
 </category>
 </div>

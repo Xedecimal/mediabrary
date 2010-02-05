@@ -34,7 +34,7 @@ class ModMovie extends MediaLibrary
 				3 => 'fs_ext'
 			),
 
-			'#([^/]+)(dvdrip|xvid|limited).*\.([^.]+)$#i' => array(
+			'#([^/]+?)(dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
 				1 => 'fs_title',
 				3 => 'fs_ext'
 			),
@@ -188,7 +188,7 @@ EOF;
 			$item = $_d['movie.ds']->Get(array('match' => $match));
 
 			if (empty($item) || empty($item[0]['med_tmdbid']))
-				return "This movie doesn't seem fully scraped.";
+				die("This movie doesn't seem fully scraped.");
 
 			$covers = ModScrapeTMDB::GetCovers($item[0]['med_tmdbid']);
 			foreach ($covers as $ix => $c) @$ret .= '<a href="'.$path.'" id="a-grab-cover"><img src="'.$c.'" />';
@@ -199,12 +199,13 @@ EOF;
 			$dst = 'img/meta/movie/thm_'.filenoext(basename(GetVar('path'))).'.'.
 				fileext(GetVar('img'));
 			file_put_contents($dst, file_get_contents(GetVar('img')));
-			return json_encode(array('fs_path' => GetVar('path'), 'med_thum' => $dst));
+			die(json_encode(array('fs_path' => GetVar('path'), 'med_thumb' => $dst)));
 		}
 		else
 		{
 			if ($q = GetVar('query'))
 			{
+				$_d['movie.skipfs'] = true;
 				$_d['movie.cb.query']['match']['med_title'] = SqlLike("%{$q}%");
 			}
 
