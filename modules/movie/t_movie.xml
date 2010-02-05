@@ -2,11 +2,11 @@
 <script type="text/javascript" src="{{app_abs}}/modules/movie/_movie.js" />
 <link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/_movie.css" />
 
-Search: <input type="text" id="movie-search" />
-
 <div id="dialog-movie" class="hidden"></div>
 
+<div id="movie-controls">
 <callback ds="_d" name="movie.cb.head" />
+</div>
 
 <item>
 	<a href="{{fs_path}}" class="movie-item"><img class="movie-image"

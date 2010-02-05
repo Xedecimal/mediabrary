@@ -8,6 +8,17 @@
 	z-index: -1;
 }
 
+#movie-controls
+{
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	width: 200px;
+	z-index: 1;
+	background: #FFF;
+	/*top: 0;*/
+}
+
 .movie-item
 {
 	position: relative;

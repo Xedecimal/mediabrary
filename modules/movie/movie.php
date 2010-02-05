@@ -227,6 +227,8 @@ EOF;
 
 			foreach ($_d['movie.ds']->Get($query) as $i)
 			{
+				if (empty($i['med_path'])) continue;
+
 				if (@$_d['movie.skipfs'])
 				{
 					// We'll need to emulate a filesystem.
