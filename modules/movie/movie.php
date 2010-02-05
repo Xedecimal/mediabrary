@@ -83,10 +83,14 @@ EOF;
 		else if (@$_d['q'][1] == 'detail')
 		{
 			$t = new Template();
-			$m = array('med_path' => GetVar('path'));
-			$t->Set($this->ScrapeFS(GetVar('path')));
-			$dr = $_d['movie.ds']->GetOne(array('match' => $m));
-			if (!empty($dr)) $t->Set($dr);
+			$item = $this->ScrapeFS(GetVar('path'));
+			$m = array('med_path' => $item['fs_path']);
+			$item = array_merge($item, $_d['movie.ds']->GetOne(array('match' => $m)));
+			if (!empty($_d['movie.cb.detail']))
+				$item = RunCallbacks($_d['movie.cb.detail'], $item);
+			$t->Set($item);
+			$this->_item = $item;
+			$t->ReWrite('item', array($this, 'TagDetailItem'));
 			die($t->ParseFile('modules/movie/t_movie_detail.xml'));
 		}
 		else if (@$_d['q'][1] == 'find')
@@ -107,13 +111,8 @@ EOF;
 				'args' => GET_ASSOC
 			));
 
-			if (!empty($dsitem))
-			{
-				//FSItem is going to have more accurate path, filename and ext.
-				unset($dsitem['med_filename'], $dsitem['med_path'],
-					$dsitem['ext']);
-				$item = array_merge($item, $dsitem);
-			}
+			if (!empty($_d['movie.cb.scrape']))
+				$item = RunCallbacks($_d['movie.cb.scrape'], $item);
 
 			$item = ModScrapeTMDB::Scrape($item, GetVar('tmdb_id'));
 
@@ -242,6 +241,17 @@ EOF;
 
 			return parent::Get();
 		}
+	}
+
+	function TagDetailItem($t, $g, $a)
+	{
+		$vp = new VarParser();
+		if (!empty($this->_item['details']))
+		foreach ($this->_item['details'] as $n => $v)
+		{
+			@$ret .= $vp->ParseVars($g, array('name' => $n, 'value' => $v));
+		}
+		return @$ret;
 	}
 
 	function Check()

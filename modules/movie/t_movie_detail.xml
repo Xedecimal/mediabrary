@@ -11,5 +11,7 @@
 		alt="Select New Cover" /></a></p>
 	<p>Details for {{fs_path}}</p>
 
+	<item><div>{{name}} {{value}}</div></item>
+
 	<div id="movie-details"></div>
 </div>
