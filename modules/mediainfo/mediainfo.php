@@ -4,6 +4,8 @@
 
 class ModMediaInfo extends Module
 {
+	var $Block = 'foot';
+
 	function __construct()
 	{
 		global $_d;
@@ -16,6 +18,41 @@ class ModMediaInfo extends Module
 		global $_d;
 
 		$_d['movie.cb.detail'][] = array($this, 'movie_cb_detail');
+	}
+
+	function Get()
+	{
+		global $_d;
+
+		if (empty($_d['q'][0]) || $_d['q'][0] == 'mediainfo')
+		{
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/mediainfo/css.css" />';
+			if (empty($_d['q'][0]))
+				return '<a href="mediainfo" id="a-mediainfo">Video and Audio Statistics</a>';
+		}
+
+		if ($_d['q'][0] != 'mediainfo') return;
+
+		$t = new Template();
+		$t->ReWrite('item', array($this, 'TagItem'));
+		return $t->ParseFile('modules/mediainfo/t.xml');
+	}
+
+	function TagItem($t, $g)
+	{
+		global $_d;
+
+		$dr = $_d['medinfo.ds']->Get();
+
+		foreach ($dr as $r)
+			$stats[$r['cod_path']][$r['cod_name']] = $r['cod_value'];
+
+		$vp = new VarParser();
+
+		foreach ($stats as $p => $cod)
+			@$ret .= $vp->ParseVars($g, $cod);
+
+		return @$ret;
 	}
 
 	function movie_cb_detail($item)
@@ -50,7 +87,19 @@ class ModMediaInfo extends Module
 			{
 				$cod['cod_path'] = $item['fs_path'];
 				$cod['cod_name'] = $type.'.'.$n;
-				$cod['cod_value'] = (string)$v;
+				switch ($cod['cod_name'])
+				{
+					case 'General.Overall_bit_rate':
+					case 'Video.Bit_rate':
+					case 'Audio.Bit_rate':
+					case 'Video.Frame_rate':
+					case 'Video.Width':
+					case 'Video.Height':
+					case 'Video.Resolution':
+						$cod['cod_value'] = preg_replace('#(\s*|kbps|pixels|bits|fps)#i', '', $v);
+						break;
+					default: $cod['cod_value'] = (string)$v;
+				}
 				$_d['medinfo.ds']->Add($cod, true);
 			}
 		}

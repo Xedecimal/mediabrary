@@ -11,6 +11,8 @@
 		alt="Select New Cover" /></a></p>
 	<p>Details for {{fs_path}}</p>
 
+	<input type="hidden" name="movie-bd" value="{{med_bd}}" />
+
 	<item><div>{{name}} {{value}}</div></item>
 
 	<div id="movie-details"></div>

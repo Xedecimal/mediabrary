@@ -29,7 +29,11 @@ class ModScrapeTMDB
 
 	static function FindXML(&$title)
 	{
-		$reps = array('# -.*$#' => '', '#([.]{1} |\.|-)#' => ' ');
+		$reps = array(
+			'# -.*$#' => '',
+			'#([.]{1} |\.|-|_)#' => ' ',
+			'#(ac3|5,1|dvdrip)#i' => '',
+		);
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
 		$title = urlencode(trim($title));
 		$xml = file_get_contents(TMDB_FIND.$title);
@@ -70,9 +74,7 @@ class ModScrapeTMDB
 		}
 
 		if (empty($ret))
-		{
 			$ret = "Nothing found for the query '{$movie['fs_title']}'";
-		}
 
 		return $ret;
 	}
@@ -90,7 +92,8 @@ class ModScrapeTMDB
 		}
 
 		if ($title1 != $title2) return $title1 <= $title2;
-		return $date1 <= $date2;
+		if (isset($_movie['fs_date'])) return $date1 <= $date2;
+		return 0;
 	}
 
 	static function Scrape($movie, $id)

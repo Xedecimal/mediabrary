@@ -66,11 +66,13 @@ class MediaLibrary extends Module
 		$path = $item['fs_path'];
 		$pinfo = pathinfo($path);
 		$pinfo['filename'] = filenoext($pinfo['basename']);
-		$images = glob("img/meta/{$this->_class}/thm_{$pinfo['filename']}.*");
 
-		if (!empty($images))
-			$this->_items[$path]['med_thumb'] = URL($images[0]);
-		else $this->_items[$path]['med_thumb'] = $this->_missing_image;
+		$images = glob("img/meta/{$this->_class}/thm_{$pinfo['filename']}.*");
+		if (!empty($images)) $item['med_thumb'] = URL($images[0]);
+		else $item['med_thumb'] = $this->_missing_image;
+
+		$images = glob("img/meta/{$this->_class}/bd_{$pinfo['filename']}.*");
+		if (!empty($images)) $item['med_bd'] = URL($images[0]);
 	}
 
 	function Check() { return array(); }

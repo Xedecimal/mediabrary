@@ -34,7 +34,7 @@ class ModMovie extends MediaLibrary
 				3 => 'fs_ext'
 			),
 
-			'#([^/]+?)(dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
+			'#([^/]+?)(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
 				1 => 'fs_title',
 				3 => 'fs_ext'
 			),
@@ -51,7 +51,7 @@ class ModMovie extends MediaLibrary
 
 		if (empty($_d['q'][0]))
 		{
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/movie/_movie.css" />';
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
 
 			$total = $size = 0;
 			foreach (glob($_d['config']['movie_path'].'/*') as $f)
@@ -88,6 +88,7 @@ EOF;
 			$item = array_merge($item, $_d['movie.ds']->GetOne(array('match' => $m)));
 			if (!empty($_d['movie.cb.detail']))
 				$item = RunCallbacks($_d['movie.cb.detail'], $item);
+			MediaLibrary::GetMedia($item);
 			$t->Set($item);
 			$this->_item = $item;
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
@@ -162,7 +163,7 @@ EOF;
 			$this->CleanTitleForFile($ftitle);
 			$fyear = substr($meta['med_date'], 0, 4);
 
-			$dst = "{$pinfo['dirname']}/{$ftitle} ({$fyear}).{$pinfo['extension']}";
+			$dst = "{$pinfo['dirname']}/{$ftitle} ({$fyear}).".strtolower($pinfo['extension']);
 
 			// Apply File Transformations
 
@@ -229,17 +230,18 @@ EOF;
 			{
 				if (empty($i['med_path'])) continue;
 
-				if (@$_d['movie.skipfs'])
+				// Emulate a file system if we're not indexing it.
+				if (@$_d['movie.skipfs'] || !isset($this->_items[$i['med_path']]))
 				{
-					// We'll need to emulate a filesystem.
 					$i['fs_path'] = $i['med_path'];
 					$i['fs_title'] = $i['med_title'];
 					$this->_items[$i['med_path']] = $i;
 				}
-				else $this->_items[$i['med_path']] += $i;
+				else
+					$this->_items[$i['med_path']] += $i;
 			}
 
-			foreach ($this->_items as $i) $this->GetMedia($i);
+			foreach ($this->_items as &$i) $this->GetMedia($i);
 
 			return parent::Get();
 		}
@@ -325,7 +327,7 @@ EOF;
 				$dst = str_replace(' ', '%20', $md['fs_path']);
 				$dst = str_replace('&', ':', $dst);
 				$ret['StrictNames'][] = "File {$md['fs_path']} has invalid name, should be".
-					" \"{$title} ({$year}).{$md['fs_ext']}\"".
+					" \"{$title} ({$year}).".strtolower($md['fs_ext'])."\"".
 					' <a href="movie/fix/'.$dst.'" class="a-fix">Fix</a>';
 			}
 

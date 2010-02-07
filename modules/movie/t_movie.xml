@@ -1,6 +1,6 @@
 <div id="movies">
 <script type="text/javascript" src="{{app_abs}}/modules/movie/_movie.js" />
-<link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/_movie.css" />
+<link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/css.css" />
 
 <div id="dialog-movie" class="hidden"></div>
 

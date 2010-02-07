@@ -1,13 +1,3 @@
-#backdrop
-{
-	position: fixed;
-	width: 100%;
-	height: 100%;
-
-	background: no-repeat top left;
-	z-index: -1;
-}
-
 #movie-controls
 {
 	position: fixed;
@@ -35,17 +25,30 @@
 	height: 275px;
 }
 
-.movie-detail ul
-{
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.movie-detail
+#movie-detail
 {
 	background-color: #FFF;
-	position: absolute;
+	position: relative;
+	z-index: 1999;
 }
 
-#a-movie { background: url('img/main-movies.jpg'); }
+#movie-detail-backdrop
+{
+	position: absolute;
+	z-index: 2000;
+}
+
+.ui-widget-overlay
+{
+	display: fixed;
+	background: no-repeat;
+	opacity: 1;
+}
+
+#a-movie
+{
+	float: left;
+	background: url('img/main-movies.jpg');
+	width: 200px;
+	height: 300px;
+}

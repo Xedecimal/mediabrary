@@ -26,7 +26,7 @@ class ModTVSeries extends MediaLibrary
 
 		if (empty($_d['q'][0]))
 		{
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/tv.css" />';
+			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
 			return '<a href="tv" id="a-tv">Television</a>';
 		}
 		if (@$_d['q'][0] != 'tv') return;
