@@ -43,16 +43,58 @@ class ModMediaInfo extends Module
 		global $_d;
 
 		$dr = $_d['medinfo.ds']->Get();
-
 		foreach ($dr as $r)
+		{
 			$stats[$r['cod_path']][$r['cod_name']] = $r['cod_value'];
+		}
+
+		foreach ($stats as $p => $v)
+		{
+			$vbrs[$p] = @$v['Video.Bit_rate'];
+			$vrxs[$p] = @$v['Video.Width'];
+			$vrys[$p] = @$v['Video.Height'];
+			$vfrs[$p] = @$v['Video.Frame_rate'];
+
+			$abrs[$p] = @$v['Audio.Bit_rate'];
+		}
+
+		$flat_stats['vbr'] = get_relative_sizes($vbrs, 1, 5);
+		$flat_stats['vrx'] = get_relative_sizes($vrxs, 1, 5);
+		$flat_stats['vry'] = get_relative_sizes($vrys, 1, 5);
+		$flat_stats['vfr'] = get_relative_sizes($vfrs, 1, 5);
+		$flat_stats['abr'] = get_relative_sizes($abrs, 1, 5);
+
+		foreach ($flat_stats as $k => $ps)
+			foreach ($ps as $p => $s)
+				$stats[$p]['col_'.$k] = $s;
+
+		ksort($stats);
 
 		$vp = new VarParser();
 
 		foreach ($stats as $p => $cod)
+		{
+
 			@$ret .= $vp->ParseVars($g, $cod);
+		}
 
 		return @$ret;
+	}
+
+	function Check()
+	{
+		global $_d;
+
+		$ret = array();
+		$cols = array('path' => SqlUnquote('DISTINCT cod_path'));
+		$dr = $_d['medinfo.ds']->Get(array('columns' => $cols));
+		foreach ($dr as $r)
+			if (!file_exists($r['path']))
+			{
+				$_d['medinfo.ds']->Remove(array('cod_path' => $r['path']));
+				$ret['cleanup'][] = "Removed codec information for missing movie: {$r['path']}";
+			}
+		return $ret;
 	}
 
 	function movie_cb_detail($item)
@@ -91,12 +133,13 @@ class ModMediaInfo extends Module
 				{
 					case 'General.Overall_bit_rate':
 					case 'Video.Bit_rate':
-					case 'Audio.Bit_rate':
 					case 'Video.Frame_rate':
 					case 'Video.Width':
 					case 'Video.Height':
 					case 'Video.Resolution':
-						$cod['cod_value'] = preg_replace('#(\s*|kbps|pixels|bits|fps)#i', '', $v);
+					case 'Audio.Bit_rate':
+					case 'Audio.Channel_s_':
+						$cod['cod_value'] = preg_replace('#(\s*|kbps|pixels|bits|fps|channels)#i', '', $v);
 						break;
 					default: $cod['cod_value'] = (string)$v;
 				}

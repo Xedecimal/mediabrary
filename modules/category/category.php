@@ -34,7 +34,7 @@ class ModCategory extends MediaLibrary
 		$cols = array('med_title' => SqlUnquote('DISTINCT cat_name'),
 			'med_count' => SqlUnquote('COUNT(med_id)'));
 
-		$cats = $_d['cat.ds']->Get(array('cols' => $cols, 'joins' => $joins,
+		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
 
 		foreach ($cats as $c)
@@ -71,7 +71,7 @@ class ModCategory extends MediaLibrary
 		$cols = array('cat_name' => SqlUnquote('DISTINCT cat_name'),
 			'cat_count' => SqlUnquote('COUNT(med_id)'));
 
-		$cats = $_d['cat.ds']->Get(array('cols' => $cols, 'joins' => $joins,
+		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
 
 		$cats[] = array(
