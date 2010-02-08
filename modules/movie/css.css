@@ -1,14 +1,3 @@
-#movie-controls
-{
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	width: 200px;
-	z-index: 1;
-	background: #FFF;
-	/*top: 0;*/
-}
-
 .movie-item
 {
 	position: relative;
@@ -30,19 +19,6 @@
 	background-color: #FFF;
 	position: relative;
 	z-index: 1999;
-}
-
-#movie-detail-backdrop
-{
-	position: absolute;
-	z-index: 2000;
-}
-
-.ui-widget-overlay
-{
-	display: fixed;
-	background: no-repeat;
-	opacity: 1;
 }
 
 #a-movie

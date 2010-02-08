@@ -46,16 +46,18 @@ class ModMediaInfo extends Module
 		foreach ($dr as $r)
 		{
 			$stats[$r['cod_path']][$r['cod_name']] = $r['cod_value'];
+			$stats[$r['cod_path']]['General.File_size'] = filesize($r['cod_path']);
 		}
 
 		foreach ($stats as $p => $v)
 		{
+			$gfss[$p] = @$v['General.File_size'];
 			$vbrs[$p] = @$v['Video.Bit_rate'];
 			$vrxs[$p] = @$v['Video.Width'];
 			$vrys[$p] = @$v['Video.Height'];
 			$vfrs[$p] = @$v['Video.Frame_rate'];
-
 			$abrs[$p] = @$v['Audio.Bit_rate'];
+			$achs[$p] = @$v['Audio.Channel_s_'];
 		}
 
 		$flat_stats['vbr'] = get_relative_sizes($vbrs, 1, 5);
@@ -63,6 +65,8 @@ class ModMediaInfo extends Module
 		$flat_stats['vry'] = get_relative_sizes($vrys, 1, 5);
 		$flat_stats['vfr'] = get_relative_sizes($vfrs, 1, 5);
 		$flat_stats['abr'] = get_relative_sizes($abrs, 1, 5);
+		$flat_stats['gfs'] = get_relative_sizes($gfss, 1, 5);
+		$flat_stats['ach'] = get_relative_sizes($achs, 1, 5);
 
 		foreach ($flat_stats as $k => $ps)
 			foreach ($ps as $p => $s)
@@ -103,7 +107,7 @@ class ModMediaInfo extends Module
 
 		$target = str_replace('"', '\"', $item['fs_path']);
 		$out = `/usr/local/bin/mediainfo --Output=XML "{$target}"`;
-		$sx = simplexml_load_string($out);
+		$sx = simplexml_load_string(preg_replace('//', '', $out));
 
 		$tracks = $sx->xpath('//File/track');
 
@@ -139,7 +143,7 @@ class ModMediaInfo extends Module
 					case 'Video.Resolution':
 					case 'Audio.Bit_rate':
 					case 'Audio.Channel_s_':
-						$cod['cod_value'] = preg_replace('#(\s*|kbps|pixels|bits|fps|channels)#i', '', $v);
+						$cod['cod_value'] = preg_replace('#(\s*|kbps|pixels|bits|fps|channels|channel)#i', '', $v);
 						break;
 					default: $cod['cod_value'] = (string)$v;
 				}

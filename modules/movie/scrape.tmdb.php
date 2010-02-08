@@ -4,7 +4,7 @@ define('TMDB_KEY', '263e2042d04c1989170721f79e675028');
 define('TMDB_FIND', 'http://api.themoviedb.org/2.1/Movie.search/en/xml/'.TMDB_KEY.'/');
 define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_KEY.'/');
 
-//http://api.themoviedb.org/2.1/Movie.search/en/xml/263e2042d04c1989170721f79e675028/20,000%20Leagues%20Under%20Sea
+//http://api.themoviedb.org/2.1/Movie.search/en/xml/263e2042d04c1989170721f79e675028/Once
 
 class ModScrapeTMDB
 {
@@ -32,7 +32,7 @@ class ModScrapeTMDB
 		$reps = array(
 			'# -.*$#' => '',
 			'#([.]{1} |\.|-|_)#' => ' ',
-			'#(ac3|5,1|dvdrip)#i' => '',
+			'#(ac3|5,1|dvdrip|unrated)#i' => '',
 		);
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
 		$title = urlencode(trim($title));

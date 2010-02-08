@@ -171,13 +171,12 @@ EOF;
 
 			preg_rename(
 				'img/meta/movie/*'.filenoext($pinfo['basename']).'*',
-				'#img/meta/movie/(.*)'.preg_quote(filenoext($pinfo['basename'])).'(\..*)$#',
+				'#img/meta/movie/(.*)'.preg_quote(filenoext($pinfo['basename'])).'(\..*)$#i',
 				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
 
 			// Apply Database Transformations
 
-			$_d['movie.ds']->Update(array('med_path' => $src),
-				array('med_path' => $dst, 'med_filename' => basename($dst)));
+			$_d['movie.ds']->Update(array('med_path' => $src), array('med_path' => $dst));
 
 			die('Fixed');
 		}
@@ -228,6 +227,11 @@ EOF;
 
 			foreach ($_d['movie.ds']->Get($query) as $i)
 			{
+				if (!empty($_d['movie.skipds']) && !empty($i['med_tmdbid']))
+				{
+					unset($this->_items[$i['med_path']]);
+					continue;
+				}
 				if (empty($i['med_path'])) continue;
 
 				// Emulate a file system if we're not indexing it.
@@ -237,8 +241,7 @@ EOF;
 					$i['fs_title'] = $i['med_title'];
 					$this->_items[$i['med_path']] = $i;
 				}
-				else
-					$this->_items[$i['med_path']] += $i;
+				else $this->_items[$i['med_path']] += $i;
 			}
 
 			foreach ($this->_items as &$i) $this->GetMedia($i);

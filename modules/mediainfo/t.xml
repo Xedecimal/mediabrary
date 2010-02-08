@@ -3,7 +3,7 @@
 	<th>Path</th>
 	<th>Format</th>
 	<!-- <th title="Format Info">FI</th> -->
-	<!-- <th>File Size</th> -->
+	<th>File Size</th>
 	<th>Duration</th>
 	<!-- <th title="Overall Bit Rate">OBR</th> -->
 	<!-- <th>Writer</th> -->
@@ -42,7 +42,7 @@
 		<td>{{General.Complete_name}}</td>
 		<td>{{General.Format}}</td>
 		<!-- <td>{{General.Format_Info}}</td> -->
-		<!-- <td>{{General.File_size}}</td> -->
+		<td class="col_{{col_gfs}}">{{General.File_size}}</td>
 		<td>{{General.Duration}}</td>
 		<!-- <td>{{General.Overall_bit_rate}}</td> -->
 		<!-- <td>{{General.Writing_library}}</td> -->
@@ -52,8 +52,8 @@
 		<!-- <td>{{Video.Codec_ID_Hint}}</td> -->
 		<!-- <td>{{Video.Duration}}</td> -->
 		<td class="col_{{col_vbr}}">{{Video.Bit_rate}}</td>
-		<td class="col_{{col_x}}">{{Video.Width}}</td>
-		<td class="col_{{col_y}}">{{Video.Height}}</td>
+		<td class="col_{{col_vrx}}">{{Video.Width}}</td>
+		<td class="col_{{col_vry}}">{{Video.Height}}</td>
 		<td>{{Video.Display_aspect_ratio}}</td>
 		<td class="col_{{col_vfr}}">{{Video.Frame_rate}}</td>
 		<td>{{Video.Resolution}}</td>
@@ -70,7 +70,7 @@
 		<!-- <td>{{Audio.Duration}}</td> -->
 		<td>{{Audio.Bit_rate_mode}}</td>
 		<td class="col_{{col_abr}}">{{Audio.Bit_rate}}</td>
-		<td>{{Audio.Channel_s_}}</td>
+		<td class="col_{{col_ach}}">{{Audio.Channel_s_}}</td>
 		<td>{{Audio.Sampling_rate}}</td>
 		<!-- <td>{{Audio.Stream_size}}</td> -->
 		<!-- <td>{{Audio.Alignment}}</td> -->

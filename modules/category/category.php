@@ -19,11 +19,12 @@ class ModCategory extends MediaLibrary
 		$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
 			'cat_movie = med_id', 'LEFT JOIN');
 		$cat = GetVar('category');
-		if (!empty($cat))
+		if (!empty($cat) && $cat != 'unscraped')
 		{
 			$_d['movie.cb.query']['match']['cat_name'] = $cat;
 			$_d['movie.skipfs'] = true;
 		}
+		if ($cat == 'unscraped') $_d['movie.skipds'] = true;
 	}
 
 	function Prepare()
@@ -74,11 +75,8 @@ class ModCategory extends MediaLibrary
 		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
 
-		$cats[] = array(
-			'cat_name' => 'All',
-			'cat_count' => 0,
-			'cat_link' => '?'
-		);
+		$cats[] = array('cat_name' => 'All', 'cat_count' => 0, 'cat_link' => '?');
+		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0, 'cat_link' => '?category=unscraped');
 
 		// Get relative sizes for a tag cloud display
 		foreach ($cats as $c) $trel[$c['cat_name']] = $c['cat_count'];
