@@ -1,0 +1,8 @@
+<null>
+<style type="text/css">
+#date-slider { width: 90%; margin: auto; }
+</style>
+<script type="text/javascript" src="modules/date/date.js"></script>
+<div id="date-value"></div>
+<div id="date-slider"></div>
+</null>

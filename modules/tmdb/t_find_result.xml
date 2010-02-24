@@ -1,4 +1,4 @@
 <div class="movie-result">
-<a href="{{fs_path}}" id="{{id}}" class="scrape">{{name}}</a>
+<a href="{{fs_path}}" id="{{id}}" class="tmdb-aScrape">{{name}}</a>
 ({{released}}) Score: {{score}} <a href="http://www.themoviedb.org/movie/{{id}}" target="_blank">TMDB</a>
 </div>
