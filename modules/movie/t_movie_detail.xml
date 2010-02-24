@@ -1,18 +1,13 @@
 <div id="movie-detail">
-	<p><a href="{{fs_path}}" class="search"><img src="img/find.png"
-		alt="Find" /></a>
-	<a href="{{fs_path}}" class="remove"><img src="img/remove.png"
-		alt="Remove" /></a>
-	<a href="movie/play/{{fs_filename}}"><img src="img/play.png"
-		alt="Play" /></a>
-	<a href="{{fs_path}}" id="a-movie-cover"><img src="modules/movie/img/covers.png"
-		alt="Select New Cover" /></a>
+	<p>
+	<a href="movie/play/{{fs_filename}}"><img src="img/play.png" alt="Play" /></a>
 		<callback ds="_d" name="movie.cb.buttons" />
 	</p>
 
-	<p>Details for {{fs_path}}</p>
-
 	<input type="hidden" name="movie-bd" value="{{med_bd}}" />
+	<input type="hidden" id="movie_path" value="{{fs_path}}" />
+
+	<p>Details for {{fs_path}}</p>
 
 	<item><div>{{name}} {{value}}</div></item>
 

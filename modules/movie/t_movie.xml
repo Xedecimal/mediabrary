@@ -3,13 +3,8 @@
 <link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/css.css" />
 
 <div id="dialog-movie" class="hidden"></div>
+<div id="movie-controls"><callback ds="_d" name="movie.cb.head" /></div>
 
-<div id="movie-controls">
-<callback ds="_d" name="movie.cb.head" />
-</div>
+<div id="movie-items"></div>
 
-<item>
-	<a href="{{fs_path}}" class="movie-item"><img class="movie-image"
-		src="{{med_thumb}}" alt="{{med_title}}" /></a>
-</item>
 </div>

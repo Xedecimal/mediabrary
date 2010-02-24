@@ -22,7 +22,7 @@ class ModCheck extends Module
 		// Collect check messages
 		foreach ($mods as $m)
 			if (method_exists($m, 'Check'))
-				$msgs = array_merge($msgs, $m->Check());
+				$msgs = array_merge_recursive($msgs, $m->Check());
 
 		$msgout = '';
 

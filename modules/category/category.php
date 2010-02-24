@@ -18,7 +18,8 @@ class ModCategory extends MediaLibrary
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
 		$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
 			'cat_movie = med_id', 'LEFT JOIN');
-		$cat = GetVar('category');
+
+		$cat = $_SESSION['category'];
 		if (!empty($cat) && $cat != 'unscraped')
 		{
 			$_d['movie.cb.query']['match']['cat_name'] = $cat;
@@ -55,6 +56,8 @@ class ModCategory extends MediaLibrary
 
 		//if (empty($_d['q'][0])) return parent::Get();
 		if ($_d['q'][0] != 'category') return;
+
+		$_SESSION['category'] = $_d['q'][1];
 	}
 
 	function cb_movie_head()
@@ -86,8 +89,6 @@ class ModCategory extends MediaLibrary
 		foreach ($cats as $c)
 		{
 			$c['cat_size'] = $sizes[$c['cat_name']];
-			if (isset($c['cat_link'])) $c['cat_uri'] = $c['cat_link'];
-			else $c['cat_uri'] = '?category='.$c['cat_name'];
 			@$ret .= $vp->ParseVars($g, $c);
 		}
 		return $ret;

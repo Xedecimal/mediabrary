@@ -45,7 +45,6 @@ class MediaLibrary extends Module
 			{
 				if (preg_match($preg, $path, $m))
 				{
-					//varinfo("ScrapeFS matched preg: {$preg}");
 					foreach ($matches as $idx => $col)
 						$this->_items[$path][$col] = $m[$idx];
 					break;
@@ -59,20 +58,25 @@ class MediaLibrary extends Module
 		return $this->_items[$path];
 	}
 
-	function GetMedia(&$item)
+	static function GetMedia($type, $item)
 	{
+		global $_d;
+
 		// Collect the cover
 
 		$path = $item['fs_path'];
 		$pinfo = pathinfo($path);
 		$pinfo['filename'] = filenoext($pinfo['basename']);
 
-		$images = glob("img/meta/{$this->_class}/thm_{$pinfo['filename']}.*");
-		if (!empty($images)) $item['med_thumb'] = URL($images[0]);
-		else $item['med_thumb'] = $this->_missing_image;
+		$query = preg_quote("img/meta/{$type}/thm_{$pinfo['filename']}");
+		$images = glob($query.'.*');
+		if (!empty($images)) $ret['med_thumb'] = URL($_d['app_abs'].'/'.$images[0]);
+		else $ret['med_thumb'] = null;
 
-		$images = glob("img/meta/{$this->_class}/bd_{$pinfo['filename']}.*");
-		if (!empty($images)) $item['med_bd'] = URL($images[0]);
+		$images = glob("img/meta/{$type}/bd_{$pinfo['filename']}.*");
+		if (!empty($images)) $ret['med_bd'] = URL($images[0]);
+
+		return $ret;
 	}
 
 	function Check() { return array(); }
