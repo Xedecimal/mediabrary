@@ -19,13 +19,15 @@ class ModCategory extends MediaLibrary
 		$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
 			'cat_movie = med_id', 'LEFT JOIN');
 
-		$cat = $_SESSION['category'];
-		if (!empty($cat) && $cat != 'unscraped')
+		$cat = GetVar('category');
+
+		if ($cat == 'All') { }
+		else if (!empty($cat) && $cat != 'unscraped')
 		{
 			$_d['movie.cb.query']['match']['cat_name'] = $cat;
 			$_d['movie.skipfs'] = true;
 		}
-		if ($cat == 'unscraped') $_d['movie.skipds'] = true;
+		else if ($cat == 'unscraped') $_d['movie.skipds'] = true;
 	}
 
 	function Prepare()

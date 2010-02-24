@@ -24,8 +24,12 @@ class ModDate extends Module
 		$min = GetVar('date.min');
 		$max = GetVar('date.max');
 
-		if (!empty($min)) $_d['movie.cb.query']['match']['med_date'] =
-			SqlBetween($min, $max);
+		if (!empty($min))
+		{
+			$_d['movie.skipfs'] = true;
+			$_d['movie.cb.query']['match']['med_date'] =
+				SqlBetween($min, $max);
+		}
 	}
 
 	function cb_movie_head()
@@ -40,16 +44,21 @@ class ModDate extends Module
 
 		if ($_d['q'][0] != 'date') return;
 
-		if ($_d['q'][1] == 'values')
+		if ($_d['q'][1] == 'get')
 		{
 			$cols = array(
 				'min' => SqlUnquote('year(min(med_date))'),
 				'max' => SqlUnquote('year(max(med_date))')
 			);
 			$items = $_d['movie.ds']->Get(array('columns' => $cols));
-			$items[0]['cmin'] = GetVar('date.min', 0);
-			$items[0]['cmax'] = GetVar('date.max', 0);
+			$items[0]['cmin'] = GetVar('date.min', $items[0]['min']);
+			$items[0]['cmax'] = GetVar('date.max', $items[0]['max']);
 			die(json_encode($items[0]));
+		}
+		if ($_d['q'][1] == 'set')
+		{
+			$_SESSION['date.min'] = $_d['q'][2];
+			$_SESSION['date.max'] = $_d['q'][3];
 		}
 	}
 }
