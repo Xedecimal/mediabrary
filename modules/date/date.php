@@ -24,7 +24,7 @@ class ModDate extends Module
 		$min = GetVar('date.min');
 		$max = GetVar('date.max');
 
-		if (!empty($min))
+		if (!empty($min) && !@$_d['movie.exclusive'])
 		{
 			$_d['movie.skipfs'] = true;
 			$_d['movie.cb.query']['match']['med_date'] =

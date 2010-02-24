@@ -145,12 +145,6 @@ EOF;
 		}
 		else if (@$_d['q'][1] == 'items')
 		{
-			if ($q = GetVar('query'))
-			{
-				$_d['movie.skipfs'] = true;
-				$_d['movie.cb.query']['match']['med_title'] = SqlLike("%{$q}%");
-			}
-
 			// Load up and present ourselves fully.
 
 			$this->_template = 'modules/movie/t_movie_item.xml';

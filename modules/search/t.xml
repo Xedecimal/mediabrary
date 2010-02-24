@@ -1,0 +1,4 @@
+<div id="search">
+<script type="text/javascript" src="modules/search/search.js"></script>
+Search: <input type="text" id="movie-search" />
+</div>

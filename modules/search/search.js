@@ -1,7 +1,7 @@
 $(function () {
-	$('#movie-search').autocomplete({source: function (sender) {
-		$.get('movie', {query: sender.term}, function (data) {
-			$('#movies').html(data);
+	$('#movie-search').autocomplete({minLength: 0, source: function (sender) {
+		$.get('search/'+sender.term, function (data) {
+			$('#movie-items').load('movie/items');
 		}, 'html');
 	}});
 });

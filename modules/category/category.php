@@ -22,12 +22,17 @@ class ModCategory extends MediaLibrary
 		$cat = GetVar('category');
 
 		if ($cat == 'All') { }
-		else if (!empty($cat) && $cat != 'unscraped')
+		else if (!empty($cat) && $cat != 'Unscraped')
 		{
 			$_d['movie.cb.query']['match']['cat_name'] = $cat;
 			$_d['movie.skipfs'] = true;
 		}
-		else if ($cat == 'unscraped') $_d['movie.skipds'] = true;
+		else if ($cat == 'Unscraped')
+		{
+			$_d['movie.exclusive'] = true;
+			$_d['movie.skipfs'] = false;
+			$_d['movie.skipds'] = true;
+		}
 	}
 
 	function Prepare()
@@ -56,7 +61,6 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
-		//if (empty($_d['q'][0])) return parent::Get();
 		if ($_d['q'][0] != 'category') return;
 
 		$_SESSION['category'] = $_d['q'][1];
@@ -80,8 +84,8 @@ class ModCategory extends MediaLibrary
 		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
 
-		$cats[] = array('cat_name' => 'All', 'cat_count' => 0, 'cat_link' => '?');
-		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0, 'cat_link' => '?category=unscraped');
+		$cats[] = array('cat_name' => 'All', 'cat_count' => 0);
+		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);
 
 		// Get relative sizes for a tag cloud display
 		foreach ($cats as $c) $trel[$c['cat_name']] = $c['cat_count'];
