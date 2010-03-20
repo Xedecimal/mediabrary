@@ -48,7 +48,7 @@ class ModTMDB extends Module
 
 			$cats = @$item['med_cats'];
 
-			$media = ModMovie::GetMedia('movie', $item);
+			$media = ModMovie::GetMedia('movie', $item, 'modules/movie/img/missing.jpg');
 
 			$item['med_path'] = $item['fs_path'];
 			foreach (array_keys($item) as $k) if ($k[0] != 'm') unset($item[$k]);
@@ -70,6 +70,7 @@ class ModTMDB extends Module
 			$p = $item['med_path'];
 			//$this->_items[$p] = array_merge($item, $this->ScrapeFS($p));
 
+			//varinfo($media);
 			die(json_encode($item + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')

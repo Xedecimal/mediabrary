@@ -1,4 +1,4 @@
 <item>
 	<a href="{{fs_path}}" class="movie-item"><img class="movie-image"
-		src="{{med_thumb}}" alt="{{med_title}}" title="{{med_title}}" /></a>
+		src="{{med_thumb}}" alt="{{med_title}}" title="{{fs_title}}" /></a>
 </item>

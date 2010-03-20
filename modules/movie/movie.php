@@ -102,7 +102,7 @@ EOF;
 			$item = array_merge($item, $_d['movie.ds']->GetOne(array('match' => $m)));
 			if (!empty($_d['movie.cb.detail']))
 				$item = RunCallbacks($_d['movie.cb.detail'], $item);
-			$item += MediaLibrary::GetMedia('movie', $item);
+			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
 			$t->Set($item);
 			$this->_item = $item;
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
@@ -181,7 +181,7 @@ EOF;
 			}
 
 			foreach ($this->_items as &$i)
-				$i += $this->GetMedia('movie', $i);
+				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
 
 			die(parent::Get());
 		}
