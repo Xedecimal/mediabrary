@@ -155,6 +155,6 @@ class ModMediaInfo extends Module
 	}
 }
 
-Module::RegisterModule('ModMediaInfo');
+Module::Register('ModMediaInfo');
 
 ?>

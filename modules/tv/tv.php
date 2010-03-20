@@ -77,7 +77,7 @@ EOF;
 	}
 }
 
-Module::RegisterModule('ModTVSeries');
+Module::Register('ModTVSeries');
 
 class ModTVEpisode extends MediaLibrary
 {

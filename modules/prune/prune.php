@@ -16,6 +16,6 @@ class ModLock extends Module
 	}
 }
 
-Module::RegisterModule('ModLock');
+Module::Register('ModLock');
 
 ?>

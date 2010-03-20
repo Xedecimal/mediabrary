@@ -36,6 +36,6 @@ class ModCheck extends Module
 	}
 }
 
-Module::RegisterModule('ModCheck');
+Module::Register('ModCheck');
 
 ?>

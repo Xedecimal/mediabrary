@@ -113,7 +113,6 @@ EOF;
 			// Collect Information
 			//$src = '/'.implode('/', array_splice($_d['q'], 2));
 			$src = GetVar('path');
-			varinfo($src);
 
 			$pinfo = pathinfo($src);
 			$meta = $this->ScrapeFS($src);
@@ -305,6 +304,6 @@ EOF;
 	}
 }
 
-Module::RegisterModule('ModMovie');
+Module::Register('ModMovie');
 
 ?>

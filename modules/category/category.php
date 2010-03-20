@@ -101,6 +101,6 @@ class ModCategory extends MediaLibrary
 	}
 }
 
-Module::RegisterModule('ModCategory');
+Module::Register('ModCategory');
 
 ?>

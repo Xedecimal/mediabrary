@@ -1,6 +1,6 @@
 $(function () {
 	$('.a-fix').click(function () {
-		$(this).replaceWith($(this).attr('href'));
+		$(this).load($(this).attr('href'));
 		return false;
 	});
 });

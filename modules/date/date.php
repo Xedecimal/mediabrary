@@ -28,7 +28,7 @@ class ModDate extends Module
 		{
 			$_d['movie.skipfs'] = true;
 			$_d['movie.cb.query']['match']['med_date'] =
-				SqlBetween($min, $max);
+				SqlBetween($min, $max+1);
 		}
 	}
 
@@ -63,6 +63,6 @@ class ModDate extends Module
 	}
 }
 
-Module::RegisterModule('ModDate');
+Module::Register('ModDate');
 
 ?>

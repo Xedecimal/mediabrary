@@ -14,6 +14,6 @@ class ModPics extends MediaLibrary
 	}
 }
 
-Module::RegisterModule('ModPics');
+Module::Register('ModPics');
 
 ?>

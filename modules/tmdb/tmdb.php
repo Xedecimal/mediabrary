@@ -393,6 +393,6 @@ class ModTMDB extends Module
 	}
 }
 
-Module::RegisterModule('ModTMDB');
+Module::Register('ModTMDB');
 
 ?>

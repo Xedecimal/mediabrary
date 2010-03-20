@@ -58,7 +58,7 @@ class MediaLibrary extends Module
 		return $this->_items[$path];
 	}
 
-	static function GetMedia($type, $item)
+	function GetMedia($type, $item)
 	{
 		global $_d;
 
@@ -71,7 +71,7 @@ class MediaLibrary extends Module
 		$query = preg_quote("img/meta/{$type}/thm_{$pinfo['filename']}");
 		$images = glob($query.'.*');
 		if (!empty($images)) $ret['med_thumb'] = URL($_d['app_abs'].'/'.$images[0]);
-		else $ret['med_thumb'] = null;
+		else $ret['med_thumb'] = $this->_missing_image;
 
 		$images = glob("img/meta/{$type}/bd_{$pinfo['filename']}.*");
 		if (!empty($images)) $ret['med_bd'] = URL($images[0]);

@@ -20,6 +20,6 @@ class ModMusic extends MediaLibrary
 	}
 }
 
-Module::RegisterModule('ModMusic');
+Module::Register('ModMusic');
 
 ?>

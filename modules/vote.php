@@ -5,10 +5,10 @@ class ModVote extends Module
 	function __construct()
 	{
 		global $_d;
-		
+
 		$_d['vote.ds'] = new DataSet($_d['db'], 'vote');
 	}
-	
+
 	function Get()
 	{
 		global $_d;
@@ -30,6 +30,6 @@ class ModVote extends Module
 	}
 }
 
-Module::RegisterModule('ModVote');
+Module::Register('ModVote');
 
 ?>
