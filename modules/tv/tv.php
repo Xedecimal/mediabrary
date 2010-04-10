@@ -35,7 +35,7 @@ class ModTVSeries extends MediaLibrary
 			$series = $_d['q'][2];
 			$file = $_d['q'][3];
 
-			$url = $_d['config']['tv_url'].'/'.rawurlencode($series).'/'.
+			$url = 'http://'.GetVar('HTTP_HOST').'/nas/TV/'.rawurlencode($series).'/'.
 				rawurlencode($file);
 			$data = <<<EOF
 #EXTINF:-1,{$file}
@@ -58,21 +58,37 @@ EOF;
 			require_once('scrape.tvdb.php');
 			return ModScrapeTVDB::Find($_d['q'][2]);
 		}
-		else
+		else if (@$_d['q'][1] == 'items')
 		{
-			$this->_template = 'modules/tv/t_tv.xml';
+			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 
 			$this->_items = DataToArray($_d['tv.ds']->Get(), 'tv_path');
-			foreach (Comb($_d['config']['tv_path'], null, OPT_DIRS) as $f)
+			$r = $_d['config']['tv_path'];
+			$dp = opendir($r);
+			while ($f = readdir($dp))
 			{
-				$this->_items[$f] = $this->ScrapeFS($f);
-				$this->GetMedia($this->_items[$f]);
+				if ($f[0] == '.') continue;
+				if (!is_dir($r.'/'.$f)) continue;
+				$dirs[] = $r.'/'.$f;
 			}
 
+			foreach ($dirs as $f)
+			{
+				$this->_items[$f] = $this->ScrapeFS($f);
+				$this->_items[$f] += $this->GetMedia('tv', $this->_items[$f], $this->_missing_image);
+			}
+
+			# Root directory is not included.
 			unset($this->_items[$_d['config']['tv_path']]);
 
-			return parent::Get();
+			die(parent::Get());
+		}
+		else
+		{
+			$this->_template = 'modules/tv/t_tv.xml';
+			$t = new Template();
+			return $t->ParseFile($this->_template);
 		}
 	}
 }

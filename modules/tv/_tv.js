@@ -5,7 +5,7 @@ $(function () {
 		$('#tv-series').remove();
 		sel = $(this);
 		title = $(this).attr('title');
-		jQuery.get('tv/series', {'name': title}, function (dat) {
+		$.get('tv/series', {'name': title}, function (dat) {
 			sel.after(dat);
 		}, 'html');
 		return false;
@@ -17,4 +17,6 @@ $(function () {
 		}, 'html')
 		return false;
 	});
+
+	$('#tv-items').load('tv/items');
 });
