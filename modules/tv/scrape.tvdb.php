@@ -9,23 +9,15 @@ class ModScrapeTVDB
 
 	static function Find($series)
 	{
-		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($series);
-		$xml = file_get_contents($url);
-		$sx = simplexml_load_string($xml);
-		list($sid) = $sx->xpath('//Data/Series/seriesid');
-
-		if (empty($sid))
-		{
-			return "No such series found: {$series}<br/>\n";
-		}
-
+		$sid = ModScrapeTVDB::GetSID($series);
 		$key = ModScrapeTVDB::_tvdb_key;
 
-		$url = "http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip/banners.xml";
+		file_put_contents('tmp.zip', file_get_contents("http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip"));
 
-		@require_once "File/Archive.php";
-		$archive = @File_Archive::read($url);
-		$xml = @$archive->getData();
+		$za = new ZipArchive;
+		$za->open('tmp.zip');
+		$xml = $za->getFromName('banners.xml');
+		$za->close();
 
 		$sx = simplexml_load_string($xml);
 		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
@@ -34,6 +26,16 @@ class ModScrapeTVDB
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
 		return "Grabbed";
+	}
+
+	static function GetSID($series)
+	{
+		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($series);
+		$xml = file_get_contents($url);
+		$sx = simplexml_load_string($xml);
+		list($sid) = $sx->xpath('//Data/Series/seriesid');
+		if (empty($sid)) return -1;
+		return $sid;
 	}
 }
 

@@ -8,14 +8,11 @@ class MediaLibrary extends Module
 
 	function Get()
 	{
-		if (!empty($this->_items))
-		{
-			ksort($this->_items);
-			$t = new Template();
-			$t->ReWrite('item', array($this, 'TagItem'));
-			$t->Set($this->_vars);
-			return $t->Parsefile($this->_template);
-		}
+		if (!empty($this->_items)) ksort($this->_items);
+		$t = new Template();
+		$t->ReWrite('item', array($this, 'TagItem'));
+		$t->Set($this->_vars);
+		return $t->Parsefile($this->_template);
 	}
 
 	function TagItem($t, $g)
@@ -77,6 +74,31 @@ class MediaLibrary extends Module
 
 		$images = glob("img/meta/{$type}/bd_{$pinfo['filename']}.*");
 		if (!empty($images)) $ret['med_bd'] = URL($images[0]);
+
+		return $ret;
+	}
+
+	static function CleanTitleForFile($title, $trans_the = true)
+	{
+		// Regular expression cleanups.
+		$preps = array('/\.$/' => '');
+		$ret = preg_replace(array_keys($preps), array_values($preps), $title);
+
+		// Literal cleanups.
+		$reps = array('/' => ' ', ': ' => ' - ', ':' => '-', '?' => '');
+
+		$ret = str_replace(array_keys($reps), array_values($reps), $ret);
+
+		if ($trans_the)
+		{
+			// Transpose 'The {title} - {subtitle}
+			if (preg_match('/^(the) ([^-]+) - (.*)/i', $ret, $m))
+				$ret = $m[2].', '.$m[1].' - '.$m[3];
+
+			// Transpose 'The {title}'
+			else if (preg_match('/^(the) (.*)/i', $ret, $m))
+				$ret = $m[2].', '.$m[1];
+		}
 
 		return $ret;
 	}

@@ -284,24 +284,6 @@ EOF;
 
 		return $ret;
 	}
-
-	static function CleanTitleForFile($title)
-	{
-		// Clean up actual title -> filename characters.
-		$reps = array('/' => ' ', ': ' => ' - ', ':' => '-', '?' => '');
-
-		$ret = str_replace(array_keys($reps), array_values($reps), $title);
-
-		// Transpose 'The {title} - {subtitle}
-		if (preg_match('/^(the) ([^-]+) - (.*)/i', $ret, $m))
-			$ret = $m[2].', '.$m[1].' - '.$m[3];
-
-		// Transpose 'The {title}'
-		else if (preg_match('/^(the) (.*)/i', $ret, $m))
-			$ret = $m[2].', '.$m[1];
-
-		return $ret;
-	}
 }
 
 Module::Register('ModMovie');
