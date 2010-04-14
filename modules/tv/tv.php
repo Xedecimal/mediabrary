@@ -119,7 +119,7 @@ EOF;
 			foreach (glob($fx.'/*') as $fy)
 			{
 				$info = $mte->ScrapeFS($fy);
-				if (empty($info['med_season'])) { varinfo($fy); continue; }
+				if (empty($info['med_season'])) { varinfo("Cannot recognize: $fy"); continue; }
 				$epname = '';
 				if (!empty($sx))
 				{
@@ -127,8 +127,10 @@ EOF;
 					if (!empty($ep)) $epname = MediaLibrary::CleanTitleForFile($ep[0]->EpisodeName, false);
 				}
 				# <series> / <series> - S<season>E<episode> - <title>.avi
-				if (!preg_match('@([^/]+)/([^/]+) - S([0-9]+)E([0-9]+) - '.preg_quote($epname).'\.avi@', $fy))
+				if (!preg_match('@([^/]+)/([^/]+) - S([0-9]{2})E([0-9]{2}) - '.preg_quote($epname).'\.avi@', $fy))
 				{
+					$info['med_season'] = sprintf('%02d', $info['med_season']);
+					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
 					$fname = "{$info['med_series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
 					$url = l('tv/rename?src='.urlencode($fy).'&dst='.urlencode(dirname($fy).'/'.$fname.'.'.fileext($fy)));
 					$ret['StrictNames'][] = "<div>File $fy has invalid name, should be \"$fname\" <a href=\"$url\" class=\"a-fix\">Fix</a></div>";
@@ -177,18 +179,31 @@ class ModTVEpisode extends MediaLibrary
 				2 => 'med_season',
 				3 => 'med_episode'),
 			//path/{series}/{season}{episode} - {title}.ext
-			'#/([^/]+)/([0-9]+)([0-9]{2})\s*-\s*(.+)\.[^.]+$#i' => array(
+			'#/([^/]+)/(\d+)(\d{2})\s*-\s*(.+)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode',
 				4 => 'med_title'
 			),
 			//path/{series}/{title}S{season}E{episode}
-			'#/([^/]+)/([^/]+)S([0-9]+)E([0-9]+)(.*)#i' => array(
+			'#/([^/]+)/([^/]+)S(\d+)E(\d+)(.*)#i' => array(
 				1 => 'med_series',
 				2 => 'med_title',
 				3 => 'med_season',
 				4 => 'med_episode'
+			),
+			//path/{series}/{title}{S+}{EE}
+			'#/([^/]+)/([^/]+)(\d+)(\d{2}).*#' => array(
+				1 => 'med_series',
+				2 => 'med_title',
+				3 => 'med_season',
+				4 => 'med_episode'
+			),
+			# path/{series}/{Season}x{Episode}
+			'#/([^/]+)/[^/]+(\d+)x(\d+).*#' => array(
+				1 => 'med_series',
+				2 => 'med_season',
+				3 => 'med_episode'
 			)
 		);
 	}
