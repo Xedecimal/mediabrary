@@ -15,5 +15,6 @@ app_abs = '{{app_abs}}';
 <block name="default" />
 <div class="vbreak"></div>
 <block name="foot" />
+
 </body>
 </html>

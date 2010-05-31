@@ -85,10 +85,13 @@ class ModMovie extends MediaLibrary
 		{
 			$file = filenoext($_d['q'][2]);
 
+
+			$fasturl = '\\\\networkstorage\\nas\\Movies\\'.$_d['q'][2];
 			$url = 'http://'.GetVar('HTTP_HOST').'/nas/Movies/'.rawurlencode($_d['q'][2]);
 			$data = <<<EOF
 #EXTINF:-1,{$file}
-{$url}
+{$fasturl}
+#{$url}
 EOF;
 
 			SendDownloadStart("{$file}.m3u");
@@ -147,7 +150,9 @@ EOF;
 			// Load up and present ourselves fully.
 
 			$this->_template = 'modules/movie/t_movie_item.xml';
-			$query = @$_d['movie.cb.query'];
+			if (empty($_d['movie.cb.query']['match']))
+				$_d['movie.cb.query']['match']['cat_name'] = 'Unscraped';
+			$query = $_d['movie.cb.query'];
 			$this->_items = array();
 
 			// Collect Filesystem Metadata

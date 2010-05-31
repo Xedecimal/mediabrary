@@ -1,6 +1,8 @@
 <null>
 <script type="text/javascript" src="modules/tv/_tv.js" />
 
+{{needed}}
+
 <div id="tv-items"></div>
 
 </null>

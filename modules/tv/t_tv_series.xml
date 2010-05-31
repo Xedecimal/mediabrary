@@ -2,9 +2,11 @@
 <a href="{{series}}" id="scrape-tv-link">Search</a>
 <a href="test.php?series={{series}}" target="_blank">Get More Episodes</a>
 <item>
-	<div class="tv-episode" title="{{med_path}}" id="item:{{mov_id}}">
-	S{{med_season}}E{{med_episode}} - <a class="episode-link" href="tv/watch/{{med_series}}/{{fs_filename}}">{{med_title}}</a><br />
-	<input type="hidden" id="backdrop:{{mov_id}}" value="{{mov_backdrop}}" />
+	<div class="tv-episode" title="{{fs_path}}" id="item:{{mov_id}}">
+	{{have}}
+	S{{med_season}}E{{med_episode}} - <a class="episode-link"
+		href="tv/watch/{{med_series}}/{{fs_filename}}">{{med_title}}</a>
+		{{med_date}}
 	</div>
 </item>
 </div>

@@ -38,14 +38,17 @@ class MediaLibrary extends Module
 
 		if (!isset($this->_items[$path]))
 		{
+			$mx = 0;
 			foreach ($this->_fs_scrapes as $preg => $matches)
 			{
 				if (preg_match($preg, $path, $m))
 				{
 					foreach ($matches as $idx => $col)
 						$this->_items[$path][$col] = $m[$idx];
+					#$this->_items[$path]['matched'] = $mx;
 					break;
 				}
+				$mx++;
 			}
 
 			$this->_items[$path]['fs_path'] = $path;

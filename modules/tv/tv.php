@@ -91,8 +91,20 @@ EOF;
 		}
 		else
 		{
+			$missings = array();
+			// += overlaps episodes, combine instead.
+			foreach (ModTVSeries::GetAllSeries() as $series)
+				$missings = array_merge($missings,
+					ModTVEpisode::GetMissingEpisodes($series));
+			foreach ($missings as $missing)
+			{
+				varinfo($missing);
+				@$this->_vars['needed'] .= "<p>Missing: $missing</p>";
+			}
+
 			$this->_template = 'modules/tv/t_tv.xml';
 			$t = new Template();
+			$t->Set($this->_vars);
 			return $t->ParseFile($this->_template);
 		}
 	}
@@ -140,6 +152,49 @@ EOF;
 
 		return $ret;
 	}
+
+	static function GetDownloadingEpisodes($series)
+	{
+		global $_d;
+
+		require_once('File/Bittorrent2/Decode.php');
+		$btd = new File_Bittorrent2_Decode;
+		$mtve = new ModTVEpisode;
+		foreach (glob('/data/nas/torrent-files/*.torrent') as $f)
+		{
+			try { $tinfo = $btd->decode(file_get_contents($f)); }
+			catch (File_Bittorrent2_Exception $fbte) { echo "$f is messed up. $fbte"; }
+
+			$files = array();
+			if (!empty($tinfo['info']['files']))
+				foreach ($tinfo['info']['files'] as $f) $files[] = $f['path'][0];
+			else $files[] = $tinfo['info']['name'];
+
+			foreach ($files as $f)
+			{
+				$info = $mtve->ScrapeFS($_d['config']['tv_path'].'/'.$f);
+				if (!empty($info['med_title']))
+				{
+					$cleantitle = MediaLibrary::CleanTitleForFile($info['med_title']);
+					$s = number_format($info['med_season']);
+					$e = number_format($info['med_episode']);
+					$ret[$cleantitle][$s][$e] = $info;
+				}
+			}
+		}
+
+		return $ret;
+	}
+
+	static function GetAllSeries()
+	{
+		global $_d;
+
+		foreach (glob($_d['config']['tv_path'].'/*') as $fx)
+			$ret[] = basename($fx);
+
+		return $ret;
+	}
 }
 
 Module::Register('ModTVSeries');
@@ -148,25 +203,23 @@ class ModTVEpisode extends MediaLibrary
 {
 	function __construct()
 	{
-		parent::__construct();
-
 		$this->_template = 'modules/tv/t_tv_series.xml';
 		$this->_class = 'episode';
 		$this->_fs_scrapes = array(
-			//path/{series}/{series} - S{season}E{episode} - {title}.ext
+			# path/{series}/{series} - S{season}E{episode} - {title}.ext
 			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9]+)\s*-\s*([^.]+)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_series',
 				3 => 'med_season',
 				4 => 'med_episode',
 				5 => 'med_title'),
-			//path/{series}/{title} - S{season}E{episode}.ext
+			# path/{series}/{title} - S{season}E{episode}.ext
 			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9]+)\..*$#i' => array(
 				1 => 'med_series',
 				2 => 'med_title',
 				3 => 'med_season',
 				4 => 'med_episode'),
-			//path/{series}/S{season}E{episode} - {title}.ext
+			# path/{series}/S{season}E{episode} - {title}.ext
 			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s(.+)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_season',
@@ -174,7 +227,7 @@ class ModTVEpisode extends MediaLibrary
 				4 => 'med_title'),
 			//path/{series}/S{season}E{episode}.ext
 			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#i' => array(
-				0 => 'med_title',
+				0 => 'med_title', # Substituted as filename
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode'),
@@ -210,16 +263,84 @@ class ModTVEpisode extends MediaLibrary
 
 	function Get()
 	{
+		require_once('scrape.tvdb.php');
+
 		global $_d;
-		$this->_items = ModTVEpisode::GetEpisodes($_d['config']['tv_path'].'/'.$this->_vars['series']);
+		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['series']);
+
+		$sx = ModScrapeTVDB::GetXML($this->_vars['series']);
+		$elEps = $sx->xpath('//Episode');
+		foreach ($elEps as $elEp)
+		{
+			$s = (int)$elEp->SeasonNumber;
+			if (empty($s)) continue;
+			$e = (int)$elEp->EpisodeNumber;
+			$this->_items[$s][$e]['med_season'] = sprintf('%02d', $s);
+			$this->_items[$s][$e]['med_episode'] = sprintf('%02d', $e);
+			$this->_items[$s][$e]['med_title'] = (string)$elEp->EpisodeName;
+			$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
+			$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
+		}
+
+		$t = new Template();
+		$t->ReWrite('item', array(&$this, 'TagItem'));
+		$t->Set($this->_vars);
+		return $t->ParseFile($this->_template);
 		return parent::Get();
 	}
 
-	static function GetEpisodes($path)
+	function TagItem($t, $g)
 	{
+		$vp = new VarParser();
+
+		$ret = null;
+		foreach ($this->_items as $s => $ss)
+			foreach ($ss as $e => $es)
+				$ret .= $vp->ParseVars($g, $es);
+
+		return $ret;
+	}
+
+	static function GetExistingEpisodes($series)
+	{
+		global $_d;
 		$tvi = new ModTVEpisode;
+
 		$ret = array();
-		foreach (glob($path.'/*') as $f) $ret[$f] = $tvi->ScrapeFS($f);
+		foreach (glob($_d['config']['tv_path'].'/'.$series.'/*') as $f)
+		{
+			$i = $tvi->ScrapeFS($f);
+			$snf = number_format($i['med_season']);
+			$enf = number_format($i['med_episode']);
+			$ret[$snf][$enf] = $i;
+		}
+		return $ret;
+	}
+
+	static function GetMissingEpisodes($series)
+	{
+		require_once(l('tv/scrape.tvdb.php'));
+		$eps[$series] = ModTVEpisode::GetExistingEpisodes($series);
+		//$eps += ModTVSeries::GetDownloadingEpisodes($series);
+		$down = ModTVSeries::GetDownloadingEpisodes($series);
+		if (isset($down[$series]))
+			$eps[$series] += $down[$series];
+
+		$sx = ModScrapeTVDB::GetXML($series);
+		$elEps = $sx->xpath('//Episode');
+
+		$ret = array();
+		foreach ($elEps as $elEp)
+		{
+			$s = number_format((int)$elEp->SeasonNumber);
+			$e = number_format((int)$elEp->EpisodeNumber);
+			if (empty($s) || empty($e)) continue;
+
+			if (MyDateTimestamp($elEp->FirstAired) < time())
+			if (!isset($eps[$series][$s][$e]))
+			$ret[] = "$series S{$s}E{$e} - {$elEp->FirstAired}";
+		}
+
 		return $ret;
 	}
 }
