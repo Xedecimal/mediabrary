@@ -1,0 +1,4 @@
+<div id="rate">
+<script type="text/javascript" src="rate/rate.js"></script>
+<input type="checkbox" id="rate-hide" /> Hide Seen
+</div>

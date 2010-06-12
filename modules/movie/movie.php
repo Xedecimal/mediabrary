@@ -91,7 +91,7 @@ class ModMovie extends MediaLibrary
 			$data = <<<EOF
 #EXTINF:-1,{$file}
 {$fasturl}
-#{$url}
+{$url}
 EOF;
 
 			SendDownloadStart("{$file}.m3u");
@@ -101,10 +101,12 @@ EOF;
 		{
 			$t = new Template();
 			$item = $this->ScrapeFS(GetVar('path'));
-			$m = array('med_path' => $item['fs_path']);
-			$item = array_merge($item, $_d['movie.ds']->GetOne(array('match' => $m)));
+			$query = $_d['movie.cb.query'];
+			$query['match'] = array('med_path' => $item['fs_path']);
+			$item = array_merge($item, $_d['movie.ds']->GetOne($query));
 			if (!empty($_d['movie.cb.detail']))
-				$item = RunCallbacks($_d['movie.cb.detail'], $item);
+				foreach ($_d['movie.cb.detail'] as $cb)
+					$item = call_user_func($cb, $item);
 			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
 			$t->Set($item);
 			$this->_item = $item;
@@ -116,8 +118,9 @@ EOF;
 			// Collect Information
 			//$src = '/'.implode('/', array_splice($_d['q'], 2));
 			$src = GetVar('path');
+			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
-			$pinfo = pathinfo($src);
+			//$pinfo = pathinfo($src);
 			$meta = $this->ScrapeFS($src);
 			$dr = $_d['movie.ds']->GetOne(array(
 				'match' => array('med_path' => str_replace('&', ':', $src))
@@ -128,20 +131,21 @@ EOF;
 			$ftitle = $this->CleanTitleForFile($ftitle);
 			$fyear = substr($meta['med_date'], 0, 4);
 
-			$dst = "{$pinfo['dirname']}/{$ftitle} ({$fyear}).".strtolower($pinfo['extension']);
+			$dst = "{$m[1]}{$ftitle} ({$fyear}).".strtolower($m[3]);
 
 			// Apply File Transformations
 
 			rename($src, $dst);
 
-			preg_rename(
-				'img/meta/movie/*'.filenoext($pinfo['basename']).'*',
-				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/', filenoext($pinfo['basename']))).'(\..*)$#i',
+			preg_rename('img/meta/movie/*'.filenoext($m[2]).'*',
+				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
+					filenoext($m[2]))).'(\..*)$#i',
 				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
 
 			// Apply Database Transformations
 
-			$_d['movie.ds']->Update(array('med_path' => $src), array('med_path' => $dst));
+			$_d['movie.ds']->Update(array('med_path' => $src),
+				array('med_path' => $dst));
 
 			die('Fixed');
 		}
@@ -150,10 +154,16 @@ EOF;
 			// Load up and present ourselves fully.
 
 			$this->_template = 'modules/movie/t_movie_item.xml';
-			if (empty($_d['movie.cb.query']['match']))
-				$_d['movie.cb.query']['match']['cat_name'] = 'Unscraped';
 			$query = $_d['movie.cb.query'];
 			$this->_items = array();
+
+			// Do not load all movies on startup
+
+			if (empty($query['match']) && empty($_d['movie.skipds']))
+			{
+				$query['match']['med_id'] = 0;
+				$_d['movie.skipfs'] = true;
+			}
 
 			// Collect Filesystem Metadata
 
@@ -236,7 +246,7 @@ EOF;
 		{
 			// Filesystem based checks
 
-			if (@$md['fs_ext'] != 'avi')
+			if (!empty($md['fs_path']) && @$md['fs_ext'] != 'avi')
 				$ret['extension'][] = "File {$md['fs_path']} has a bad extension.";
 
 			// Metadata Related

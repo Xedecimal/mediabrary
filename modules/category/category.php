@@ -21,17 +21,16 @@ class ModCategory extends MediaLibrary
 
 		$cat = GetVar('category');
 
-		if ($cat == 'All') { }
-		else if (!empty($cat) && $cat != 'Unscraped')
-		{
-			$_d['movie.cb.query']['match']['cat_name'] = $cat;
-			$_d['movie.skipfs'] = true;
-		}
-		else if ($cat == 'Unscraped')
+		if ($cat == 'Unscraped')
 		{
 			$_d['movie.exclusive'] = true;
 			$_d['movie.skipfs'] = false;
 			$_d['movie.skipds'] = true;
+		}
+		else if (!empty($cat))
+		{
+			$_d['movie.cb.query']['match']['cat_name'] = $cat;
+			$_d['movie.skipfs'] = true;
 		}
 	}
 

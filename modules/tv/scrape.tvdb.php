@@ -46,6 +46,7 @@ class ModScrapeTVDB
 		$xml = file_get_contents($url);
 		$sx = simplexml_load_string($xml);
 		$sids = $sx->xpath('//Data/Series/seriesid');
+		if (empty($sids)) return -1;
 		$sid = (int)$sids[0];
 		if (empty($sid)) return -1;
 		$info['sid'] = $sid;
@@ -58,7 +59,10 @@ class ModScrapeTVDB
 		global $_d;
 
 		$sid = ModScrapeTVDB::GetSID($series);
-		if ($sid == -1) die("Could not locate this series $series");
+		if ($sid == -1) {
+			echo "Could not locate this series $series";
+			return null;
+		}
 		$infoloc = "{$_d['config']['tv_path']}/$series/.info.zip";
 		if ($download || !file_exists($infoloc))
 		{

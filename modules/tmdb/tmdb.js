@@ -15,12 +15,11 @@ $(function () {
 		path = $(this).attr('href').replace("'", "\\'");
 		$('a[href="'+path+'"] img[class=movie-image]').attr('src', 'modules/movie/img/loading.jpg');
 		basename = path.match(/([^/]+)\.([^.]+)$/)[0];
-		$.get('tmdb/scrape', {target: path, tmdb_id: m_id}, function (data) {
-			$('a[href="'+data.med_path.replace("'","\\'")+'"] img[class=movie-image]').attr('src', data.med_thumb);
-			//$('#dialog-movie').html(data);
-		}, 'json');
+		$.getJSON('tmdb/scrape', {target: path, tmdb_id: m_id}, function (data) {
+			$('a[href="'+data.med_path.replace("'","\\'")+
+				'"] img[class=movie-image]').attr('src', data.med_thumb);
+		});
 		$('#dialog-movie').dialog('close');
-
 		return false;
 	});
 	$('#tmdb-aCovers').live('click', function () {
@@ -49,8 +48,8 @@ $(function () {
 function movie_find(event) {
 	dat = { path: $('#movie_path').val() };
 
-	if (event.data.source != undefined)
-		dat['title'] = $(event.data.source).attr(event.data.attr);
+	if ($('#inTitle').val()) dat['title'] = $('#inTitle').val();
+	else dat['title'] = $('#movie_title').val();
 
 	$.get('tmdb/find', dat, function (data) {
 		$('#movie-details').html(data);

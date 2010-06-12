@@ -63,7 +63,6 @@ EOF;
 			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 
-			$this->_items = DataToArray($_d['tv.ds']->Get(), 'tv_path');
 			$r = $_d['config']['tv_path'];
 			$dp = opendir($r);
 			while ($f = readdir($dp))
@@ -89,23 +88,31 @@ EOF;
 			if (!rename(GetVar('src'), GetVar('dst'))) die('Error!');
 			else die('Done.');
 		}
+		else if (@$_d['q'][1] == 'grab')
+		{
+			if (ModTVSeries::GrabEpisode(GetVar('series'), GetVar('season'),
+				GetVar('episode')))
+				return "Successful!";
+			return "Failure!";
+		}
 		else
 		{
 			$missings = array();
 			// += overlaps episodes, combine instead.
 			foreach (ModTVSeries::GetAllSeries() as $series)
-				$missings = array_merge($missings,
-					ModTVEpisode::GetMissingEpisodes($series));
-			foreach ($missings as $missing)
 			{
-				varinfo($missing);
-				@$this->_vars['needed'] .= "<p>Missing: $missing</p>";
+				$add = ModTVEpisode::GetMissingEpisodes($series);
+				if (!empty($add)) $missings = array_merge($missings, $add);
 			}
+
+			$ret = null;
+			foreach ($missings as $missing)
+				$ret .= "<div>Missing: $missing</div>";
 
 			$this->_template = 'modules/tv/t_tv.xml';
 			$t = new Template();
 			$t->Set($this->_vars);
-			return $t->ParseFile($this->_template);
+			return $ret.$t->ParseFile($this->_template);
 		}
 	}
 
@@ -163,7 +170,12 @@ EOF;
 		foreach (glob('/data/nas/torrent-files/*.torrent') as $f)
 		{
 			try { $tinfo = $btd->decode(file_get_contents($f)); }
-			catch (File_Bittorrent2_Exception $fbte) { echo "$f is messed up. $fbte"; }
+			catch (File_Bittorrent2_Exception $fbte)
+			{
+				unlink($f);
+				echo "$f is messed up. $fbte";
+				continue;
+			}
 
 			$files = array();
 			if (!empty($tinfo['info']['files']))
@@ -194,6 +206,23 @@ EOF;
 			$ret[] = basename($fx);
 
 		return $ret;
+	}
+
+	static function GrabEpisode($series, $season, $episode)
+	{
+		$url = 'http://ezrss.it/search/index.php?show_name='
+			.rawurlencode($series).'&show_name_exact=true&mode=rss'
+			."&season={$season}&episode=".
+			$episode;
+		varinfo($url);
+		$xml = file_get_contents($url);
+		varinfo($xml);
+		$sx = simplexml_load_string($xml);
+		$link = $sx->xpath('//channel/item/link');
+		if (empty($link)) return false;
+		file_put_contents('/data/nas/torrent-files/'.basename($link[0]),
+			file_get_contents($link[0]));
+		return true;
 	}
 }
 
@@ -327,18 +356,27 @@ class ModTVEpisode extends MediaLibrary
 			$eps[$series] += $down[$series];
 
 		$sx = ModScrapeTVDB::GetXML($series);
+		if (empty($sx)) return;
 		$elEps = $sx->xpath('//Episode');
 
 		$ret = array();
 		foreach ($elEps as $elEp)
 		{
 			$s = number_format((int)$elEp->SeasonNumber);
+			$ss = sprintf('%02d', $s);
 			$e = number_format((int)$elEp->EpisodeNumber);
-			if (empty($s) || empty($e)) continue;
+			$ee = sprintf('%02d', $e);
+			if (empty($s) || empty($e) || empty($elEp->FirstAired)) continue;
 
 			if (MyDateTimestamp($elEp->FirstAired) < time())
 			if (!isset($eps[$series][$s][$e]))
-			$ret[] = "$series S{$s}E{$e} - {$elEp->FirstAired}";
+			{
+				$query = rawurlencode("$series S{$ss}E{$ee}");
+				$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
+					$series S{$ss}E{$ee}</a> - {$elEp->FirstAired} <a
+					href=\"{{app_abs}}/tv/grab?series=$series&season=$s&episode=$e\"
+					target=\"_blank\">Attempt quick torrent grab</a>";
+			}
 		}
 
 		return $ret;

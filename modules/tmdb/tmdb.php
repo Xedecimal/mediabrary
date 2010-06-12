@@ -244,7 +244,7 @@ class ModTMDB extends Module
 			'#-.*$#' => '',
 			'#\[[^\]]+\]#' => '',
 			'#([.]{1} |\.|-|_)#' => ' ',
-			'#(ac3|5,1|dvdrip|unrated)#i' => '',
+			'#(ac3|5,1|dvdrip|bdrip|unrated)#i' => '',
 			'#\([^)]*\)#' => ''
 		);
 
@@ -294,6 +294,8 @@ class ModTMDB extends Module
 
 	static function cmp_title($cmp1, $cmp2)
 	{
+		return (int)$cmp1->score < (int)$cmp2->score;
+
 		global $_movie;
 
 		similar_text($_movie['fs_title'], (string)$cmp1->name, $title1);

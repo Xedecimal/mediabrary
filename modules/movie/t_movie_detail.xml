@@ -5,12 +5,16 @@
 		<callback ds="_d" name="movie.cb.buttons" />
 	</p>
 
-	<input type="hidden" name="movie-bd" value="{{med_bd}}" />
+	<input type="hidden" id="movie-id" value="{{med_id}}" />
+	<input type="hidden" id="movie-bd" value="{{med_bd}}" />
 	<input type="hidden" id="movie_path" value="{{fs_path}}" />
+	<input type="hidden" id="movie_title" value="{{fs_title}}" />
 
 	<p>Details for {{fs_path}}</p>
 
-	<item><div>{{name}} {{value}}</div></item>
+	<table>
+	<item><tr><td>{{name}}</td><td>{{value}}</td></tr></item>
+	</table>
 
 	<div id="movie-details"></div>
 </div>

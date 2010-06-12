@@ -18,7 +18,7 @@ $(function () {
 			{path: $(this).attr('href')}, function () {
 				$('#dialog-movie').dialog('open');
 				img = $('input[name="movie-bd"]').val();
-				$('.ui-widget-overlay').css('background', 'url(\''+img+'\') no-repeat center');
+				//$('.ui-widget-overlay').css('background', 'url(\''+img+'\') no-repeat center');
 			}
 		);
 		return false;
