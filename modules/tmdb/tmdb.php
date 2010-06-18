@@ -32,6 +32,8 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
+			# Collect Existing Information
+
 			$target = stripslashes(GetVar('target'));
 			$mm = new ModMovie();
 			$item = $mm->ScrapeFS($target);
@@ -41,36 +43,42 @@ class ModTMDB extends Module
 				'args' => GET_ASSOC
 			));
 
-			if (!empty($_d['movie.cb.scrape']))
-				$item = RunCallbacks($_d['movie.cb.scrape'], $item);
+			if (!empty($dsitem)) $item += $dsitem;
 
-			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
+			# Create stub
+
+			if (empty($dsitem)) $id = $_d['movie.ds']->Add($item, true);
+
+			if (!empty($_d['movie.cb.prescrape']))
+				$item = RunCallbacks($_d['movie.cb.prescrape'], $item);
 
 			$cats = @$item['med_cats'];
 
 			$media = ModMovie::GetMedia('movie', $item, 'modules/movie/img/missing.jpg');
 
+			# Process information
+
+			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
+
 			$item['med_path'] = $item['fs_path'];
 			foreach (array_keys($item) as $k) if ($k[0] != 'm') unset($item[$k]);
 			unset($item['med_thumb'], $item['med_cats']);
 
-			$_d['movie.ds']->Add($item, true);
-			if (!isset($item['med_id']))
-			{
-				$id = $_d['movie.ds']->GetCustom('SELECT LAST_INSERT_ID()');
-				$id = $id[0][0];
-			}
-			else $id = $item['med_id'];
+			# Save information
 
-			$_d['cat.ds']->Remove(array('cat_movie' => $id));
+			$item['med_id'] = $_d['movie.ds']->Add($item, true);
+
+			if (!empty($_d['movie.cb.postscrape']))
+				$item = RunCallbacks($_d['movie.cb.postscrape'], $item);
+
+			$_d['cat.ds']->Remove(array('cat_movie' => $item['med_id']));
 			if (!empty($cats))
 			foreach ($cats as $cat)
-				$_d['cat.ds']->Add(array('cat_movie' => $id, 'cat_name' => $cat));
+				$_d['cat.ds']->Add(array('cat_movie' => $item['med_id'], 'cat_name' => $cat));
 
 			$p = $item['med_path'];
 			//$this->_items[$p] = array_merge($item, $this->ScrapeFS($p));
 
-			//varinfo($media);
 			die(json_encode($item + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')
@@ -313,7 +321,11 @@ class ModTMDB extends Module
 
 	static function Scrape($movie, $id)
 	{
+		global $_d;
+
 		$xml = file_get_contents(TMDB_INFO.$id);
+		if (!empty($_d['tmdb.cb.scrape']))
+			RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);
 		$sx = simplexml_load_string($xml);
 
 		# Scrape some general information
@@ -330,8 +342,7 @@ class ModTMDB extends Module
 
 		$elcats = $sx->xpath('//movies/movie/categories/category');
 
-		foreach ($elcats as $e)
-			$movie['med_cats'][] = $e['name'];
+		foreach ($elcats as $e) $movie['med_cats'][] = $e['name'];
 
 		# Scrape a cover thumbnail
 

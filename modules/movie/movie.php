@@ -195,6 +195,8 @@ EOF;
 				else $this->_items[$i['med_path']] += $i;
 			}
 
+			$this->_vars['total'] = count($this->_items);
+
 			foreach ($this->_items as &$i)
 				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
 

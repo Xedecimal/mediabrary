@@ -24,6 +24,12 @@ function xpath_attrs($s, $xpath, $attr)
 	return $ret;
 }
 
+function xpath_value($s, $xpath)
+{
+	$res = $s->xpath($xpath);
+	if (!empty($res)) return $res[0];
+}
+
 function bin_safe_store($dat) { return base64_encode($dat); }
 function bin_safe_load($dat) { return base64_decode($dat); }
 
