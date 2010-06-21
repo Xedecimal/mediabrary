@@ -10,11 +10,9 @@
 	<input type="hidden" id="movie_path" value="{{fs_path}}" />
 	<input type="hidden" id="movie_title" value="{{fs_title}}" />
 
-	<p>Details for {{fs_path}}</p>
-
-	<table>
-	<item><tr><td>{{name}}</td><td>{{value}}</td></tr></item>
-	</table>
-
-	<div id="movie-details"></div>
+	<div id="movie-details">
+		<table>
+		<item><tr><td>{{name}}</td><td>{{value}}</td></tr></item>
+		</table>
+	</div>
 </div>

@@ -14,6 +14,9 @@ $(function () {
 			return false;
 		}
 
+		$('#dialog-movie').dialog('option', 'title',
+			'Details for '+$(this).attr('href'));
+
 		$('#dialog-movie').load(app_abs+'/movie/detail',
 			{path: $(this).attr('href')}, function () {
 				$('#dialog-movie').dialog('open');

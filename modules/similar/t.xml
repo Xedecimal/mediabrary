@@ -1,0 +1,4 @@
+<items>
+	<item><div class="similar-item"><img src="{{image}}" alt="thumb" />
+		<a href="{{url}}">{{title}}</a></div></item>
+</items>

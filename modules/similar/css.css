@@ -1,0 +1,12 @@
+.similar-item
+{
+	width: 200px;
+	height: 200px;
+	float: left;
+}
+
+.similar-item img
+{
+    width: 100px;
+    display: block;
+}

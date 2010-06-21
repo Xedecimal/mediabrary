@@ -304,11 +304,16 @@ EOF;
 	{
 		global $_d;
 
+		if (empty($_d['movie.cb.query']['match']))
+			$_d['movie.cb.query']['limit'] = array(0, 50);
+
 		$query = $_d['movie.cb.query'];
 
 		if (!empty($_d['movie.cb.lqc']))
 			$query = RunCallbacks($_d['movie.cb.lqc'], $query);
 
+		$query['group'] = 'med_id';
+		$ret = array();
 		foreach ($_d['movie.ds']->Get($query) as $i)
 		{
 			// Emulate a file system if we're not indexing it.
