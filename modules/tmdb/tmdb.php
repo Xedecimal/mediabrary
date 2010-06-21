@@ -97,8 +97,9 @@ class ModTMDB extends Module
 				die("This movie doesn't seem fully scraped.");
 
 			$covers = ModTMDB::GetCovers($item[0]['med_tmdbid']);
-			foreach ($covers as $ix => $c) @$ret .= '<a href="'.$path.'" class="tmdb-aCover"><img src="'.$c.'" />';
-			return $ret;
+			foreach ($covers as $ix => $c)
+				@$ret .= '<a href="'.$path.'" class="tmdb-aCover"><img src="'.$c.'" /></a>';
+			die($ret);
 		}
 		else if (@$_d['q'][1] == 'cover')
 		{

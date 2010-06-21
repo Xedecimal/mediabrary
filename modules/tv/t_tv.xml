@@ -1,4 +1,7 @@
 <null>
+
+<div id="dialog-tv" class="hidden"></div>
+
 <script type="text/javascript" src="modules/tv/_tv.js" />
 
 <div id="tv-items"></div>

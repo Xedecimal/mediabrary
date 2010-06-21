@@ -27,5 +27,8 @@ $(function () {
 		return false;
 	});
 
-	$('#filter-toggle').click(function () {$('.filter').toggle(500); return false;});
+	$('#filter-toggle').click(function () {
+		$('.filter').toggle(500);
+		return false;
+	});
 });

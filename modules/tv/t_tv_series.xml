@@ -1,6 +1,8 @@
 <div id="tv-series">
-<a href="{{series}}" id="scrape-tv-link">Search</a>
-<a href="test.php?series={{series}}" target="_blank">Get More Episodes</a>
+<a href="{{med_title}}" id="scrape-tv-link"><img src="img/find.png" alt="Grab Latest Information" /></a>
+<callback ds="_d" name="tv.cb.buttons" />
+
+<div id="tv-details">
 <item>
 	<div class="tv-episode" title="{{fs_path}}" id="item:{{mov_id}}">
 	{{have}}
@@ -9,4 +11,5 @@
 		{{med_date}}
 	</div>
 </item>
-</div>
+</div> <!-- #tv-details -->
+</div> <!-- #tv-series -->

@@ -23,9 +23,7 @@ $(function () {
 		return false;
 	});
 	$('#tmdb-aCovers').live('click', function () {
-		$.get('tmdb/covers', {path: $(this).attr('href')}, function (data) {
-			$('#movie-details').html(data);
-		}, 'html');
+		$('#movie-details').load('tmdb/covers', {path: $(this).attr('href')});
 		return false;
 	});
 	$('.tmdb-aCover').live('click', function () {

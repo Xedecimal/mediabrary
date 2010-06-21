@@ -61,9 +61,9 @@ EOF;
 		{
 			$series = GetVar('name');
 			$m = new ModTVEpisode();
-			$m->_vars['series'] = $series;
+			$m->_vars['med_title'] = $series;
 			$m->Series = $series;
-			return $m->Get();
+			die($m->Get());
 		}
 		else if (@$_d['q'][1] == 'search')
 		{
@@ -308,11 +308,9 @@ class ModTVEpisode extends MediaLibrary
 		require_once('scrape.tvdb.php');
 
 		global $_d;
-		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['series']);
+		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_title']);
 
-		varinfo($this->_items);
-
-		$sx = ModScrapeTVDB::GetXML($this->_vars['series']);
+		$sx = ModScrapeTVDB::GetXML($this->_vars['med_title']);
 		$elEps = $sx->xpath('//Episode');
 		foreach ($elEps as $elEp)
 		{

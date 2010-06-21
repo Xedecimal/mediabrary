@@ -18,10 +18,12 @@ class ModSimilar extends Module
 		global $_d;
 
 		$_d['movie.cb.buttons']['similar'] =
-			array(&$this, 'cb_movie_buttons_similar');
+			array(&$this, 'cb_buttons_similar');
+		$_d['tv.cb.buttons']['similar'] =
+			array(&$this, 'cb_buttons_similar');
 	}
 
-	function cb_movie_buttons_similar()
+	function cb_buttons_similar()
 	{
 		$js = p('similar/js.js');
 		$css = p('similar/css.css');

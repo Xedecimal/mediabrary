@@ -1,13 +1,21 @@
-var sel = null;
-
 $(function () {
+	$('#dialog-tv').dialog({
+		'modal': true,
+		autoOpen: false,
+		width: '80%',
+		position: 'top'
+	});
+
 	$('.tv-item').live('click', function () {
-		$('#tv-series').remove();
-		sel = $(this);
-		title = $(this).attr('title');
-		$.get('tv/series', {'name': title}, function (dat) {
-			sel.after(dat);
-		}, 'html');
+		$('#dialog-tv').dialog('option', 'title',
+			'Details for '+$(this).attr('title'));
+
+		$('#dialog-tv').load('tv/series',
+			{'name': $(this).attr('title')},
+			function () {
+				$('#dialog-tv').dialog('open');
+			}
+		);
 		return false;
 	});
 
