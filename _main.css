@@ -1,2 +1,7 @@
-body { text-align: center; margin: auto; }
+body { text-align: center; margin: auto; font-family: Verdana; }
 .hidden { display: hidden; }
+.main-link
+{
+	color: #000;
+	font-weight: bold;
+}

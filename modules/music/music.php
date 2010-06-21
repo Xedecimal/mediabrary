@@ -15,7 +15,7 @@ class ModMusic extends MediaLibrary
 		if (empty($_d['q'][0]))
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/music/css.css" />';
-			return '<a href="{{app_abs}}/music" id="a-music">Music</a>';
+			return '<a href="{{app_abs}}/music" id="a-music" class="main-link">Music</a>';
 		}
 	}
 }

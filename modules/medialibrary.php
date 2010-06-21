@@ -45,7 +45,7 @@ class MediaLibrary extends Module
 				{
 					foreach ($matches as $idx => $col)
 						$this->_items[$path][$col] = $m[$idx];
-					#$this->_items[$path]['matched'] = $mx;
+					$this->_items[$path]['debug_matched'] = $mx;
 					break;
 				}
 				$mx++;

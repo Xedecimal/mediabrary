@@ -1,7 +1,4 @@
-<div id="categories">
-<script type="text/javascript" src="modules/category/category.js"></script>
 <category>
 	<a href="{{app_abs}}/category/{{cat_name}}" class="aCategory"
 		style="font-size: {{cat_size}}px">{{cat_name}}</a>
 </category>
-</div>

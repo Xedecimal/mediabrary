@@ -9,7 +9,7 @@ class ModPics extends MediaLibrary
 		if (empty($_d['q'][0]))
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/pics/css.css" />';
-			return '<a href="{{app_abs}}/pic" id="a-pics">Pics</a>';
+			return '<a href="{{app_abs}}/pic" id="a-pics" class="main-link">Pics</a>';
 		}
 	}
 }

@@ -7,6 +7,8 @@ class ModMovie extends MediaLibrary
 		parent::__construct();
 
 		global $_d;
+
+		$_d['movie.source'] = 'file';
 		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'med_id');
 
 		$this->_class = 'movie';
@@ -59,6 +61,28 @@ class ModMovie extends MediaLibrary
 		);
 	}
 
+	function Prepare()
+	{
+		global $_d;
+
+		$query = $_d['movie.cb.query'];
+		$this->_items = array();
+
+		# Do not load all movies on startup
+
+		if (empty($query['match']) && $_d['movie.source'] == 'ds')
+			$query['match']['med_id'] = 0;
+
+		$this->_files = $this->CollectFS();
+		$this->_items = $this->CollectDS();
+
+		if (!empty($_d['movie.cb.filter']))
+			$this->_items = RunCallbacks($_d['movie.cb.filter'], $this->_items,
+				$this->_files);
+
+		$this->_vars['total'] = count($this->_items);
+	}
+
 	function Get()
 	{
 		global $_d;
@@ -68,7 +92,8 @@ class ModMovie extends MediaLibrary
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
 
 			$total = $size = 0;
-			foreach (glob($_d['config']['movie_path'].'/*') as $f)
+
+			foreach (Comb($_d['config']['movie_path'], '/downloads/i', OPT_FILES) as $f)
 			{
 				$size += filesize($f);
 				$total++;
@@ -76,7 +101,7 @@ class ModMovie extends MediaLibrary
 			$size = GetSizeString($size);
 			$text = "{$size} of {$total} Movies";
 
-			return '<a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a>';
+			return '<a href="{{app_abs}}/movie" id="a-movie" class="main-link">'.$text.'</a>';
 		}
 
 		if (@$_d['q'][0] != 'movie') return;
@@ -108,6 +133,7 @@ EOF;
 				foreach ($_d['movie.cb.detail'] as $cb)
 					$item = call_user_func($cb, $item);
 			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
+			$item['fs_filename'] = basename(GetVar('path'));
 			$t->Set($item);
 			$this->_item = $item;
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
@@ -136,6 +162,7 @@ EOF;
 			// Apply File Transformations
 
 			rename($src, $dst);
+			touch($dst);
 
 			preg_rename('img/meta/movie/*'.filenoext($m[2]).'*',
 				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
@@ -151,51 +178,7 @@ EOF;
 		}
 		else if (@$_d['q'][1] == 'items')
 		{
-			// Load up and present ourselves fully.
-
 			$this->_template = 'modules/movie/t_movie_item.xml';
-			$query = $_d['movie.cb.query'];
-			$this->_items = array();
-
-			// Do not load all movies on startup
-
-			if (empty($query['match']) && empty($_d['movie.skipds']))
-			{
-				$query['match']['med_id'] = 0;
-				$_d['movie.skipfs'] = true;
-			}
-
-			// Collect Filesystem Metadata
-
-			if (empty($_d['movie.skipfs']))
-			foreach (glob($_d['config']['movie_path'].'/*') as $f)
-			{
-				if (is_dir($f)) continue;
-				$this->_items[$f] += $this->ScrapeFS($f);
-			}
-
-			// Collect Database Metadata
-
-			foreach ($_d['movie.ds']->Get($query) as $i)
-			{
-				if (!empty($_d['movie.skipds']) && !empty($i['med_tmdbid']))
-				{
-					unset($this->_items[$i['med_path']]);
-					continue;
-				}
-				if (empty($i['med_path'])) continue;
-
-				// Emulate a file system if we're not indexing it.
-				if (@$_d['movie.skipfs'] || !isset($this->_items[$i['med_path']]))
-				{
-					$i['fs_path'] = $i['med_path'];
-					$i['fs_title'] = $i['med_title'];
-					$this->_items[$i['med_path']] = $i;
-				}
-				else $this->_items[$i['med_path']] += $i;
-			}
-
-			$this->_vars['total'] = count($this->_items);
 
 			foreach ($this->_items as &$i)
 				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
@@ -298,6 +281,46 @@ EOF;
 		}
 
 		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
+
+		return $ret;
+	}
+
+	function CollectFS()
+	{
+		global $_d;
+
+		$ret = array();
+
+		foreach (glob($_d['config']['movie_path'].'/*') as $f)
+		{
+			if (is_dir($f)) continue;
+			$ret[$f] = $this->ScrapeFS($f);
+		}
+
+		return $ret;
+	}
+
+	function CollectDS()
+	{
+		global $_d;
+
+		$query = $_d['movie.cb.query'];
+
+		if (!empty($_d['movie.cb.lqc']))
+			$query = RunCallbacks($_d['movie.cb.lqc'], $query);
+
+		foreach ($_d['movie.ds']->Get($query) as $i)
+		{
+			// Emulate a file system if we're not indexing it.
+			if (!isset($ret[$i['med_path']]))
+			{
+				$i['fs_path'] = $i['med_path'];
+				$i['fs_filename'] = basename($i['med_path']);
+				$i['fs_title'] = $i['med_title'];
+				$ret[$i['med_path']] = $i;
+			}
+			else $ret[$i['med_path']] += $i;
+		}
 
 		return $ret;
 	}

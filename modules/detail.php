@@ -62,6 +62,8 @@ class ModDetail extends Module
 	{
 		global $_d;
 
+		if (empty($item['med_id'])) return $item;
+
 		$details = $_d['movie_detail.ds']->Get(array(
 			'match' => array(
 				'md_movie' => $item['med_id']

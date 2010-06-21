@@ -22,7 +22,7 @@ class ModTMDB extends Module
 	{
 		global $_d;
 
-		$_d['head'] .= '<script type="text/javascript" src="modules/tmdb/tmdb.js"></script>';
+		$_d['head'] .= '<script type="text/javascript" src="'.p('tmdb/tmdb.js').'"></script>';
 
 		if (@$_d['q'][1] == 'find')
 		{

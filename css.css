@@ -2,6 +2,8 @@ html, body { margin: 0; padding: 0; height: 100%; background: #000; color: #CCC;
 a { color: #FFF; }
 a img { border: 0; }
 
+.filter { display: none; }
+
 .hidden { display: none; }
 .clear { clear: both; }
 .left { float: left; }

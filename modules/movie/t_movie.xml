@@ -2,9 +2,14 @@
 <script type="text/javascript" src="movie/_movie.js" />
 <link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/css.css" />
 
-<div id="dialog-movie" class="hidden"></div>
-<div id="movie-controls"><callback ds="_d" name="movie.cb.head" /></div>
+<a href="#" id="filter-toggle">Filtration</a>
 
+<div id="dialog-movie" class="hidden"></div>
+<div id="movie-controls">
+<callback ds="_d" name="movie.cb.head" />
+</div>
+
+<a href="movie/items" target="movie-items" class="refresh" />
 <div id="movie-items"></div>
 
 </div>

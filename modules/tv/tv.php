@@ -27,7 +27,19 @@ class ModTVSeries extends MediaLibrary
 		if (empty($_d['q'][0]))
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
-			return '<a href="tv" id="a-tv">Television</a>';
+
+			$series = count(glob("{$_d['config']['tv_path']}/*", GLOB_ONLYDIR));
+
+			$total = $size = 0;
+			foreach (Comb($_d['config']['tv_path'], '#downloads#i', OPT_FILES) as $f)
+			{
+				$size += filesize($f);
+				$total++;
+			}
+			$size = GetSizeString($size);
+			$text = "{$size} of {$series} Series in {$total} Episodes";
+
+			return '<a href="tv" id="a-tv" class="main-link">'.$text.'</a>';
 		}
 		if (@$_d['q'][0] != 'tv') return;
 		else if (@$_d['q'][1] == 'watch')
@@ -105,14 +117,15 @@ EOF;
 				if (!empty($add)) $missings = array_merge($missings, $add);
 			}
 
-			$ret = null;
+			$needed = null;
 			foreach ($missings as $missing)
-				$ret .= "<div>Missing: $missing</div>";
+				$needed .= "<div>Missing: $missing</div>";
 
 			$this->_template = 'modules/tv/t_tv.xml';
 			$t = new Template();
 			$t->Set($this->_vars);
-			return $ret.$t->ParseFile($this->_template);
+			$t->Set('needed', $needed);
+			return $t->ParseFile($this->_template);
 		}
 	}
 
@@ -236,7 +249,7 @@ class ModTVEpisode extends MediaLibrary
 		$this->_class = 'episode';
 		$this->_fs_scrapes = array(
 			# path/{series}/{series} - S{season}E{episode} - {title}.ext
-			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9]+)\s*-\s*([^.]+)\.[^.]+$#i' => array(
+			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
 				1 => 'med_series',
 				2 => 'med_series',
 				3 => 'med_season',
@@ -297,6 +310,8 @@ class ModTVEpisode extends MediaLibrary
 		global $_d;
 		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['series']);
 
+		varinfo($this->_items);
+
 		$sx = ModScrapeTVDB::GetXML($this->_vars['series']);
 		$elEps = $sx->xpath('//Episode');
 		foreach ($elEps as $elEp)
@@ -339,9 +354,24 @@ class ModTVEpisode extends MediaLibrary
 		foreach (glob($_d['config']['tv_path'].'/'.$series.'/*') as $f)
 		{
 			$i = $tvi->ScrapeFS($f);
-			$snf = number_format($i['med_season']);
-			$enf = number_format($i['med_episode']);
-			$ret[$snf][$enf] = $i;
+
+			// Multi-episode file
+			if (preg_match('/([0-9]+)-([0-9]+)/', $i['med_episode'], $m))
+			{
+				for ($ix = $m[1]; $ix <= $m[2]; $ix++)
+				{
+					$i['med_episode'] = $ix;
+					$snf = number_format($i['med_season']);
+					$enf = number_format($i['med_episode']);
+					$ret[$snf][$enf] = $i;
+				}
+			}
+			else
+			{
+				$snf = number_format($i['med_season']);
+				$enf = number_format($i['med_episode']);
+				$ret[$snf][$enf] = $i;
+			}
 		}
 		return $ret;
 	}

@@ -16,18 +16,19 @@ class ModCategory extends MediaLibrary
 		global $_d;
 
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
-		$_d['movie.cb.query']['joins'][] = new Join($_d['cat.ds'],
+		$_d['movie.cb.query']['joins']['category'] = new Join($_d['cat.ds'],
 			'cat_movie = med_id', 'LEFT JOIN');
 
 		$cat = GetVar('category');
 
 		if ($cat == 'Unscraped')
 		{
-			$_d['movie.exclusive'] = true;
-			$_d['movie.skipfs'] = false;
-			$_d['movie.skipds'] = true;
+			$_d['movie.cb.lqc']['unscraped'] =
+				array(&$this, 'cb_movie_lqc');
+			$_d['movie.cb.filter']['unscraped'] =
+				array(&$this, 'cb_movie_filter');
 		}
-		else if (!empty($cat))
+		else if (!empty($cat) && $cat != 'All')
 		{
 			$_d['movie.cb.query']['match']['cat_name'] = $cat;
 			$_d['movie.skipfs'] = true;
@@ -61,6 +62,10 @@ class ModCategory extends MediaLibrary
 		global $_d;
 
 		if ($_d['q'][0] != 'category') return;
+		if ($_d['q'][1] == 'items')
+		{
+			die($this->GetItems());
+		}
 
 		$_SESSION['category'] = $_d['q'][1];
 	}
@@ -68,26 +73,53 @@ class ModCategory extends MediaLibrary
 	function cb_movie_head()
 	{
 		$t = new Template();
+		return $t->ParseFile(l('category/t.xml'));
+	}
+
+	function cb_movie_filter($ds_items, $fs_items)
+	{
+		foreach ($ds_items as $ds)
+			if (isset($fs_items[$ds['med_path']]))
+				unset($fs_items[$ds['med_path']]);
+		return $fs_items;
+	}
+
+	function cb_movie_lqc($query)
+	{
+		unset($query['match']);
+		return $query;
+	}
+
+	function GetItems()
+	{
+		global $_d;
+		$t = new Template($_d);
 		$t->ReWrite('category', array(&$this, 'TagCategory'));
-		return $t->ParseFile('modules/category/t_category.xml');
+		return $t->ParseFile(l('category/item.xml'));
 	}
 
 	function TagCategory($t, $g)
 	{
 		global $_d;
 
-		$joins = array(new Join($_d['movie.ds'], 'med_id = cat_movie'));
-		$cols = array('cat_name' => SqlUnquote('DISTINCT cat_name'),
-			'cat_count' => SqlUnquote('COUNT(med_id)'));
+		$query = $_d['movie.cb.query'];
 
-		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
-			'group' => 'cat_name'));
+		unset($query['match']['cat_name']);
+		$query['columns'] = array('cat_name' => SqlUnquote('DISTINCT cat_name'),
+			'cat_count' => SqlUnquote('COUNT(med_id)'));
+		$query['group'] = 'cat_name';
+
+		$cats = $_d['movie.ds']->Get($query);
 
 		$cats[] = array('cat_name' => 'All', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);
 
 		// Get relative sizes for a tag cloud display
-		foreach ($cats as $c) $trel[$c['cat_name']] = $c['cat_count'];
+		foreach ($cats as $ix => $c)
+		{
+			if (empty($c['cat_name'])) $c['cat_name'] = $cats[$ix]['cat_name'] = 'Uncategorized';
+			$trel[$c['cat_name']] = $c['cat_count'];
+		}
 		$sizes = get_relative_sizes($trel, 12, 24);
 
 		$vp = new VarParser();

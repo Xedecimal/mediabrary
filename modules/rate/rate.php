@@ -20,10 +20,7 @@ class ModRate extends Module
 			'rate_for = med_id', 'LEFT JOIN');
 
 		if (GetVar('hide_rate'))
-		{
-			$_d['movie.skipfs'] = true;
 			$_d['movie.cb.query']['match']['rate_amount'] = SqlIs('NULL');
-		}
 	}
 
 	function Prepare()
@@ -56,6 +53,7 @@ class ModRate extends Module
 	function cb_movie_head()
 	{
 		$t = new Template();
+		$t->Set('hide_rate', GetVar('hide_rate'));
 		return $t->ParseFile(l('rate/filter.xml'));
 	}
 

@@ -1,0 +1,6 @@
+<div class="filter">
+<a href="category/items" target="categories" class="refresh" />
+<script type="text/javascript" src="modules/category/category.js"></script>
+
+<div id="categories"></div>
+</div>

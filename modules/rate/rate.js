@@ -14,6 +14,9 @@ $(function () {
 			$.get('rate/hide');
 		else $.get('rate/show');
 
-		$('#movie-items').load('movie/items');
+		window.refreshAll();
 	});
+
+	if ($('#hide_rate_value').val())
+		$('#rate-hide').attr('checked', 'checked');
 });

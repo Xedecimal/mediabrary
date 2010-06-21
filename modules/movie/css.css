@@ -29,4 +29,4 @@
 	height: 300px;
 }
 
-#movie-controls { opacity: 0.2; }
+#filter-toggle { float: right; }

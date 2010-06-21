@@ -1,7 +1,7 @@
 $(function () {
-	$('.aCategory').click(function () {
+	$('.aCategory').live('click', function () {
 		$.get($(this).attr('href'), function () {
-			$('#movie-items').load('movie/items');
+			window.refreshAll();
 		});
 		return false;
 	});

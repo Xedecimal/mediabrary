@@ -1,4 +1,5 @@
-<div id="rate">
+<div class="filter">
 <script type="text/javascript" src="rate/rate.js"></script>
+<input type="hidden" id="hide_rate_value" value="{{hide_rate}}" />
 <input type="checkbox" id="rate-hide" /> Hide Seen
 </div>

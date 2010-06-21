@@ -24,5 +24,5 @@ $(function () {
 		return false;
 	});
 
-	$('#movie-items').load('movie/items');
+	$('#filter-toggle').click(function () {$('.filter').toggle(500); return false;});
 });
