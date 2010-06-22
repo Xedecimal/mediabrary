@@ -231,7 +231,7 @@ EOF;
 
 			// Metadata Related
 
-			if (!file_exists($md['fs_path']))
+			if (!file_exists(@$md['fs_path']))
 			{
 				$ret['cleanup'][] = "Removed database entry for non-existing '"
 					.$md['med_path']."'";

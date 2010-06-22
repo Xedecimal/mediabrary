@@ -26,5 +26,13 @@ $(function () {
 		return false;
 	});
 
+	$('#a-tv-scrape-all').click(function () {
+		$('.tv-item').each(function (ix, item) {
+			$.get('tv/search/'+$(item).attr('title'), function (data) {
+				console.log('Got one.');
+			});
+		});
+	});
+
 	$('#tv-items').load('tv/items');
 });

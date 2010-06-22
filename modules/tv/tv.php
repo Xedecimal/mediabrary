@@ -69,6 +69,7 @@ EOF;
 		{
 			require_once('scrape.tvdb.php');
 			return ModScrapeTVDB::Find($_d['q'][2]);
+			die();
 		}
 		else if (@$_d['q'][1] == 'items')
 		{

@@ -32,57 +32,12 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
-			# Collect Existing Information
+			$mm = new ModMovie;
+			$item = $mm->ScrapeFS(GetVar('target'));
+			$item['med_title'] = $item['fs_title'];
 
-			$target = stripslashes(GetVar('target'));
-			$mm = new ModMovie();
-			$item = $mm->ScrapeFS($target);
-
-			$dsitem = $_d['movie.ds']->GetOne(array(
-				'match' => array('med_path' => $target),
-				'args' => GET_ASSOC
-			));
-
-			if (!empty($dsitem)) $item += $dsitem;
-
-			# Create stub
-
-			if (empty($item['med_id']))
-			{
-				$nitem = array('med_title' => 'stub');
-				$item['med_id'] = $_d['movie.ds']->Add($nitem, true);
-			}
-
-			if (!empty($_d['movie.cb.prescrape']))
-				$item = RunCallbacks($_d['movie.cb.prescrape'], $item);
-
-			$cats = @$item['med_cats'];
-
-			$media = ModMovie::GetMedia('movie', $item, 'modules/movie/img/missing.jpg');
-
-			# Process information
-
-			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
-
-			$item['med_path'] = $item['fs_path'];
-			foreach (array_keys($item) as $k) if ($k[0] != 'm') unset($item[$k]);
-			unset($item['med_thumb'], $item['med_cats']);
-
-			# Save information
-
-			$item['med_id'] = $_d['movie.ds']->Add($item, true);
-
-			if (!empty($_d['movie.cb.postscrape']))
-				$item = RunCallbacks($_d['movie.cb.postscrape'], $item);
-
-			$_d['cat.ds']->Remove(array('cat_movie' => $item['med_id']));
-			if (!empty($cats))
-			foreach ($cats as $cat)
-				$_d['cat.ds']->Add(array('cat_movie' => $item['med_id'], 'cat_name' => $cat));
-
-			$p = $item['med_path'];
-			//$this->_items[$p] = array_merge($item, $this->ScrapeFS($p));
-
+			$val = ModTMDB::Scrape($item, GetVar('tmdb_id'));
+			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
 			die(json_encode($item + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')

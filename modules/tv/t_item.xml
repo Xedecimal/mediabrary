@@ -1,6 +1,6 @@
 <item>
 	<div class="tv-item" title="{{med_title}}">
-	<img class="tv-image" src="{{med_thumb}}" alt="{{mov_title}}" />
+	<img class="tv-image" src="{{med_thumb}}" alt="{{med_title}}" />
 	<input type="hidden" id="backdrop:{{mov_id}}" value="{{mov_backdrop}}" />
 	</div>
 </item>
