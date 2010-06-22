@@ -398,13 +398,19 @@ class ModTVEpisode extends MediaLibrary
 			if (empty($s) || empty($e) || empty($elEp->FirstAired)) continue;
 
 			if (MyDateTimestamp($elEp->FirstAired) < time())
-			if (!isset($eps[$series][$s][$e]))
 			{
-				$query = rawurlencode("$series S{$ss}E{$ee}");
-				$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
-					$series S{$ss}E{$ee}</a> - {$elEp->FirstAired} <a
-					href=\"{{app_abs}}/tv/grab?series=$series&season=$s&episode=$e\"
-					target=\"_blank\">Attempt quick torrent grab</a>";
+				if (!isset($eps[$series][$s][$e]))
+				{
+					$query = rawurlencode("$series S{$ss}E{$ee}");
+					$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
+						$series S{$ss}E{$ee}</a> - {$elEp->FirstAired} <a
+						href=\"{{app_abs}}/tv/grab?series=$series&season=$s&episode=$e\"
+						target=\"_blank\">Attempt quick torrent grab</a>";
+				}
+			}
+			else if (MyDateTimestamp($elEp->FirstAired) < strtotime('next week'))
+			{
+				$ret[] = "Next week: $series $ss $ee";
 			}
 		}
 

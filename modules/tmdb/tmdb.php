@@ -34,10 +34,15 @@ class ModTMDB extends Module
 		{
 			$mm = new ModMovie;
 			$item = $mm->ScrapeFS(GetVar('target'));
-			$item['med_title'] = $item['fs_title'];
+			$item += $_d['movie.ds']->GetOne(array('match' => array('med_path' => $item['fs_path'])));
+			if (empty($item['med_title'])) $item['med_title'] = $item['fs_title'];
+			if (empty($item['med_path'])) $item['med_path'] = $item['fs_path'];
 
-			$val = ModTMDB::Scrape($item, GetVar('tmdb_id'));
+			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
 			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
+			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
+			$item['med_id'] = $_d['movie.ds']->Add($item, true);
+			RunCallbacks($_d['tmdb.cb.postscrape'], $item);
 			die(json_encode($item + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')
@@ -295,15 +300,10 @@ class ModTMDB extends Module
 		list($movie['med_title']) = $sx->xpath('//movies/movie/name');
 		$movie['med_title'] = trim((string)$movie['med_title']);
 		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
+		$movie['med_date'] = trim((string)$movie['med_date']);
 
 		$dst_pinfo = pathinfo($movie['fs_path']);
 		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
-
-		# Scrape Categories
-
-		$elcats = $sx->xpath('//movies/movie/categories/category');
-
-		foreach ($elcats as $e) $movie['med_cats'][] = $e['name'];
 
 		# Scrape a cover thumbnail
 

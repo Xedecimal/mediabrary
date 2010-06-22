@@ -14,18 +14,24 @@ class ModDetail extends Module
 	{
 		global $_d;
 
-		$_d['movie.cb.prescrape']['detail'] = array(&$this, 'cb_movie_prescrape');
-		$_d['movie.cb.postscrape']['detail'] = array(&$this, 'cb_movie_postscrape');
+		$_d['tmdb.cb.postscrape']['detail'] = array(&$this, 'cb_tmdb_postscrape');
 		$_d['tmdb.cb.scrape']['detail'] = array(&$this, 'cb_tmdb_scrape');
 		$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
 	}
 
-	function cb_movie_prescrape($item)
+	function cb_tmdb_scrape($item, $xml)
 	{
-		return $item;
+		$sx = simplexml_load_string($xml);
+
+		$this->details['overview'] = xpath_value($sx, '//movies/movie/overview');
+		$this->details['rating'] = xpath_value($sx, '//movies/movie/rating');
+		$this->details['rating'] = xpath_value($sx, '//movies/movie/rating');
+		$this->details['trailer'] = xpath_value($sx, '//movies/movie/trailer');
+		$this->details['url'] = xpath_value($sx, '//movies/movie/homepage');
+		$this->dates['obtained'] = TimestampToMySql(filemtime($item['fs_path']));
 	}
 
-	function cb_movie_postscrape($item)
+	function cb_tmdb_postscrape($item)
 	{
 		global $_d;
 
@@ -44,18 +50,6 @@ class ModDetail extends Module
 			), true);
 
 		return $item;
-	}
-
-	function cb_tmdb_scrape($item, $xml)
-	{
-		$sx = simplexml_load_string($xml);
-
-		$this->details['overview'] = xpath_value($sx, '//movies/movie/overview');
-		$this->details['rating'] = xpath_value($sx, '//movies/movie/rating');
-		$this->details['rating'] = xpath_value($sx, '//movies/movie/rating');
-		$this->details['trailer'] = xpath_value($sx, '//movies/movie/trailer');
-		$this->details['url'] = xpath_value($sx, '//movies/movie/homepage');
-		$this->dates['obtained'] = TimestampToMySql(filemtime($item['fs_path']));
 	}
 
 	function cb_movie_detail($item)

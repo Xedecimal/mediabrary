@@ -18,6 +18,8 @@ class ModCategory extends MediaLibrary
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
 		$_d['movie.cb.query']['joins']['category'] = new Join($_d['cat.ds'],
 			'cat_movie = med_id', 'LEFT JOIN');
+		$_d['tmdb.cb.scrape']['category'] = array(&$this, 'cb_tmdb_scrape');
+		$_d['tmdb.cb.postscrape']['category'] = array(&$this, 'cb_tmdb_postscrape');
 
 		$cat = GetVar('category');
 
@@ -89,6 +91,29 @@ class ModCategory extends MediaLibrary
 	{
 		unset($query['match']);
 		return $query;
+	}
+
+	function cb_tmdb_scrape($item, $xml)
+	{
+		$sx = simplexml_load_string($xml);
+
+		$elcats = $sx->xpath('//movies/movie/categories/category');
+		$this->cats = array();
+		foreach ($elcats as $e)
+			$this->cats[] = (string)$e['name'];
+	}
+
+	function cb_tmdb_postscrape($item)
+	{
+		global $_d;
+
+		foreach ($this->cats as $c)
+		{
+			$_d['cat.ds']->Add(array(
+				'cat_movie' => $item['med_id'],
+				'cat_name' => $c
+			), true);
+		}
 	}
 
 	function GetItems()

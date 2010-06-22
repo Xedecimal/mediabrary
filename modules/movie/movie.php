@@ -226,8 +226,10 @@ EOF;
 		{
 			// Filesystem based checks
 
-			if (!empty($md['fs_path']) && @$md['fs_ext'] != 'avi')
+			if (!empty($md['fs_path']) && fileext($md['fs_path']) != 'avi')
+			{
 				$ret['extension'][] = "File {$md['fs_path']} has a bad extension.";
+			}
 
 			// Metadata Related
 
