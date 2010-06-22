@@ -68,11 +68,6 @@ class ModMovie extends MediaLibrary
 		$query = $_d['movie.cb.query'];
 		$this->_items = array();
 
-		# Do not load all movies on startup
-
-		if (empty($query['match']) && $_d['movie.source'] == 'ds')
-			$query['match']['med_id'] = 0;
-
 		$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
 
@@ -314,6 +309,7 @@ EOF;
 
 		$query['group'] = 'med_id';
 		$ret = array();
+
 		foreach ($_d['movie.ds']->Get($query) as $i)
 		{
 			// Emulate a file system if we're not indexing it.

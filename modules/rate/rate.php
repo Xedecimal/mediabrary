@@ -53,7 +53,7 @@ class ModRate extends Module
 	function cb_movie_head()
 	{
 		$t = new Template();
-		$t->Set('hide_rate', GetVar('hide_rate'));
+		$t->Set('hide_rate', GetVar('hide_rate', ''));
 		return $t->ParseFile(l('rate/filter.xml'));
 	}
 

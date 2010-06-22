@@ -28,7 +28,7 @@ class ModSearch extends Module
 	function movie_cb_head()
 	{
 		$t = new Template();
-		$t->Set('query', GetVar('search.query'));
+		$t->Set('query', GetVar('search.query', ''));
 		return $t->ParseFile('modules/search/t.xml');
 	}
 }

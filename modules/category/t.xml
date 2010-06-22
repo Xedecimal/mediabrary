@@ -1,5 +1,8 @@
 <div class="filter">
 <a href="category/items" target="categories" class="refresh" />
+<style type="text/css">
+@import url('modules/category/css.css');
+</style>
 <script type="text/javascript" src="modules/category/category.js"></script>
 
 <div id="categories"></div>

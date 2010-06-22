@@ -1,6 +1,6 @@
 #mediainfo-table { font-size: 8pt; font-family: Verdana; }
-.col_1 { background: #FF8888; }
-.col_2 { background: #FFCCCC; }
-.col_3 { background: #FFFFCC; }
-.col_4 { background: #CCFFCC; }
-.col_5 { background: #88FF88; }
+.col_1 { color: #000; background: #FF8888; }
+.col_2 { color: #000; background: #FFCCCC; }
+.col_3 { color: #000; background: #FFFFCC; }
+.col_4 { color: #000; background: #CCFFCC; }
+.col_5 { color: #000; background: #88FF88; }

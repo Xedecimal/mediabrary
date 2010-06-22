@@ -76,11 +76,10 @@ class ModMediaInfo extends Module
 
 		$vp = new VarParser();
 
-		foreach ($stats as $p => $cod)
-		{
+		$vp->Behavior->SimpleVars = true;
 
+		foreach ($stats as $p => $cod)
 			@$ret .= $vp->ParseVars($g, $cod);
-		}
 
 		return @$ret;
 	}

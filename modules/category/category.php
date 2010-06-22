@@ -21,8 +21,10 @@ class ModCategory extends MediaLibrary
 
 		$cat = GetVar('category');
 
+		if ($cat == 'Remove Filter') unset($_SESSION['category']);
 		if ($cat == 'Unscraped')
 		{
+			$_d['movie.cb.query']['match'] = 1;
 			$_d['movie.cb.lqc']['unscraped'] =
 				array(&$this, 'cb_movie_lqc');
 			$_d['movie.cb.filter']['unscraped'] =
@@ -79,8 +81,7 @@ class ModCategory extends MediaLibrary
 	function cb_movie_filter($ds_items, $fs_items)
 	{
 		foreach ($ds_items as $ds)
-			if (isset($fs_items[$ds['med_path']]))
-				unset($fs_items[$ds['med_path']]);
+			unset($fs_items[$ds['med_path']]);
 		return $fs_items;
 	}
 
@@ -113,11 +114,16 @@ class ModCategory extends MediaLibrary
 
 		$cats[] = array('cat_name' => 'All', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);
+		$cats[] = array('cat_name' => 'Remove Filter', 'cat_count' => 0);
+
+		$curcat = GetVar('category');
 
 		// Get relative sizes for a tag cloud display
 		foreach ($cats as $ix => $c)
 		{
 			if (empty($c['cat_name'])) $c['cat_name'] = $cats[$ix]['cat_name'] = 'Uncategorized';
+			if ($cats[$ix]['cat_name'] == $curcat) $cats[$ix]['cat_class'] = 'category current';
+			else $cats[$ix]['cat_class'] = 'category';
 			$trel[$c['cat_name']] = $c['cat_count'];
 		}
 		$sizes = get_relative_sizes($trel, 12, 24);
