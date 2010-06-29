@@ -36,7 +36,7 @@ class ModTMDB extends Module
 			$item = $mm->ScrapeFS(GetVar('target'));
 			$item += $_d['movie.ds']->GetOne(array('match' => array('med_path' => $item['fs_path'])));
 			if (empty($item['med_title'])) $item['med_title'] = $item['fs_title'];
-			if (empty($item['med_path'])) $item['med_path'] = $item['fs_path'];
+			if (empty($item['med_path'])) $item['med_path'] = stripslashes($item['fs_path']);
 
 			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
 			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
@@ -75,20 +75,7 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'fixCover')
 		{
-			$p = $_POST['path'];
-			$md = $_d['movie.ds']->Get(array('match' => array('med_path' => $p)));
-			$covers = ModTMDB::GetCovers($md[0]['med_tmdbid']);
-			foreach ($covers as $c)
-			{
-				if (!$data = @file_get_contents($c)) continue;
-				$src_pinfo = pathinfo($c);
-				$dst_pinfo = pathinfo($p);
-				$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
-				$dst = 'img/meta/movie/thm_'.$dst_pinfo['filename'].'.'.$src_pinfo['extension'];
-				file_put_contents($dst, $data);
-			}
-			if (empty($data)) die("No data on any covers were found for <a href=\"http://www.themoviedb.org/movie/{$md[0]['med_tmdbid']}\">this</a>, sorry.\n");
-			die('Fixed!');
+			if ($this->FixCover($_POST['path'])) die('Fixed!');
 		}
 	}
 
@@ -131,13 +118,12 @@ class ModTMDB extends Module
 				if ($m[3] != $ext)
 				{
 					rename($f, dirname($f).'/'.$m[1].$m[2].'.'.$ext);
-					$ret['cleanup'][] = "Renamed {$f}: invalid extension "
-						."{$m[2]} should be {$ext}";
+					varinfo("Renamed {$f}: invalid extension {$m[2]} now {$ext}");
 				}
 				if (count(glob($_d['config']['movie_path'].'/'.$m[2].'*')) < 1)
 				{
 					unlink($f);
-					$ret['cleanup'][] = 'Removed backdrop for missing movie: '.$f;
+					varinfo("Removed backdrop for missing movie: $f");
 				}
 			}
 			else if (preg_match('#(.*thm_)([^/]+)\.(.*)$#', $fname, $m))
@@ -186,7 +172,12 @@ class ModTMDB extends Module
 		$year = substr($md['med_date'], 0, 4);
 
 		if (count(glob("img/meta/movie/thm_$title ($year).*")) < 1)
-			$ret['Media'][] = 'Cover missing for '.$title.' ('.$year.') <a class="tmdb-aFixCover" href="'.$md['med_path'].'">Fix</a>';
+		{
+			varinfo("Fixing cover for $title ($year).");
+			$this->FixCover($md['med_path']);
+			flush();
+			//sleep(3);
+		}
 
 		return $ret;
 	}
@@ -332,8 +323,9 @@ class ModTMDB extends Module
 			{
 				// Clean up existing covers
 
-				foreach (glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*') as $f)
-					unlink($f);
+				$unlink = glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*');
+				if (count($unlink) > 5) die('Something just tried to delete all our covers.');
+				foreach ($unlink as $f) unlink($f);
 
 				$src_pinfo = pathinfo($url);
 				$dst = "img/meta/movie/thm_".
@@ -365,6 +357,29 @@ class ModTMDB extends Module
 		$sx = simplexml_load_string($xml);
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		return xpath_attrs($sx, $xp_thumb, 'url');
+	}
+
+	static function FixCover($p)
+	{
+		global $_d;
+
+		$md = $_d['movie.ds']->Get(array('match' => array('med_path' => $p)));
+		$covers = ModTMDB::GetCovers($md[0]['med_tmdbid']);
+		foreach ($covers as $c)
+		{
+			if (!$data = @file_get_contents($c)) continue;
+			$src_pinfo = pathinfo($c);
+			$dst_pinfo = pathinfo($p);
+			$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
+			$dst = 'img/meta/movie/thm_'.$dst_pinfo['filename'].'.'.$src_pinfo['extension'];
+			varinfo("Writing cover: '{$dst}'.");
+			file_put_contents($dst, $data);
+			break;
+		}
+		if (empty($data)) varinfo("No data on any covers were found for"
+			." <a href=\"http://www.themoviedb.org/movie/{$md[0]['med_tmdbid']}\">"
+			."this</a>, sorry.\n");
+		return 1;
 	}
 }
 

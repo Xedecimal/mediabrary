@@ -28,7 +28,7 @@ class ModDetail extends Module
 		$this->details['rating'] = xpath_value($sx, '//movies/movie/rating');
 		$this->details['trailer'] = xpath_value($sx, '//movies/movie/trailer');
 		$this->details['url'] = xpath_value($sx, '//movies/movie/homepage');
-		$this->dates['obtained'] = TimestampToMySql(filemtime($item['fs_path']));
+		$this->dates['obtained'] = TimestampToMySql(filemtime(stripslashes($item['fs_path'])));
 	}
 
 	function cb_tmdb_postscrape($item)

@@ -244,7 +244,7 @@ EOF;
 
 			if (empty($md['med_date']))
 			{
-				$ret['Scrape'][] = "File {$md['fs_path']} needs to be scraped.<br/>\n";
+				echo "File {$md['fs_path']} needs to be scraped.<br/>\n";
 				continue;
 			}
 

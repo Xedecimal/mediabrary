@@ -15,6 +15,13 @@ class ModCheck extends Module
 		}
 		if ($_d['q'][0] != 'check') return;
 
+		// Allow realtime output
+		@apache_setenv('no-gzip', 1);
+   		@ini_set('zlib.output_compression', 0);
+   		@ini_set('implicit_flush', 1);
+		for ($i = 0; $i < ob_get_level(); $i++) { ob_end_flush(); }
+   		ob_implicit_flush(1);
+
 		global $mods;
 
 		$msgs = array();
