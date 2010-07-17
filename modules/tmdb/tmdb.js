@@ -12,11 +12,11 @@ $(function () {
 	});
 	$('.tmdb-aScrape').live('click', function () {
 		m_id = $(this).attr('id');
-		path = $(this).attr('href').replace("'", "\\'");
+		path = $(this).attr('href');
 		$('a[href="'+path+'"] img[class=movie-image]').attr('src', 'modules/movie/img/loading.jpg');
 		basename = path.match(/([^/]+)\.([^.]+)$/)[0];
 		$.getJSON('tmdb/scrape', {target: path, tmdb_id: m_id}, function (data) {
-			$('a[href="'+data.med_path.replace("'","\\'")+
+		$('a[href="'+data.med_path.replace("'","\\'")+
 				'"] img[class=movie-image]').attr('src', data.med_thumb);
 		});
 		$('#dialog-movie').dialog('close');

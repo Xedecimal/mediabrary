@@ -312,7 +312,8 @@ EOF;
 		$query['group'] = 'med_id';
 		$ret = array();
 
-		foreach ($_d['movie.ds']->Get($query) as $i)
+		$movies = $_d['movie.ds']->Get($query);
+		foreach ($movies as $i)
 		{
 			// Emulate a file system if we're not indexing it.
 			if (!isset($ret[$i['med_path']]))

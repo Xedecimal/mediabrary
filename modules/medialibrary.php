@@ -8,7 +8,7 @@ class MediaLibrary extends Module
 
 	function Get()
 	{
-		if (!empty($this->_items)) ksort($this->_items);
+		//if (!empty($this->_items)) ksort($this->_items);
 		$t = new Template();
 		$t->ReWrite('item', array($this, 'TagItem'));
 		$t->Set($this->_vars);

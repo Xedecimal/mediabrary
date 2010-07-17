@@ -45,6 +45,21 @@ class ModTVSeries extends MediaLibrary
 		else if (@$_d['q'][1] == 'watch')
 		{
 			$series = $_d['q'][2];
+
+			# Entire Season
+			if (empty($_d['q'][3]))
+			{
+				$ret = '';
+				$files = glob('/data/nas/TV/'.$series.'/*.avi');
+				foreach ($files as $ix => $f)
+				{
+					$ret .= "#EXTINF:,$ix,".basename($f)."\r\n";
+					$ret .= 'http://'.GetVar('HTTP_HOST').'/nas/TV/'.rawurlencode($series).'/'.rawurlencode(basename($f))."\r\n";
+				}
+				SendDownloadStart($series.'.m3u');
+				die($ret);
+			}
+
 			$file = $_d['q'][3];
 
 			$url = 'http://'.GetVar('HTTP_HOST').'/nas/TV/'.rawurlencode($series).'/'.
@@ -181,6 +196,7 @@ EOF;
 		require_once('File/Bittorrent2/Decode.php');
 		$btd = new File_Bittorrent2_Decode;
 		$mtve = new ModTVEpisode;
+		$ret = '';
 		foreach (glob('/data/nas/torrent-files/*.torrent') as $f)
 		{
 			try { $tinfo = $btd->decode(file_get_contents($f)); }

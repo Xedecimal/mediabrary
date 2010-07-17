@@ -4,7 +4,8 @@ define('TMDB_KEY', '263e2042d04c1989170721f79e675028');
 define('TMDB_FIND', 'http://api.themoviedb.org/2.1/Movie.search/en/xml/'.TMDB_KEY.'/');
 define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_KEY.'/');
 
-//http://api.themoviedb.org/2.1/Movie.search/en/xml/263e2042d04c1989170721f79e675028/Once
+// http://api.themoviedb.org/2.1/Movie.search/en/xml/263e2042d04c1989170721f79e675028/Once
+// http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/263e2042d04c1989170721f79e675028/9473
 
 class ModTMDB extends Module
 {
@@ -35,13 +36,15 @@ class ModTMDB extends Module
 			$mm = new ModMovie;
 			$item = $mm->ScrapeFS(GetVar('target'));
 			$item += $_d['movie.ds']->GetOne(array('match' => array('med_path' => $item['fs_path'])));
+
 			if (empty($item['med_title'])) $item['med_title'] = $item['fs_title'];
 			if (empty($item['med_path'])) $item['med_path'] = stripslashes($item['fs_path']);
 
 			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
 			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
-			$item['med_id'] = $_d['movie.ds']->Add($item, true);
+			$added = $_d['movie.ds']->Add($item, true);
+			if (empty($item['med_id'])) $item['med_id'] = $added;
 			RunCallbacks($_d['tmdb.cb.postscrape'], $item);
 			die(json_encode($item + $media));
 		}
@@ -297,6 +300,13 @@ class ModTMDB extends Module
 		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
 
 		# Scrape a cover thumbnail
+
+		# Don't re-scrape a cover.
+
+		$media = ModMovie::GetMedia('movie', $movie, p('movie/img/missing.png'));
+		if (!empty($media['med_thumb'])) return $movie;
+
+		# Collect covers
 
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');

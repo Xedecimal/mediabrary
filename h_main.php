@@ -5,6 +5,7 @@ session_start();
 require_once('config.php');
 require_once('xedlib/h_utility.php');
 HandleErrors();
+SanitizeEnvironment();
 require_once('xedlib/h_module.php');
 require_once('xedlib/h_data.php');
 

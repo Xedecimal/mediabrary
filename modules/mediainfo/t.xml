@@ -7,7 +7,7 @@
 	<th>Duration</th>
 	<!-- <th title="Overall Bit Rate">OBR</th> -->
 	<!-- <th>Writer</th> -->
-	<!-- <th>VID</th> -->
+	<th>VID</th>
 	<!-- <th title="Video Format">VF</th> -->
 	<th title="Codec ID">CID</th>
 	<!-- <th title="Codec ID Hint">CIDH</th> -->

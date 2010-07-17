@@ -1,7 +1,5 @@
 <?php
 
-//general: duration ... video: bitrate, resolution, codec id, aspect ratio, framerate ... audio: bitrate, format, channels, sampling rate
-
 class ModMediaInfo extends Module
 {
 	var $Block = 'foot';
