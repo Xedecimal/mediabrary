@@ -8,6 +8,7 @@ class ModDetail extends Module
 
 		$_d['movie_detail.ds'] = new DataSet($_d['db'], 'movie_detail');
 		$_d['movie_date.ds'] = new DataSet($_d['db'], 'movie_date');
+		$_d['movie_float.ds'] = new DataSet($_d['db'], 'movie_float');
 	}
 
 	function Link()
@@ -24,7 +25,7 @@ class ModDetail extends Module
 		$sx = simplexml_load_string($xml);
 
 		$this->details['overview'] = xpath_value($sx, '//movies/movie/overview');
-		$this->details['rating'] = xpath_value($sx, '//movies/movie/rating');
+		$this->floats['rating'] = xpath_value($sx, '//movies/movie/rating');
 		$this->details['certification'] = xpath_value($sx, '//movies/movie/certification');
 		$this->details['trailer'] = xpath_value($sx, '//movies/movie/trailer');
 		$this->details['url'] = xpath_value($sx, '//movies/movie/homepage');
@@ -50,6 +51,13 @@ class ModDetail extends Module
 				'md_date' => $v
 			), true);
 		}
+
+		foreach ($this->floats as $k => $v)
+			$_d['movie_float.ds']->Add(array(
+				'mf_movie' => $item['med_id'],
+				'mf_name' => $k,
+				'mf_value' => $v
+			), true);
 
 		return $item;
 	}

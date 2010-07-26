@@ -35,7 +35,7 @@ class ModMovie extends MediaLibrary
 				3 => 'fs_ext'),
 
 			# title date.ext
-			'#([^/]+)\s*([0-9]{4}).*\.([^.]+)$#' => array(
+			'#([^/{]+)[{]*([0-9]{4}).*\.([^.]+)$#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
 				3 => 'fs_ext'
@@ -48,7 +48,7 @@ class ModMovie extends MediaLibrary
 			),
 
 			# title.ext
-			'#([^/]+?)(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
+			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
 				1 => 'fs_title',
 				3 => 'fs_ext'
 			),
