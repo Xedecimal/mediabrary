@@ -1,4 +1,21 @@
+<div id="tmdb-results">
+
+<fieldset>
+<legend>Results</legend>
+<result>
 <div class="movie-result">
-<a href="{{fs_path}}" id="{{id}}" class="tmdb-aScrape">{{name}}</a>
+<a href="{{path}}" id="{{id}}" class="tmdb-aScrape">{{name}}</a>
 ({{released}}) Score: {{score}} <a href="http://www.themoviedb.org/movie/{{id}}" target="_blank">TMDB</a>
 </div>
+</result>
+</fieldset>
+
+<form>
+<fieldset><legend>Not what you're looking for?</legend><ul>
+	<li><label for="inTitle">Search for the query</label>
+		<input type="text" value="{{title}}" id="inTitle" /></li>
+	<li><label for="tmdb-butFind">&nbsp;</label>
+		<input type="submit" id="tmdb-butFind" value="Search Again" /></li>
+</ul></fieldset></form>
+
+</div> <!-- #tmdb-results -->

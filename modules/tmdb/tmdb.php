@@ -23,29 +23,49 @@ class ModTMDB extends Module
 	{
 		global $_d;
 
-		$_d['head'] .= '<script type="text/javascript" src="'.p('tmdb/tmdb.js').'"></script>';
+		$_d['head'] .= '<script type="text/javascript" src="'.
+			p('tmdb/tmdb.js').'"></script>';
 
 		if (@$_d['q'][1] == 'find')
 		{
 			$d = $_d['movie.ds']->GetOne(array('match' => array(
 				'med_path' => GetVar('path'))));
-			die(ModTMDB::Find(GetVar('path'), GetVar('title')));
+
+			$title = GetVar('title');
+			$path = GetVar('path');
+			if (GetVar('manual', 0) == 0 && preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
+				$title .= ' '.$m[1];
+
+			die(ModTMDB::Find($path, $title));
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
 			$mm = new ModMovie;
 			$item = $mm->ScrapeFS(GetVar('target'));
 			$item += $_d['movie.ds']->GetOne(array('match' => array('med_path' => $item['fs_path'])));
-
+			
 			if (empty($item['med_title'])) $item['med_title'] = $item['fs_title'];
 			if (empty($item['med_path'])) $item['med_path'] = stripslashes($item['fs_path']);
 
-			$item = ModTMDB::Scrape($item, GetVar('tmdb_id'));
+			if (GetVar('fast') == 1)
+			{
+				$title = $item['med_title'].' '.$item['fs_date'];
+				$sx_movies = ModTMDB::FindXML($title);
+				usort($sx_movies, array('ModTMDB', 'cmp_title'));
+				if (empty($sx_movies))
+					die('Found nothing for '.$title);
+				$tmdbid = $sx_movies[0]->id;
+			}
+			else $tmdbid = GetVar('tmdb_id');
+
+			$item = ModTMDB::Scrape($item, $tmdbid);
 			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
+			if (empty($item)) die(json_encode(array('error' => 'Not found', 'med_path' => GetVar('target'))));
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
 			$added = $_d['movie.ds']->Add($item, true);
 			if (empty($item['med_id'])) $item['med_id'] = $added;
 			RunCallbacks($_d['tmdb.cb.postscrape'], $item);
+			if (GetVar('fast') == 1) die('Fixed!');
 			die(json_encode($item + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')
@@ -170,7 +190,9 @@ class ModTMDB extends Module
 	function movie_cb_check($md)
 	{
 		$ret = array();
-
+	
+		if ($md['med_clean'] == 0) return $ret;
+		
 		$title = ModMovie::CleanTitleForFile($md['med_title']);
 		$year = substr($md['med_date'], 0, 4);
 
@@ -209,11 +231,10 @@ class ModTMDB extends Module
 	static function FindXML($title)
 	{
 		$reps = array(
-			'#-.*$#' => '',
 			'#\[[^\]]+\]#' => '',
 			'#([.]{1} |\.|-|_)#' => ' ',
 			'#(ac3|5,1|dvdrip|bdrip|unrated)#i' => '',
-			'#\([^)]*\)#' => ''
+			'#\([^)]*\)#' => '',
 		);
 
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
@@ -228,41 +249,38 @@ class ModTMDB extends Module
 
 	static function Find($path, $title)
 	{
-		if (empty($title))
-		{
-			$m = new ModMovie();
-			$d = $m->ScrapeFS($path);
-			$title = $d['fs_title'];
-		}
-
-		$sx_movies = ModTMDB::FindXML($title);
-
 		$t = new Template();
-		$ret = null;
+		$args = array(
+			'path' => $path,
+			'title' => $title
+		);
 
+		$t->Set($args);
+		$t->ReWrite('result', array('ModTMDB', 'TagResult'), $args);
+		return $t->ParseFile('modules/tmdb/t_find_result.xml');
+	}
+	
+	static function TagResult($t, $g, $a, $tag, $args)
+	{
+		$vp = new VarParser();
+		$sx_movies = ModTMDB::FindXML($args['title']);
 		usort($sx_movies, array('ModTMDB', 'cmp_title'));
 
+		$ret = null;
 		foreach ($sx_movies as $sx_movie)
 		{
 			$m = ModTMDB::Decode($sx_movie);
-			$t->_movie = $m;
-			$t->Set('fs_path', $path);
-			$t->Set($m);
-			$ret .= $t->ParseFile('modules/tmdb/t_find_result.xml');
+			$m += $args;
+			$ret .= $vp->ParseVars($g, $m);
 		}
-
 		if (empty($ret)) $ret = 'Nothing found.';
-
-		$ret .= 'Search for the query <input type="text" value="'
-				.$title.'" id="inTitle" /> <input type="button" id="tmdb-butFind"
-				value="Search Again" />.';
 
 		return $ret;
 	}
 
 	static function cmp_title($cmp1, $cmp2)
 	{
-		return (int)$cmp1->score < (int)$cmp2->score;
+		return (double)$cmp1->score < (double)$cmp2->score;
 
 		global $_movie;
 
@@ -291,7 +309,9 @@ class ModTMDB extends Module
 		# Scrape some general information
 
 		$movie['med_tmdbid'] = $id;
-		list($movie['med_title']) = $sx->xpath('//movies/movie/name');
+		$title = $sx->xpath('//movies/movie/name');
+		if (empty($title)) return null;
+		$movie['med_title'] = $title[0];
 		$movie['med_title'] = trim((string)$movie['med_title']);
 		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
 		$movie['med_date'] = trim((string)$movie['med_date']);

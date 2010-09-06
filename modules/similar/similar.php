@@ -49,22 +49,6 @@ EOF;
 		}
 		return $ret;
 	}
-
-	function GetSimilar()
-	{
-		global $_d;
-
-		$token = $this->GetToken();
-		$keys = $this->FindObject(GetVar('q'));
-
-		foreach ($res as $r)
-		{
-			echo "<p>";
-			echo '<img src="'.$r->image.'" alt="thumb" /><br />';
-			echo $r->title;
-			echo "</p>";
-		}
-	}
 }
 
 class Glue

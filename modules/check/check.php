@@ -24,22 +24,38 @@ class ModCheck extends Module
 
 		global $mods;
 
-		$msgs = array();
+		$this->_msgs = array();
 
 		// Collect check messages
 		foreach ($mods as $m)
 			if (method_exists($m, 'Check'))
-				$msgs = array_merge_recursive($msgs, $m->Check());
-
-		$msgout = '';
-
-		foreach ($msgs as $t => $ms)
-			foreach ($ms as $m)
-				$msgout .= "<div>{$m}</div>";
+				$this->_msgs = array_merge_recursive($this->_msgs, $m->Check());
 
 		$t = new Template();
-		$t->Set('msgs', $msgout);
+		$t->ReWrite('group', array(&$this, 'TagGroup'));
 		return $t->ParseFile('modules/check/t_check.xml');
+	}
+
+	function TagGroup($t, $g)
+	{
+		$vp = new VarParser();
+
+		$ret = null;
+		$ix = 0;
+		foreach ($this->_msgs as $t => $ms)
+		{
+			$msgs = null;
+			foreach ($ms as $m)
+				$msgs .= $m.'<br />';
+			$ret .= $vp->ParseVars($g, array(
+				'id' => $ix,
+				'title' => $t,
+				'msgs' => $msgs,
+				'count' => count($ms)
+			));
+			$ix++;
+		}
+		return $ret;
 	}
 }
 

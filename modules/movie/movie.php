@@ -75,6 +75,12 @@ class ModMovie extends MediaLibrary
 			$this->_items = RunCallbacks($_d['movie.cb.filter'], $this->_items,
 				$this->_files);
 
+		if (!empty($_d['movie.cb.fsquery']['limit']))
+		{
+			$l = $_d['movie.cb.fsquery']['limit'];
+			$this->_items = array_splice($this->_items, $l[0], $l[1]);
+		}
+		
 		$this->_vars['total'] = count($this->_items);
 	}
 
@@ -203,76 +209,100 @@ EOF;
 	{
 		global $_d;
 
-		// Collect known data
+		$ret = array();
+
+		# Collect known filesystem data
 
 		foreach(glob($_d['config']['movie_path'].'/*') as $f)
 		{
 			if (is_dir($f)) continue;
-			$this->_items[$f] = $this->ScrapeFS($f);
+			$this->_files[$f] = $this->ScrapeFS($f);
 		}
+		
+		# Collect database information
 
+		$this->_ds = array();
 		foreach ($_d['movie.ds']->Get() as $dr)
 		{
 			$p = $dr['med_path'];
-			if (!isset($this->_items[$p])) $this->_items[$p] = array();
-			$this->_items[$p] += $dr;
-		}
 
-		$ret = array();
-
-		// Walk through all known movies.
-
-		foreach ($this->_items as $md)
-		{
-			// Filesystem based checks
-
-			if (!empty($md['fs_path']) && fileext($md['fs_path']) != 'avi')
+			# This one is already clean, skip it.
+			
+			if (!empty($dr['med_clean']))
 			{
-				$ret['extension'][] = "File {$md['fs_path']} has a bad extension.";
-			}
-
-			// Metadata Related
-
-			if (!file_exists(@$md['fs_path']))
-			{
-				$ret['cleanup'][] = "Removed database entry for non-existing '"
-					.$md['med_path']."'";
-				$_d['movie.ds']->Remove(array('med_path' => $md['med_path']));
-			}
-
-			// Check if this movie has been scraped.
-
-			if (empty($md['med_date']))
-			{
-				echo "File {$md['fs_path']} needs to be scraped.<br/>\n";
+				unset($this->_files[$p]);
 				continue;
 			}
 
-			// Date Related
+			if (!file_exists($dr['med_path']))
+			{
+				$ret['cleanup'][] = "Removed database entry for non-existing '"
+					.$p."'";
+				$_d['movie.ds']->Remove(array('med_path' => $p));
+			}
+
+			$this->_ds[$p] = $dr;
+		}
+
+		# Walk through all known movies.
+
+		foreach ($this->_files as $p => $file)
+		{
+			# This file not exist in the database.
+			$uep = urlencode($p);
+
+			if (!isset($this->_ds[$p]))
+			{
+				$ret['Scrape'][] = <<<EOF
+<a href="movie/scrape?target=$uep&fast=1"
+	class="a-fix">Fix</a> File {$p} needs to be scraped
+EOF;
+				continue;
+			}
+
+			$md = $this->_ds[$p];
+			$clean = true;
+
+			# Filename related
+
+			if (!empty($md['fs_path']) && fileext($md['fs_path']) != 'avi')
+			{
+				$ret['File Name Compliance'][] = "File {$file['fs_path']} has a bad extension.";
+				$clean = false;
+			}
+
+			# Date Related
 
 			$date = $md['med_date'];
 			$year = substr($date, 0, 4);
 
-			// Missing month and day.
+			# Missing month and day.
 
 			if (strlen($date) < 10)
 			{
 				$ret['Scrape'][] = "File {$md['med_path']} has incorrectly
 					scraped year \"{$year}\"";
+				$clean = false;
 			}
 
-			// Title Related
+			# Title Related
 
 			$title = ModMovie::CleanTitleForFile($md['med_title']);
 
-			// Validate strict naming conventions.
+			# Validate strict naming conventions.
+
 			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['med_path']))
 			{
-				$dst = urlencode($md['fs_path']);
-				$ret['StrictNames'][] = "File {$md['fs_path']} has invalid name, should be".
-					" \"{$title} ({$year}).".strtolower($md['fs_ext'])."\"".
-					' <a href="movie/fix?path='.$dst.'" class="a-fix">Fix</a>';
+				$ret['File Name Compliance'][] = "File {$p} has invalid name, should be".
+					" \"{$title} ({$year}).".strtolower(fileext($file['fs_filename']))."\"".
+					' <a href="movie/fix?path='.$uep.'" class="a-fix">Fix</a>';
+				$clean = false;
 			}
+
+			$_d['movie.ds']->Update(
+				array('med_id' => $md['med_id']),
+				array('med_clean' => $clean)
+			);
 
 			$ret = array_merge_recursive($ret, RunCallbacks($_d['movie.cb.check'], $md));
 		}

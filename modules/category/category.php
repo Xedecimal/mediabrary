@@ -24,15 +24,17 @@ class ModCategory extends MediaLibrary
 		$cat = GetVar('category');
 
 		if ($cat == 'Remove Filter') unset($_SESSION['category']);
-		if ($cat == 'Unscraped')
+		else if ($cat == 'Unscraped')
 		{
 			$_d['movie.cb.query']['match'] = 1;
+			$_d['movie.cb.fsquery']['limit'] = array(0, 100);
 			$_d['movie.cb.lqc']['unscraped'] =
 				array(&$this, 'cb_movie_lqc');
 			$_d['movie.cb.filter']['unscraped'] =
-				array(&$this, 'cb_movie_filter');
+				array(&$this, 'cb_movie_unscraped_filter');
 		}
-		else if (!empty($cat) && $cat != 'All')
+		else if ($cat == 'All') $_d['movie.cb.query']['match'] = 1;
+		else if (!empty($cat))
 		{
 			$_d['movie.cb.query']['match']['cat_name'] = $cat;
 			$_d['movie.skipfs'] = true;
@@ -80,7 +82,7 @@ class ModCategory extends MediaLibrary
 		return $t->ParseFile(l('category/t.xml'));
 	}
 
-	function cb_movie_filter($ds_items, $fs_items)
+	function cb_movie_unscraped_filter($ds_items, $fs_items)
 	{
 		foreach ($ds_items as $ds)
 			unset($fs_items[$ds['med_path']]);

@@ -14,10 +14,13 @@ $(function () {
 		m_id = $(this).attr('id');
 		path = $(this).attr('href');
 		$('a[href="'+path+'"] img[class=movie-image]').attr('src', 'modules/movie/img/loading.jpg');
-		basename = path.match(/([^/]+)\.([^.]+)$/)[0];
 		$.getJSON('tmdb/scrape', {target: path, tmdb_id: m_id}, function (data) {
-		$('a[href="'+data.med_path.replace("'","\\'")+
-				'"] img[class=movie-image]').attr('src', data.med_thumb);
+			if (data.error)
+				var img = 'modules/movie/img/missing';
+			else
+				var img = data.med_thumb;
+			$('a[href="'+data.med_path.replace("'","\\'")+
+				'"] img[class=movie-image]').attr('src', img);
 		});
 		$('#dialog-movie').dialog('close');
 		return false;
@@ -46,7 +49,11 @@ $(function () {
 function movie_find(event) {
 	dat = { path: $('#movie_path').val() };
 
-	if ($('#inTitle').val()) dat['title'] = $('#inTitle').val();
+	if ($('#inTitle').val())
+	{
+		dat['manual'] = 1;
+		dat['title'] = $('#inTitle').val();
+	}
 	else dat['title'] = $('#movie_title').val();
 
 	$.get('tmdb/find', dat, function (data) {

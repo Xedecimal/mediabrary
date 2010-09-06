@@ -1,9 +1,12 @@
 $(function () {
 	$('#dialog-movie').dialog({
-		'modal': true,
 		autoOpen: false,
 		width: '80%',
-		position: 'top'
+		position: 'top',
+
+		beforeclose: function (event, ui) {
+			$('#movie-items a').css('opacity', 1);
+		}
 	});
 
 	$('.movie-item').live('click', function () {
@@ -17,6 +20,9 @@ $(function () {
 		$('#dialog-movie').dialog('option', 'title',
 			'Details for '+$(this).attr('href'));
 
+		$('#movie-items a').css('opacity', 1);
+		$('#movie-items a[href!='+$(this).attr('href')+']').css('opacity', 0.15);
+
 		$('#dialog-movie').load(app_abs+'/movie/detail',
 			{path: $(this).attr('href')}, function () {
 				$('#dialog-movie').dialog('open');
@@ -24,6 +30,7 @@ $(function () {
 				//$('.ui-widget-overlay').css('background', 'url(\''+img+'\') no-repeat center');
 			}
 		);
+
 		return false;
 	});
 

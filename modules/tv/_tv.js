@@ -3,6 +3,7 @@ $(function () {
 		'modal': true,
 		autoOpen: false,
 		width: '80%',
+		height: 600,
 		position: 'top'
 	});
 
@@ -27,9 +28,15 @@ $(function () {
 	});
 
 	$('#a-tv-scrape-all').click(function () {
+		$("#progressbar").progressbar({value: 0});
+		window.scrape_total = 0;
+		window.scraped = 0;
 		$('.tv-item').each(function (ix, item) {
+			window.scrape_total += 1;
 			$.get('tv/search/'+$(item).attr('title'), function (data) {
-				console.log('Got one.');
+				window.scraped += 1;
+				$("#progressbar").progressbar('option', 'value', window.scraped * 100 / window.scrape_total);
+				if (window.scraped == window.scrape_total) window.location.reload();
 			});
 		});
 	});

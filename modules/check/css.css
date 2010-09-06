@@ -2,3 +2,5 @@
 {
 	clear: both; display: block; text-align: center; margin: auto;
 }
+
+.a-fix { font-weight: bold; padding: 5px; }

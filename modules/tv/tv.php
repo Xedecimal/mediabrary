@@ -62,10 +62,12 @@ class ModTVSeries extends MediaLibrary
 
 			$file = $_d['q'][3];
 
+			$fasturl = '\\\\networkstorage\\nas\\TV\\'.$series.'\\'.$_d['q'][3];
 			$url = 'http://'.GetVar('HTTP_HOST').'/nas/TV/'.rawurlencode($series).'/'.
 				rawurlencode($file);
 			$data = <<<EOF
 #EXTINF:-1,{$file}
+{$fasturl}
 {$url}
 EOF;
 
@@ -181,7 +183,7 @@ EOF;
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
 					$fname = "{$info['med_series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
 					$url = l('tv/rename?src='.urlencode($fy).'&dst='.urlencode(dirname($fy).'/'.$fname.'.'.fileext($fy)));
-					$ret['StrictNames'][] = "<div>File $fy has invalid name, should be \"$fname\" <a href=\"$url\" class=\"a-fix\">Fix</a></div>";
+					$ret['File Name Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $fy has invalid name, should be \"$fname\"";
 				}
 			}
 		}
