@@ -11,6 +11,7 @@ class ModScrapeTVDB
 	{
 		global $_d;
 
+		varinfo($series);
 		$sid = ModScrapeTVDB::GetSID($series);
 		$key = ModScrapeTVDB::_tvdb_key;
 

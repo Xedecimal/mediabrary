@@ -1,7 +1,1 @@
-#a-tv
-{
-	float: left;
-	background: url('img/main-shows.jpg');
-	width: 200px;
-	height: 300px;
-}
+#divMainTV { background: url('img/main-shows.jpg'); }

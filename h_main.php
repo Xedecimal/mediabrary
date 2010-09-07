@@ -21,6 +21,8 @@ $_d['app_dir'] = __DIR__;
 $_d['app_abs'] = GetRelativePath(dirname(__FILE__));
 $_d['head'] = '';
 
+require_once('xedlib/modules/nav.php');
+
 class ModMain extends Module
 {
 	function Get()
@@ -28,7 +30,7 @@ class ModMain extends Module
 		global $_d;
 
 		if (empty($_d['q'][0])) $_d['head'] .=
-			'<link rel="stylesheet" type="text/css" href="_main.css" />';
+			'<link rel="stylesheet" type="text/css" href="css/_main.css" />';
 	}
 }
 

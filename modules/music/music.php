@@ -4,10 +4,6 @@ class ModMusic extends MediaLibrary
 {
 	var $_template = 't_music.xml';
 
-	function __construct()
-	{
-	}
-
 	function Get()
 	{
 		global $_d;
@@ -15,7 +11,7 @@ class ModMusic extends MediaLibrary
 		if (empty($_d['q'][0]))
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/music/css.css" />';
-			return '<a href="{{app_abs}}/music" id="a-music" class="main-link">Music</a>';
+			return '<div id="divMainMusic" class="main-link"><a href="{{app_abs}}/music">Music</a></div>';
 		}
 	}
 }

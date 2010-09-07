@@ -80,7 +80,7 @@ class ModMovie extends MediaLibrary
 			$l = $_d['movie.cb.fsquery']['limit'];
 			$this->_items = array_splice($this->_items, $l[0], $l[1]);
 		}
-		
+
 		$this->_vars['total'] = count($this->_items);
 	}
 
@@ -102,7 +102,7 @@ class ModMovie extends MediaLibrary
 			$size = GetSizeString($size);
 			$text = "{$size} of {$total} Movies";
 
-			return '<a href="{{app_abs}}/movie" id="a-movie" class="main-link">'.$text.'</a>';
+			return '<div class="main-link" id="divMainMovies"><a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
 		}
 
 		if (@$_d['q'][0] != 'movie') return;
@@ -218,7 +218,7 @@ EOF;
 			if (is_dir($f)) continue;
 			$this->_files[$f] = $this->ScrapeFS($f);
 		}
-		
+
 		# Collect database information
 
 		$this->_ds = array();
@@ -227,7 +227,7 @@ EOF;
 			$p = $dr['med_path'];
 
 			# This one is already clean, skip it.
-			
+
 			if (!empty($dr['med_clean']))
 			{
 				unset($this->_files[$p]);

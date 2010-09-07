@@ -39,7 +39,7 @@ class ModTVSeries extends MediaLibrary
 			$size = GetSizeString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
 
-			return '<a href="tv" id="a-tv" class="main-link">'.$text.'</a>';
+			return '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
 		}
 		if (@$_d['q'][0] != 'tv') return;
 		else if (@$_d['q'][1] == 'watch')
@@ -85,7 +85,7 @@ EOF;
 		else if (@$_d['q'][1] == 'search')
 		{
 			require_once('scrape.tvdb.php');
-			return ModScrapeTVDB::Find($_d['q'][2]);
+			return ModScrapeTVDB::Find(GetVar('series'));
 			die();
 		}
 		else if (@$_d['q'][1] == 'items')

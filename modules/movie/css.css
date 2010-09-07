@@ -1,3 +1,5 @@
+#divMainMovies { background: url('img/main-movies.jpg'); }
+
 .movie-item
 {
 	position: relative;
@@ -18,14 +20,6 @@
 {
 	position: relative;
 	z-index: 1999;
-}
-
-#a-movie
-{
-	float: left;
-	background: url('img/main-movies.jpg');
-	width: 200px;
-	height: 300px;
 }
 
 #filter-toggle { float: right; }

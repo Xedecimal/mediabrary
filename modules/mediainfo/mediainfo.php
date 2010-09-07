@@ -26,7 +26,7 @@ class ModMediaInfo extends Module
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/mediainfo/css.css" />';
 			if (empty($_d['q'][0]))
-				return '<a href="mediainfo" id="a-mediainfo">Video and Audio Statistics</a>';
+				$_d['nav.links']->AddChild(new TreeNode('Video and Audio Statistics', 'mediainfo'));
 		}
 
 		if ($_d['q'][0] != 'mediainfo') return;

@@ -1,7 +1,4 @@
-#a-pics
+#divMainPics
 {
-	float: left;
 	background: url('img/main-pics.jpg');
-	width: 200px;
-	height: 300px;
 }
