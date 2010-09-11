@@ -94,10 +94,14 @@ class ModMovie extends MediaLibrary
 
 			$total = $size = 0;
 
-			foreach (Comb($_d['config']['movie_path'], '/downloads/i', OPT_FILES) as $f)
+			foreach ($_d['config']->paths->path as $p)
 			{
-				$size += filesize($f);
-				$total++;
+				if ($p->attributes()->type != 'movie') continue;
+				foreach (Comb($p->attributes()->path, '/downloads/i', OPT_FILES) as $f)
+				{
+					$size += filesize($f);
+					$total++;
+				}
 			}
 			$size = GetSizeString($size);
 			$text = "{$size} of {$total} Movies";
@@ -107,23 +111,7 @@ class ModMovie extends MediaLibrary
 
 		if (@$_d['q'][0] != 'movie') return;
 
-		if (@$_d['q'][1] == 'play')
-		{
-			$file = filenoext($_d['q'][2]);
-
-
-			$fasturl = '\\\\networkstorage\\nas\\Movies\\'.$_d['q'][2];
-			$url = 'http://'.GetVar('HTTP_HOST').'/nas/Movies/'.rawurlencode($_d['q'][2]);
-			$data = <<<EOF
-#EXTINF:-1,{$file}
-{$fasturl}
-{$url}
-EOF;
-
-			SendDownloadStart("{$file}.m3u");
-			die($data);
-		}
-		else if (@$_d['q'][1] == 'detail')
+		if (@$_d['q'][1] == 'detail')
 		{
 			$t = new Template();
 			$item = $this->ScrapeFS(GetVar('path'));
@@ -213,7 +201,8 @@ EOF;
 
 		# Collect known filesystem data
 
-		foreach(glob($_d['config']['movie_path'].'/*') as $f)
+		foreach ($_d['config']->xpath('paths/path[@type="movie"]') as $p)
+		foreach(glob($p->attributes()->path.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
 			$this->_files[$f] = $this->ScrapeFS($f);
@@ -318,10 +307,14 @@ EOF;
 
 		$ret = array();
 
-		foreach (glob($_d['config']['movie_path'].'/*') as $f)
+		foreach ($_d['config']->paths->path as $p)
 		{
-			if (is_dir($f)) continue;
-			$ret[$f] = $this->ScrapeFS($f);
+			if ($p->attributes()->type != 'movie') continue;
+			foreach (glob($p->attributes()->path.'/*') as $f)
+			{
+				if (is_dir($f)) continue;
+				$ret[$f] = $this->ScrapeFS($f);
+			}
 		}
 
 		return $ret;
