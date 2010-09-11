@@ -17,7 +17,7 @@ class ModRate extends Module
 		$_d['movie.cb.detail']['rate'] = array(&$this, 'cb_movie_detail');
 
 		$_d['movie.cb.query']['joins']['rate'] = new Join($_d['rate.ds'],
-			'rate_for = med_id', 'LEFT JOIN');
+			'rate_for = med_id AND rate_from = '.sprintf('%u', ip2long(GetVar('REMOTE_ADDR'))), 'LEFT JOIN');
 
 		if (GetVar('hide_rate'))
 			$_d['movie.cb.query']['match']['rate_amount'] = SqlIs('NULL');
@@ -40,7 +40,7 @@ class ModRate extends Module
 		{
 			$id = $_d['q'][1];
 			$vote = $_d['q'][2];
-			$ip = ip2long(GetVar('REMOTE_ADDR'));
+			$ip = sprintf('%u', ip2long(GetVar('REMOTE_ADDR')));
 			$_d['rate.ds']->Add(array(
 				'rate_for' => $id,
 				'rate_from' => $ip,

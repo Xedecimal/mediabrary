@@ -2,10 +2,20 @@ $(function () {
 	$('#dialog-movie').dialog({
 		autoOpen: false,
 		width: '80%',
+		height: 500,
 		position: 'top',
 
 		beforeclose: function (event, ui) {
 			$('#movie-items a').css('opacity', 1);
+		}
+	});
+
+	$('.movie-item').live('hover', function (e) {
+		if (e.type == 'mouseover')
+		{
+			$(window.current).css('opacity', 0.5);
+			$(this).css('opacity', 1);
+			window.current = this;
 		}
 	});
 
