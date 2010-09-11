@@ -23,8 +23,9 @@ class ModSimilar extends Module
 			array(&$this, 'cb_buttons_similar');
 	}
 
-	function cb_buttons_similar()
+	function cb_buttons_similar($t)
 	{
+		if (!isset($t->vars['med_title'])) return;
 		$js = p('similar/js.js');
 		$css = p('similar/css.css');
 		$icon = p('similar/img/icon.png');
