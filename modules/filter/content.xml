@@ -1,0 +1,16 @@
+<null>
+<style type="text/css">
+#date-slider { width: 50%; }
+</style>
+Filter:
+<select id="selFilterType">
+<option value="YEAR(med_date)">Date Released</option>
+<option value="obtained">Date Obtained</option>
+<option value="rating">Rating</option>
+<option value="cert">Certification</option>
+<option value="none">Remove Filter</option>
+</select>
+<div id="date-value"></div>
+<div id="date-slider"></div>
+<script type="text/javascript" src="filter/js.js"></script>
+</null>

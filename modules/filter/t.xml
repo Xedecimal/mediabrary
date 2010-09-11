@@ -1,0 +1,6 @@
+<div class="filter">
+<script type="text/javascript" src="filter/js.js"></script>
+<a href="filter/content" target="filter" class="refresh" />
+
+<div id="filter"></div>
+</div>
