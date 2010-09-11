@@ -14,8 +14,9 @@ class ModScrapeTVDB
 		$sid = ModScrapeTVDB::GetSID($series);
 		$key = ModScrapeTVDB::_tvdb_key;
 
-		$dst = $_d['config']['tv_path']."/$series/.info.zip";
-		file_put_contents($dst, file_get_contents("http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip"));
+		#@TODO: Don't be referencing config, the whole path should have already come through here.
+		#$dst = $_d['config']['tv_path']."/$series/.info.zip";
+		#file_put_contents($dst, file_get_contents("http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip"));
 
 		$za = new ZipArchive;
 		$za->open($dst);
@@ -35,7 +36,7 @@ class ModScrapeTVDB
 	{
 		global $_d;
 
-		$sc = "{$_d['config']['tv_path']}/$series/.info.dat";
+		$sc = "$series/.info.dat";
 		if (file_exists($sc))
 		{
 			$info = unserialize(file_get_contents($sc));
@@ -43,8 +44,7 @@ class ModScrapeTVDB
 		}
 		else $info = array();
 		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($series);
-		$xml = file_get_contents($url);
-		$sx = simplexml_load_string($xml);
+		$sx = simplexml_load_string(file_get_contents($url));
 		$sids = $sx->xpath('//Data/Series/seriesid');
 		if (empty($sids)) return -1;
 		$sid = (int)$sids[0];
@@ -63,6 +63,8 @@ class ModScrapeTVDB
 			echo "Could not locate this series $series";
 			return null;
 		}
+
+		#@TODO: Don't reference config here.
 		$infoloc = "{$_d['config']['tv_path']}/$series/.info.zip";
 		if ($download || !file_exists($infoloc))
 		{

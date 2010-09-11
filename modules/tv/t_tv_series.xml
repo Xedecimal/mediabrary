@@ -1,5 +1,4 @@
 <div id="tv-series">
-<a href="tv/watch/{{med_title}}"><img src="img/play.png" alt="Play Series" /></a>
 <a href="{{med_title}}" id="scrape-tv-link"><img src="img/find.png" alt="Grab Latest Information" /></a>
 <callback ds="_d" name="tv.cb.buttons" />
 
@@ -8,7 +7,7 @@
 	<div class="tv-episode" title="{{fs_path}}" id="item:{{mov_id}}">
 	{{have}}
 	S{{med_season}}E{{med_episode}} - <a class="episode-link"
-		href="tv/watch/{{med_series}}/{{fs_filename}}">{{med_title}}</a>
+		href="player?path={{url}}">{{med_title}}</a>
 		{{med_date}}
 	</div>
 </item>

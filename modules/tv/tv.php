@@ -28,13 +28,20 @@ class ModTVSeries extends MediaLibrary
 		{
 			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
 
-			$series = count(glob("{$_d['config']['tv_path']}/*", GLOB_ONLYDIR));
-
-			$total = $size = 0;
-			foreach (Comb($_d['config']['tv_path'], '#downloads#i', OPT_FILES) as $f)
+			foreach ($_d['config']->paths->path as $p)
 			{
-				$size += filesize($f);
-				$total++;
+				if ($p->attributes()->type != 'tv') continue;
+
+				$cp = $p->attributes()->path;
+
+				$series = count(glob("$cp/*", GLOB_ONLYDIR));
+
+				$total = $size = 0;
+				foreach (Comb($cp, '#downloads#i', OPT_FILES) as $f)
+				{
+					$size += filesize($f);
+					$total++;
+				}
 			}
 			$size = GetSizeString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
@@ -42,43 +49,12 @@ class ModTVSeries extends MediaLibrary
 			return '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
 		}
 		if (@$_d['q'][0] != 'tv') return;
-		else if (@$_d['q'][1] == 'watch')
-		{
-			$series = $_d['q'][2];
-
-			# Entire Season
-			if (empty($_d['q'][3]))
-			{
-				$ret = '';
-				$files = glob('/data/nas/TV/'.$series.'/*.avi');
-				foreach ($files as $ix => $f)
-				{
-					$ret .= "#EXTINF:,$ix,".basename($f)."\r\n";
-					$ret .= 'http://'.GetVar('HTTP_HOST').'/nas/TV/'.rawurlencode($series).'/'.rawurlencode(basename($f))."\r\n";
-				}
-				SendDownloadStart($series.'.m3u');
-				die($ret);
-			}
-
-			$file = $_d['q'][3];
-
-			$fasturl = '\\\\networkstorage\\nas\\TV\\'.$series.'\\'.$_d['q'][3];
-			$url = 'http://'.GetVar('HTTP_HOST').'/nas/TV/'.rawurlencode($series).'/'.
-				rawurlencode($file);
-			$data = <<<EOF
-#EXTINF:-1,{$file}
-{$fasturl}
-{$url}
-EOF;
-
-			SendDownloadStart(filenoext($file).'.m3u');
-			die($data);
-		}
 		else if (@$_d['q'][1] == 'series')
 		{
 			$series = GetVar('name');
 			$m = new ModTVEpisode();
-			$m->_vars['med_title'] = $series;
+			$m->_vars['med_path'] = $series;
+			$m->_vars['med_title'] = basename($series);
 			$m->Series = $series;
 			die($m->Get());
 		}
@@ -93,13 +69,16 @@ EOF;
 			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 
-			$r = $_d['config']['tv_path'];
-			$dp = opendir($r);
-			while ($f = readdir($dp))
+			foreach ($_d['config']->xpath('paths/path[@type="tv"]') as $p)
 			{
-				if ($f[0] == '.') continue;
-				if (!is_dir($r.'/'.$f)) continue;
-				$dirs[] = $r.'/'.$f;
+				$r = $p->attributes()->path;
+				$dp = opendir($r);
+				while ($f = readdir($dp))
+				{
+					if ($f[0] == '.') continue;
+					if (!is_dir($r.'/'.$f)) continue;
+					$dirs[] = $r.'/'.$f;
+				}
 			}
 
 			foreach ($dirs as $f)
@@ -234,8 +213,10 @@ EOF;
 	{
 		global $_d;
 
-		foreach (glob($_d['config']['tv_path'].'/*') as $fx)
-			$ret[] = basename($fx);
+		$ret = array();
+		foreach ($_d['config']->xpath('paths/path[@type="tv"]') as $p)
+			foreach (glob($p->attributes()->path.'/*') as $fx)
+				$ret[] = $fx;
 
 		return $ret;
 	}
@@ -331,9 +312,9 @@ class ModTVEpisode extends MediaLibrary
 		require_once('scrape.tvdb.php');
 
 		global $_d;
-		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_title']);
+		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
 
-		$sx = ModScrapeTVDB::GetXML($this->_vars['med_title']);
+		$sx = ModScrapeTVDB::GetXML($this->_vars['med_path']);
 		$elEps = $sx->xpath('//Episode');
 		foreach ($elEps as $elEp)
 		{
@@ -361,7 +342,10 @@ class ModTVEpisode extends MediaLibrary
 		$ret = null;
 		foreach ($this->_items as $s => $ss)
 			foreach ($ss as $e => $es)
+			{
+				$es['url'] = urlencode($es['fs_path']);
 				$ret .= $vp->ParseVars($g, $es);
+			}
 
 		return $ret;
 	}
@@ -372,7 +356,7 @@ class ModTVEpisode extends MediaLibrary
 		$tvi = new ModTVEpisode;
 
 		$ret = array();
-		foreach (glob($_d['config']['tv_path'].'/'.$series.'/*') as $f)
+		foreach (glob($series.'/*') as $f)
 		{
 			$i = $tvi->ScrapeFS($f);
 

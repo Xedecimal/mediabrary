@@ -7,12 +7,12 @@ $(function () {
 		position: 'top'
 	});
 
-	$('.tv-item').live('click', function () {
+	$('.a-tv-item').live('click', function () {
 		$('#dialog-tv').dialog('option', 'title',
 			'Details for '+$(this).attr('title'));
 
 		$('#dialog-tv').load('tv/series',
-			{'name': $(this).attr('title')},
+			{'name': $(this).attr('href')},
 			function () {
 				$('#dialog-tv').dialog('open');
 			}
