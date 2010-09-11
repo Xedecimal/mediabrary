@@ -8,5 +8,5 @@ body {  margin: auto; font-family: Verdana; }
 	width: 200px;
 	height: 300px;
 }
-.main-link a { position: relative; color: #000; top: 50%; }
+.main-link a { position: relative; /*color: #000;*/ top: 50%; }
 ul.nav { clear: both; padding: 0; list-style: none; display: block; }
