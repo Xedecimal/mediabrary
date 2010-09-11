@@ -176,14 +176,17 @@ class ModTMDB extends Module
 
 	# Callbacks
 
-	function movie_cb_buttons()
+	function movie_cb_buttons($t)
 	{
 		$ret = ' <a href="{{fs_path}}" id="tmdb-aSearch"><img src="img/find.png"
 			alt="Find" /></a>';
-		$ret .= ' <a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
-			alt="Remove" /></a>';
-		$ret .= ' <a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
-			alt="Select New Cover" /></a>';
+		if (!empty($t->vars['med_date']))
+		{
+			$ret .= ' <a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
+				alt="Remove" /></a>';
+			$ret .= ' <a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
+				alt="Select New Cover" /></a>';
+		}
 		return $ret;
 	}
 
@@ -309,12 +312,8 @@ class ModTMDB extends Module
 		# Scrape some general information
 
 		$movie['med_tmdbid'] = $id;
-		$title = $sx->xpath('//movies/movie/name');
-		if (empty($title)) return null;
-		$movie['med_title'] = $title[0];
-		$movie['med_title'] = trim((string)$movie['med_title']);
-		list($movie['med_date']) = $sx->xpath('//movies/movie/released');
-		$movie['med_date'] = trim((string)$movie['med_date']);
+		$movie['med_title'] = trim((string)$sx->movies->movie->name);
+		$movie['med_date'] = trim((string)$sx->movies->movie->released);
 
 		$dst_pinfo = pathinfo($movie['fs_path']);
 		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
@@ -323,7 +322,7 @@ class ModTMDB extends Module
 
 		# Don't re-scrape a cover.
 
-		$media = ModMovie::GetMedia('movie', $movie, p('movie/img/missing.png'));
+		$media = ModMovie::GetMedia('movie', $movie, null);
 		if (!empty($media['med_thumb'])) return $movie;
 
 		# Collect covers
@@ -331,30 +330,19 @@ class ModTMDB extends Module
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');
 
-		// Covers are available to grab
+		# Covers are available to grab
 
 		if (!empty($urls))
 		{
-			// Collect all cover sizes
-
-			foreach ($urls as $url)
-			{
-				$size = @getimagesize($url);
-				$sizes[(string)$url] = $size[0]*$size[1];
-			}
-
-			arsort($sizes);
-
-			// Find a size that is available.
-			foreach (array_keys($sizes) as $url)
-				if ($data = file_get_contents($url)) break;
+			$url = (string)$urls[0];
+			$data = file_get_contents($url);
 
 			if (!empty($data))
 			{
 				// Clean up existing covers
 
 				$unlink = glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*');
-				if (count($unlink) > 5) die('Something just tried to delete all our covers.');
+				if (count($unlink) > 5) die('Something just tried to delete more than 5 covers.');
 				foreach ($unlink as $f) unlink($f);
 
 				$src_pinfo = pathinfo($url);
