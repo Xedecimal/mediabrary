@@ -133,7 +133,8 @@ class ModTVSeries extends MediaLibrary
 		$ret = array();
 		$mte = new ModTVEpisode;
 
-		foreach (glob($_d['config']['tv_path'].'/*') as $fx)
+		foreach ($_d['config']->xpath('paths/path[@type="tv"]') as $p)
+		foreach (glob($p->attributes()->path.'/*') as $fx)
 		{
 			$infozip = $fx.'/.info.zip';
 			if (file_exists($infozip))
