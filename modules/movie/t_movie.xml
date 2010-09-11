@@ -1,6 +1,6 @@
 <div id="movies">
+<style type="text/css">@import url('{{app_abs}}/modules/movie/css.css');</style>
 <script type="text/javascript" src="movie/_movie.js" />
-<link type="text/css" rel="stylesheet" href="{{app_abs}}/modules/movie/css.css" />
 
 <a href="#" id="filter-toggle">Filtration</a>
 

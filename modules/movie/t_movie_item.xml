@@ -1,7 +1,12 @@
 <null>
 <item>
-	<a href="{{fs_path}}" class="movie-item"><img class="movie-image"
-		src="{{med_thumb}}" alt="{{med_title}}" title="{{fs_title}}" /></a>
+	<div style="background: url('{{med_thumb}}') no-repeat left top;" title="{{fs_path}}" class="movie-item">
+		<div class="movie-details" style="display: none">
+		<div class="quick-buttons"><a href="{{fs_path}}" class="a-movie-item"><img src="modules/movie/img/information.png" alt="Details" /></a><callback ds="_d" name="movie.cb.cover" />
+		</div>
+		{{med_title}}
+		</div>
+	</div>
 </item>
 <div class="clear">Total: {{total}}</div>
 </null>

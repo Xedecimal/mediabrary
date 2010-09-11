@@ -12,7 +12,7 @@ class ModMovie extends MediaLibrary
 		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'med_id');
 
 		$this->_class = 'movie';
-		$this->_missing_image = 'modules/movie/img/missing.jpg';
+		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
 		$this->_fs_scrapes = array(
 			# title [date].ext
 			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
