@@ -15,6 +15,7 @@ class ModRate extends Module
 
 		$_d['movie.cb.head'][] = array($this, 'cb_movie_head');
 		$_d['movie.cb.detail']['rate'] = array(&$this, 'cb_movie_detail');
+		$_d['movie.cb.cover']['rate'] = array(&$this, 'cb_movie_cover');
 
 		$_d['movie.cb.query']['joins']['rate'] = new Join($_d['rate.ds'],
 			'rate_for = med_id AND rate_from = '.sprintf('%u', ip2long(GetVar('REMOTE_ADDR'))), 'LEFT JOIN');
@@ -67,6 +68,15 @@ class ModRate extends Module
 		$item['details']['Seen'] = '<input type="checkbox" id="chk-seen"'.$seen.' />';
 		$item['details']['Liked'] = '<input type="checkbox" id="chk-liked"'.$liked.' />';
 		return $item;
+	}
+
+	function cb_movie_cover($t)
+	{
+		return <<<EOF
+<a href="rate/{{med_id}}/2" class="a-rate"><img src="modules/rate/img/good.png"
+	alt="good" /></a><a href="rate/{{med_id}}/1"><img
+	src="modules/rate/img/bad.png" alt="bad" /></a>
+EOF;
 	}
 }
 

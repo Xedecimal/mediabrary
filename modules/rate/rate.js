@@ -9,6 +9,12 @@ $(function () {
 		$('#movie-items').load('movie/items');
 	});
 
+	$('.a-rate').live('click', function () {
+		$.get($(this).attr('href'));
+		$('#movie-items').load('movie/items');
+		return false;
+	});
+
 	$('#rate-hide').click(function () {
 		if ($('#rate-hide').attr('checked'))
 			$.get('rate/hide');
