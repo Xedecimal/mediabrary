@@ -59,8 +59,8 @@ class Glue
 
 		$dat = file_get_contents('http://api.getglue.com/v2/user/login?'
 			.http_build_query(array(
-				'userId' => $_d['config']['glue_user'],
-				'password' => $_d['config']['glue_pass']
+				'userId' => (string)$_d['config']->glue->attributes()->user,
+				'password' => (string)$_d['config']->glue->attributes()->pass
 			))
 		);
 		$sx = simplexml_load_string($dat);
