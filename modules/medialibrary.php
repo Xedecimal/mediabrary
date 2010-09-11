@@ -72,7 +72,7 @@ class MediaLibrary extends Module
 		$images = glob($query.'.*');
 		// Do not encode this, javascript cant decode it. Encode in php
 		// elsewhere.
-		if (!empty($images)) $ret['med_thumb'] = $_d['app_abs'].'/'.$images[0];
+		if (!empty($images)) $ret['med_thumb'] = str_replace("'", "\\'", 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/'.$images[0]);
 		else $ret['med_thumb'] = $default_thumb;
 
 		$images = glob("img/meta/{$type}/bd_{$pinfo['filename']}.*");
