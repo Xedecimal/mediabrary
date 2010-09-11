@@ -177,7 +177,7 @@ EOF;
 					if (!empty($ep)) $epname = MediaLibrary::CleanTitleForFile($ep[0]->EpisodeName, false);
 				}
 				# <series> / <series> - S<season>E<episode> - <title>.avi
-				if (!preg_match('@([^/]+)/([^/]+) - S([0-9]{2})E([0-9]{2}) - '.preg_quote($epname).'\.avi@', $fy))
+				if (!preg_match('@([^/]+)/([^/]+) - S([0-9]{2})E([0-9]{2}) - '.preg_quote($epname).'\.([^.]+)$@', $fy))
 				{
 					$info['med_season'] = sprintf('%02d', $info['med_season']);
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
@@ -242,8 +242,9 @@ EOF;
 
 	static function GrabEpisode($series, $season, $episode)
 	{
+		$series = preg_replace('/ - /', ': ', $series);
 		$url = 'http://ezrss.it/search/index.php?show_name='
-			.rawurlencode($series).'&show_name_exact=true&mode=rss'
+			.rawurlencode($series).'&mode=rss'
 			."&season={$season}&episode=".
 			$episode;
 		varinfo($url);
@@ -297,28 +298,31 @@ class ModTVEpisode extends MediaLibrary
 				1 => 'med_series',
 				2 => 'med_season',
 				3 => 'med_episode',
-				4 => 'med_title'
-			),
+				4 => 'med_title'),
 			//path/{series}/{title}S{season}E{episode}
 			'#/([^/]+)/([^/]+)S(\d+)E(\d+)(.*)#i' => array(
 				1 => 'med_series',
 				2 => 'med_title',
 				3 => 'med_season',
-				4 => 'med_episode'
-			),
+				4 => 'med_episode'),
 			//path/{series}/{title}{S+}{EE}
 			'#/([^/]+)/([^/]+)(\d+)(\d{2}).*#' => array(
 				1 => 'med_series',
 				2 => 'med_title',
 				3 => 'med_season',
-				4 => 'med_episode'
+				4 => 'med_episode'),
+			# path/{series}/{S}{EE} {title}.ext
+			'#/([^/]+)/(\d+)(\d{2}) (.*)\..*$#' => array(
+				1 => 'med_series',
+				2 => 'med_season',
+				3 => 'med_episode',
+				4 => 'med_title',
 			),
 			# path/{series}/{Season}x{Episode}
 			'#/([^/]+)/[^/]+(\d+)x(\d+).*#' => array(
 				1 => 'med_series',
 				2 => 'med_season',
-				3 => 'med_episode'
-			)
+				3 => 'med_episode')
 		);
 	}
 
@@ -390,6 +394,8 @@ class ModTVEpisode extends MediaLibrary
 				$ret[$snf][$enf] = $i;
 			}
 		}
+
+		arksort($ret);
 		return $ret;
 	}
 
@@ -420,9 +426,10 @@ class ModTVEpisode extends MediaLibrary
 				if (!isset($eps[$series][$s][$e]))
 				{
 					$query = rawurlencode("$series S{$ss}E{$ee}");
+					$ser = rawurlencode($series);
 					$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
 						$series S{$ss}E{$ee}</a> - {$elEp->FirstAired} <a
-						href=\"{{app_abs}}/tv/grab?series=$series&season=$s&episode=$e\"
+						href=\"{{app_abs}}/tv/grab?series=$ser&season=$s&episode=$e\"
 						target=\"_blank\">Attempt quick torrent grab</a>";
 				}
 			}
