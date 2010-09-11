@@ -26,7 +26,6 @@ class ModCategory extends MediaLibrary
 		if ($cat == 'Remove Filter') unset($_SESSION['category']);
 		else if ($cat == 'Unscraped')
 		{
-			$_d['movie.cb.query']['match'] = 1;
 			$_d['movie.cb.fsquery']['limit'] = array(0, 100);
 			$_d['movie.cb.lqc']['unscraped'] =
 				array(&$this, 'cb_movie_lqc');
