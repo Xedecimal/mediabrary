@@ -104,7 +104,7 @@ class ModTMDB extends Module
 
 	# Check Extension
 
-	function Check()
+	function Check2()
 	{
 		global $_d;
 
