@@ -83,7 +83,7 @@ class ModPlayer extends Module
 	{
 		global $_d;
 
-		return '<a href="player?path='.urlencode($t->vars['med_path']).'"><img src="img/play.png"
+		return '<a href="player?path='.urlencode($t->vars['fs_path']).'"><img src="img/play.png"
 			alt="Play Series" /></a>';
 	}
 
