@@ -73,9 +73,8 @@ class ModRate extends Module
 	function cb_movie_cover($t)
 	{
 		return <<<EOF
-<a href="rate/{{med_id}}/2" class="a-rate"><img src="modules/rate/img/good.png"
-	alt="good" /></a><a href="rate/{{med_id}}/1"><img
-	src="modules/rate/img/bad.png" alt="bad" /></a>
+<a href="rate/{{med_id}}/2" class="a-rate ui-icon ui-icon-heart"></a><a
+	href="rate/{{med_id}}/1" class="a-rate ui-icon ui-icon-trash"></a>
 EOF;
 	}
 }
