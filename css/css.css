@@ -16,3 +16,4 @@ a img { border: 0; }
 .hidden { display: none; }
 .clear { clear: both; }
 .left { float: left; }
+.ui-icon { display: inline-block; }
