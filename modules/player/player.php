@@ -8,6 +8,7 @@ class ModPlayer extends Module
 
 		$_d['tv.cb.buttons']['player'] = array(&$this, 'cb_buttons_player');
 		$_d['movie.cb.buttons']['player'] = array(&$this, 'cb_buttons_player');
+		$_d['movie.cb.cover']['player'] = array(&$this, 'cb_buttons_cover');
 	}
 
 	function Prepare()
@@ -83,8 +84,15 @@ class ModPlayer extends Module
 	{
 		global $_d;
 
-		return '<a href="player?path='.urlencode($t->vars['fs_path']).'"><img src="img/play.png"
+		$p = !empty($t->vars['med_path']) ? $t->vars['med_path'] : $t->vars['fs_path'];
+
+		return '<a href="player?path='.urlencode($p).'"><img src="img/play.png"
 			alt="Play Series" /></a>';
+	}
+
+	function cb_buttons_cover($t)
+	{
+		return '<a href="player?path={{url}}" class="ui-icon ui-icon-play"></a>';
 	}
 
 	function AddM3U($ix, $path, $regs = null)
