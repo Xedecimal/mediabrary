@@ -282,9 +282,12 @@ EOF;
 
 			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['med_path']))
 			{
-				$ret['File Name Compliance'][] = "File {$p} has invalid name, should be".
-					" \"{$title} ({$year}).".strtolower(fileext($file['fs_filename']))."\"".
-					' <a href="movie/fix?path='.$uep.'" class="a-fix">Fix</a>';
+				$url = "movie/fix?path=$uep";
+				$ext = strtolower(fileext($file['fs_filename']));
+				$bn = basename($p);
+				$ret['File Name Compliance'][] = <<<EOD
+<a href="{$url}" class="a-fix">Fix</a> File "$bn" should be "$title ($year).$ext".
+EOD;
 				$clean = false;
 			}
 
@@ -338,6 +341,7 @@ EOF;
 		$movies = $_d['movie.ds']->Get($query);
 		foreach ($movies as $i)
 		{
+			$i['url'] = urlencode($i['med_path']);
 			// Emulate a file system if we're not indexing it.
 			if (!isset($ret[$i['med_path']]))
 			{
