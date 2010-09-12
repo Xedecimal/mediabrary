@@ -1,7 +1,7 @@
 $(function () {
-	$('#a-roulette').click(function () {
-		var ix = parseInt(Math.random()*$('.movie-item').length);
-		$('.movie-item:eq('+ix+')').trigger('click');
+	$('#a-roulette').live('click', function () {
+		var ix = parseInt(Math.random()*$('.a-movie-item').length);
+		$('.a-movie-item:eq('+ix+')').trigger('click');
 		return false;
 	});
 
