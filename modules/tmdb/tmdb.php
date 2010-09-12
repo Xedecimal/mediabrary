@@ -204,7 +204,6 @@ class ModTMDB extends Module
 			varinfo("Fixing cover for $title ($year).");
 			$this->FixCover($md['med_path']);
 			flush();
-			//sleep(3);
 		}
 
 		return $ret;
