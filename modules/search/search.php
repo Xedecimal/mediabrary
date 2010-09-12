@@ -8,7 +8,7 @@ class ModSearch extends Module
 
 		if ($_d['q'][0] != 'search') return;
 
-		$_SESSION['search.query'] = $_d['q'][1];
+		$_SESSION['search.query'] = GetVar('term');
 		die();
 	}
 
