@@ -344,7 +344,8 @@ class ModTVEpisode extends MediaLibrary
 		foreach ($this->_items as $s => $ss)
 			foreach ($ss as $e => $es)
 			{
-				$es['url'] = urlencode($es['fs_path']);
+				if (isset($es['fs_path']))
+					$es['url'] = urlencode($es['fs_path']);
 				$ret .= $vp->ParseVars($g, $es);
 			}
 

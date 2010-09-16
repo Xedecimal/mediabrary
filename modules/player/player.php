@@ -113,14 +113,14 @@ class ModPlayer extends Module
 
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
+		$p = str_replace(' ', '%20', str_replace('&', '%26', $path));
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
-{$path}
+{$p}
 
 
 EOF;
 	}
-
 }
 
 Module::Register('ModPlayer');
