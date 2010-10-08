@@ -61,7 +61,8 @@ class ModTVSeries extends MediaLibrary
 		else if (@$_d['q'][1] == 'search')
 		{
 			require_once('scrape.tvdb.php');
-			return ModScrapeTVDB::Find(GetVar('series'));
+			$path = GetVar('series');
+			return ModScrapeTVDB::Find(basename($path), dirname($path));
 			die();
 		}
 		else if (@$_d['q'][1] == 'items')
@@ -224,7 +225,7 @@ class ModTVSeries extends MediaLibrary
 
 	static function GrabEpisode($series, $season, $episode)
 	{
-		$series = preg_replace('/ - /', ': ', $series);
+		$series = preg_replace('/ - /', ': ', basename($series));
 		$url = 'http://ezrss.it/search/index.php?show_name='
 			.rawurlencode($series).'&mode=rss'
 			."&season={$season}&episode=".
@@ -315,7 +316,7 @@ class ModTVEpisode extends MediaLibrary
 		global $_d;
 		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
 
-		$sx = ModScrapeTVDB::GetXML($this->_vars['med_path']);
+		$sx = ModScrapeTVDB::GetXML($this->_vars['med_title'], $this->_vars['med_path']);
 		$elEps = $sx->xpath('//Episode');
 		foreach ($elEps as $elEp)
 		{
@@ -394,7 +395,7 @@ class ModTVEpisode extends MediaLibrary
 		if (isset($down[$series]))
 			$eps[$series] += $down[$series];
 
-		$sx = ModScrapeTVDB::GetXML($series);
+		$sx = ModScrapeTVDB::GetXML(basename($series), $series);
 		if (empty($sx)) return;
 		$elEps = $sx->xpath('//Episode');
 
@@ -411,7 +412,8 @@ class ModTVEpisode extends MediaLibrary
 			{
 				if (!isset($eps[$series][$s][$e]))
 				{
-					$query = rawurlencode("$series S{$ss}E{$ee}");
+					$s = basename($series);
+					$query = rawurlencode("$s S{$ss}E{$ee}");
 					$ser = rawurlencode($series);
 					$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
 						$series S{$ss}E{$ee}</a> - {$elEp->FirstAired} <a

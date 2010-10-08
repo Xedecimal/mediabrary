@@ -86,13 +86,15 @@ class ModPlayer extends Module
 
 		$p = !empty($t->vars['med_path']) ? $t->vars['med_path'] : $t->vars['fs_path'];
 
-		return '<a href="player?path='.urlencode($p).'"><img src="img/play.png"
+		$icon = p('player/img/play.png');
+		return '<a href="player?path='.urlencode($p).'"><img src="'.$icon.'"
 			alt="Play Series" /></a>';
 	}
 
 	function cb_buttons_cover($t)
 	{
-		return '<a href="player?path={{url}}" class="ui-icon ui-icon-play"></a>';
+		return ' <a href="player?path={{url}}"><img
+			src="modules/player/img/play.png" alt="Play" /></a> ';
 	}
 
 	function AddM3U($ix, $path, $regs = null)
@@ -113,7 +115,8 @@ class ModPlayer extends Module
 
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
-		$p = str_replace(' ', '%20', str_replace('&', '%26', $path));
+		$pi = pathinfo($path);
+		$p = $pi['dirname'].'/'.rawurlencode($pi['basename']);
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
 {$p}

@@ -17,6 +17,7 @@ class ModSimilar extends Module
 	{
 		global $_d;
 
+		$_d['cb.head']['similar'] = array(&$this, 'cb_head');
 		$_d['movie.cb.buttons']['similar'] =
 			array(&$this, 'cb_buttons_similar');
 		$_d['tv.cb.buttons']['similar'] =
@@ -26,14 +27,9 @@ class ModSimilar extends Module
 	function cb_buttons_similar($t)
 	{
 		if (!isset($t->vars['med_title'])) return;
-		$js = p('similar/js.js');
-		$css = p('similar/css.css');
 		$icon = p('similar/img/icon.png');
-		return <<<EOF
-<script type="text/javascript" src="$js"></script>
-<style type="text/css">@import url('$css');</style>
-<a href="{{med_title}}" id="a-similar"><img src="$icon" alt="icon" /></a>
-EOF;
+		return '<a href="{{med_title}}" id="a-similar"><img src="'.
+			$icon.'" alt="icon" /></a>';
 	}
 
 	function TagItem($t, $g)
@@ -49,6 +45,17 @@ EOF;
 			$ret .= $vp->ParseVars($g, $i);
 		}
 		return $ret;
+	}
+
+	function cb_head()
+	{
+		$js = p('similar/js.js');
+		$css = p('similar/css.css');
+
+		return <<<EOF
+<script type="text/javascript" src="$js"></script>
+<link type="text/css" rel="stylesheet" href="$css" />
+EOF;
 	}
 }
 

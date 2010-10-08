@@ -23,7 +23,11 @@
 	z-index: 1999;
 }
 
-.quick-buttons { background: #000; }
+.movie-buttons img { height: 32px; }
+
+.quick-buttons img { height: 32px; }
+
+.quick-buttons { background: #000; text-align: center; }
 .movie-details { overflow: hidden; color: #FFF; font-size: 30pt; font-weight: bold; }
 
 #filter-toggle { float: right; }

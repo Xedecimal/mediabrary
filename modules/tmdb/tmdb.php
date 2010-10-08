@@ -178,14 +178,15 @@ class ModTMDB extends Module
 
 	function movie_cb_buttons($t)
 	{
-		$ret = ' <a href="{{fs_path}}" id="tmdb-aSearch"><img src="img/find.png"
+		$ret = '<a href="{{fs_path}}" id="tmdb-aSearch"><img src="img/find.png"
 			alt="Find" /></a>';
 		if (!empty($t->vars['med_date']))
 		{
-			$ret .= ' <a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
+			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
 				alt="Remove" /></a>';
-			$ret .= ' <a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
+			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
 				alt="Select New Cover" /></a>';
+			$ret .= '<a href="http://www.themoviedb.org/movie/{{med_tmdbid}}" target="_blank"><img src="modules/tmdb/img/tmdb.png" alt="tmdb" /></a>';
 		}
 		return $ret;
 	}

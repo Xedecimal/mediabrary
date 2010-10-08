@@ -11,6 +11,7 @@ app_abs = '{{app_abs}}';
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/dot-luv/jquery.ui.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/xedlib/css/form.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/css.css" />
+<callback ds="_d" name="cb.head" />
 {{head}}
 </head>
 <body>

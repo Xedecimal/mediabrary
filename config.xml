@@ -1,0 +1,12 @@
+<config>
+	<paths>
+		<path type="movie" path="/path/to/movies" />
+		<path type="tv" path="/path/to/tv" />
+	</paths>
+	<database url="mysql://user:pass@host/database" />
+	<glue user="username" pass="password" />
+	<player>
+		<trans client="/192.168.1.*/" source="/data/nas" target="http://192.168.1.1:82/nas" />
+		<trans client="/.*/" source="/data/nas" target="http://public.webserver:82/nas" />
+	</player>
+</config>
