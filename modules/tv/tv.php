@@ -149,6 +149,7 @@ class ModTVSeries extends MediaLibrary
 
 			foreach (glob($fx.'/*') as $fy)
 			{
+				if (is_dir($fy)) continue;
 				$info = $mte->ScrapeFS($fy);
 				if (empty($info['med_season'])) { varinfo("Cannot recognize: $fy"); continue; }
 				$epname = '';
@@ -251,6 +252,13 @@ class ModTVEpisode extends MediaLibrary
 		$this->_template = 'modules/tv/t_tv_series.xml';
 		$this->_class = 'episode';
 		$this->_fs_scrapes = array(
+			# path/{series}/{series} Season {season} - {episode} - {title}.ext
+			'#/([^/]+)/([^/-]+)\s*Season ([0-9]+)\s+-\s+([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
+				1 => 'med_series',
+				2 => 'med_series',
+				3 => 'med_season',
+				4 => 'med_episode',
+				5 => 'med_title'),
 			# path/{series}/{series} - S{season}E{episode} - {title}.ext
 			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
 				1 => 'med_series',
@@ -317,17 +325,20 @@ class ModTVEpisode extends MediaLibrary
 		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
 
 		$sx = ModScrapeTVDB::GetXML($this->_vars['med_title'], $this->_vars['med_path']);
-		$elEps = $sx->xpath('//Episode');
-		foreach ($elEps as $elEp)
+		if (!empty($sx))
 		{
-			$s = (int)$elEp->SeasonNumber;
-			if (empty($s)) continue;
-			$e = (int)$elEp->EpisodeNumber;
-			$this->_items[$s][$e]['med_season'] = sprintf('%02d', $s);
-			$this->_items[$s][$e]['med_episode'] = sprintf('%02d', $e);
-			$this->_items[$s][$e]['med_title'] = (string)$elEp->EpisodeName;
-			$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
-			$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
+			$elEps = $sx->xpath('//Episode');
+			foreach ($elEps as $elEp)
+			{
+				$s = (int)$elEp->SeasonNumber;
+				if (empty($s)) continue;
+				$e = (int)$elEp->EpisodeNumber;
+				$this->_items[$s][$e]['med_season'] = sprintf('%02d', $s);
+				$this->_items[$s][$e]['med_episode'] = sprintf('%02d', $e);
+				$this->_items[$s][$e]['med_title'] = (string)$elEp->EpisodeName;
+				$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
+				$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
+			}
 		}
 
 		$t = new Template();
@@ -361,8 +372,14 @@ class ModTVEpisode extends MediaLibrary
 		$ret = array();
 		foreach (glob($series.'/*') as $f)
 		{
+			if (is_dir($f)) continue;
 			$i = $tvi->ScrapeFS($f);
 
+			if (!isset($i['med_episode']))
+			{
+				varinfo('Missing episode on this...');
+				varinfo($i);
+			}
 			// Multi-episode file
 			if (preg_match('/([0-9]+)-([0-9]+)/', $i['med_episode'], $m))
 			{
