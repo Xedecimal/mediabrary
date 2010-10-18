@@ -48,6 +48,7 @@ class ModTVSeries extends MediaLibrary
 
 			return '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
 		}
+
 		if (@$_d['q'][0] != 'tv') return;
 		else if (@$_d['q'][1] == 'series')
 		{
@@ -80,6 +81,8 @@ class ModTVSeries extends MediaLibrary
 					$dirs[] = $r.'/'.$f;
 				}
 			}
+
+			asort($dirs);
 
 			foreach ($dirs as $f)
 			{
