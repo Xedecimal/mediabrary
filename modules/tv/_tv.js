@@ -21,7 +21,7 @@ $(function () {
 	});
 
 	$('#scrape-tv-link').live('click', function () {
-		console.log($(this).attr('href'));
+		//console.log($(this).attr('href'));
 		$.get('tv/search', {series: $(this).attr('href')}, function (data) {
 			$('#scrape-tv-link').after(data);
 		}, 'html')

@@ -7,11 +7,11 @@ class ModScrapeTVDB
 
 	//http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/all/en.zip
 
-	static function Find($series, $path)
+	static function Find($path)
 	{
 		global $_d;
 
-		$sid = ModScrapeTVDB::GetSID($series, $path);
+		$sid = ModScrapeTVDB::GetSID($path);
 		$key = ModScrapeTVDB::_tvdb_key;
 
 		#@TODO: Don't be referencing config, the whole path should have already come through here.
@@ -28,24 +28,29 @@ class ModScrapeTVDB
 		$sx = simplexml_load_string($xml);
 		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
 		$pi = pathinfo($ban);
+		$series = basename($path);
 		file_put_contents("img/meta/tv/thm_$series.{$pi['extension']}",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
 		return "Grabbed";
 	}
 
-	static function GetSID($series, $path)
+	static function GetSID($path)
 	{
 		global $_d;
 
-		$sc = "$series/.info.dat";
+		$sc = "$path/.info.dat";
 		if (file_exists($sc))
 		{
 			$info = unserialize(file_get_contents($sc));
 			if (isset($info['sid'])) return $info['sid'];
 		}
 		else $info = array();
-		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($series);
+		$file_title = "$path/.title.txt";
+		varinfo($file_title);
+		if (file_exists($file_title)) $realname = file_get_contents($file_title);
+		else $realname = basename($path);
+		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($realname);
 		$sx = simplexml_load_string(file_get_contents($url));
 		$sids = $sx->xpath('//Data/Series/seriesid');
 		if (empty($sids)) return -1;
@@ -60,9 +65,9 @@ class ModScrapeTVDB
 	{
 		global $_d;
 
-		$sid = ModScrapeTVDB::GetSID($series, $path);
+		$sid = ModScrapeTVDB::GetSID($path);
 		if ($sid == -1) {
-			echo "Could not locate this series $series";
+			echo "Could not locate this series $path";
 			return null;
 		}
 

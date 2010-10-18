@@ -61,8 +61,7 @@ class ModTVSeries extends MediaLibrary
 		else if (@$_d['q'][1] == 'search')
 		{
 			require_once('scrape.tvdb.php');
-			$path = GetVar('series');
-			return ModScrapeTVDB::Find(basename($path), dirname($path));
+			return ModScrapeTVDB::Find(GetVar('series'));
 			die();
 		}
 		else if (@$_d['q'][1] == 'items')
