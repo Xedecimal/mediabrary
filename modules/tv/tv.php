@@ -225,9 +225,17 @@ class ModTVSeries extends MediaLibrary
 
 	static function GrabEpisode($series, $season, $episode)
 	{
-		$series = preg_replace('/ - /', ': ', basename($series));
+		$file_rss = "$series/.ezrss-title.txt";
+		$file_title = "$series/.title.txt";
+
+		if (file_exists($file_rss))
+			$name = file_get_contents($file_rss);
+		else if (file_exists($file_title))
+			$name = file_get_contents($file_title);
+		else $name = basename($series);
+
 		$url = 'http://ezrss.it/search/index.php?show_name='
-			.rawurlencode($series).'&mode=rss'
+			.rawurlencode($name).'&mode=rss'
 			."&season={$season}&episode=".
 			$episode;
 		varinfo($url);
@@ -428,8 +436,8 @@ class ModTVEpisode extends MediaLibrary
 			{
 				if (!isset($eps[$series][$s][$e]))
 				{
-					$s = basename($series);
-					$query = rawurlencode("$s S{$ss}E{$ee}");
+					$sname = basename($series);
+					$query = rawurlencode("$sname S{$ss}E{$ee}");
 					$ser = rawurlencode($series);
 					$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
 						$series S{$ss}E{$ee}</a> - {$elEp->FirstAired} <a
