@@ -6,6 +6,7 @@ body {  margin: auto; font-family: Verdana; }
 	font-weight: bold;
 	width: 200px;
 	height: 300px;
+	text-shadow: 0 1px 3px #000, 1px 0 #000, -1px 0 #000, 0 -1px #000;
 }
 .main-link a
 {
