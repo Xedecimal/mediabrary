@@ -20,7 +20,9 @@ class ModSeriesly extends Module
 	function Prepare()
 	{
 		if (!$this->Active) return;
+
 		$xml = file_get_contents('php://input');
+		file_put_contents('seriesly.txt', $xml, FILE_APPEND);
 		$sx = simplexml_load_string($xml);
 		foreach ($sx->xpath('//release[quality="HDTV"]/url') as $url)
 		{
@@ -28,6 +30,7 @@ class ModSeriesly extends Module
 			file_put_contents("/data/nas/torrent-files/$fname",
 				file_get_contents($url));
 		}
+
 		die();
 	}
 }

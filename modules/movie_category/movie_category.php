@@ -28,7 +28,8 @@ class ModCategory extends MediaLibrary
 		{
 			$_d['movie.cb.fsquery']['limit'] = array(0, 100);
 			$_d['movie.cb.lqc']['unscraped'] =
-				array(&$this, 'cb_movie_lqc');
+				array(&$this, 'cb_movie_unscraped_lqc');
+			$_d['movie.cb.nolimit'] = true;
 			$_d['movie.cb.filter']['unscraped'] =
 				array(&$this, 'cb_movie_unscraped_filter');
 		}
@@ -88,7 +89,7 @@ class ModCategory extends MediaLibrary
 		return $fs_items;
 	}
 
-	function cb_movie_lqc($query)
+	function cb_movie_unscraped_lqc($query)
 	{
 		unset($query['match']);
 		return $query;
