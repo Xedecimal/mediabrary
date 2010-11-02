@@ -20,7 +20,7 @@ $(function () {
 				var img = 'modules/movie/img/missing';
 			else
 				var img = data.med_thumb;
-			$('div[title="'+data.med_path+'"]').css('background-image', 'url("'+img+'")');
+			$('div[title="'+data.mov_path+'"]').css('background-image', 'url("'+img+'")');
 		});
 		$('#dialog-movie').dialog('close');
 		return false;

@@ -2,7 +2,7 @@
 	<div class="movie-buttons"><a href="movie/down/{{fs_filename}}"><img src="movie/img/disk.png"
 		alt="Download" /></a><callback ds="_d" name="movie.cb.buttons" /></div>
 
-	<input type="hidden" id="movie-id" value="{{med_id}}" />
+	<input type="hidden" id="movie-id" value="{{mov_id}}" />
 	<input type="hidden" id="movie-bd" value="{{med_bd}}" />
 	<input type="hidden" id="movie_path" value="{{fs_path}}" />
 	<input type="hidden" id="movie_title" value="{{fs_title}}" />

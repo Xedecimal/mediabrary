@@ -38,7 +38,7 @@ class ModDetail extends Module
 
 		foreach ($this->details as $det => $v)
 			$_d['movie_detail.ds']->Add(array(
-				'md_movie' => $item['med_id'],
+				'md_movie' => $item['mov_id'],
 				'md_name' => $det,
 				'md_value' => $v
 			), true);
@@ -46,7 +46,7 @@ class ModDetail extends Module
 		foreach ($this->dates as $det => $v)
 		{
 			$_d['movie_date.ds']->Add(array(
-				'md_movie' => $item['med_id'],
+				'md_movie' => $item['mov_id'],
 				'md_name' => $det,
 				'md_date' => $v
 			), true);
@@ -54,7 +54,7 @@ class ModDetail extends Module
 
 		foreach ($this->floats as $k => $v)
 			$_d['movie_float.ds']->Add(array(
-				'mf_movie' => $item['med_id'],
+				'mf_movie' => $item['mov_id'],
 				'mf_name' => $k,
 				'mf_value' => $v
 			), true);
@@ -66,11 +66,11 @@ class ModDetail extends Module
 	{
 		global $_d;
 
-		if (empty($item['med_id'])) return $item;
+		if (empty($item['mov_id'])) return $item;
 
 		$details = $_d['movie_detail.ds']->Get(array(
 			'match' => array(
-				'md_movie' => $item['med_id']
+				'md_movie' => $item['mov_id']
 			)
 		));
 
@@ -87,6 +87,7 @@ class ModDetail extends Module
 <object width="580" height="360"><param name="movie" value="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="580" height="360"></embed></object>
 EOF;
 		}
+
 		return $item;
 	}
 }

@@ -18,7 +18,7 @@ class ModRate extends Module
 		$_d['movie.cb.cover']['rate'] = array(&$this, 'cb_movie_cover');
 
 		$_d['movie.cb.query']['joins']['rate'] = new Join($_d['rate.ds'],
-			'rate_for = med_id AND rate_from = '.sprintf('%u', ip2long(GetVar('REMOTE_ADDR'))), 'LEFT JOIN');
+			'rate_for = mov_id AND rate_from = '.sprintf('%u', ip2long(GetVar('REMOTE_ADDR'))), 'LEFT JOIN');
 
 		if (GetVar('hide_rate'))
 			$_d['movie.cb.query']['match']['rate_amount'] = SqlIs('NULL');
@@ -73,8 +73,8 @@ class ModRate extends Module
 	function cb_movie_cover($t)
 	{
 		return <<<EOF
-<a href="rate/{{med_id}}/2" class="a-rate"><img src="modules/rate/img/good.png" alt="Good" /></a>
-<a href="rate/{{med_id}}/1" class="a-rate"><img src="modules/rate/img/bad.png" alt="Bad" /></a>
+<a href="rate/{{mov_id}}/2" class="a-rate"><img src="modules/rate/img/good.png" alt="Good" /></a>
+<a href="rate/{{mov_id}}/1" class="a-rate"><img src="modules/rate/img/bad.png" alt="Bad" /></a>
 EOF;
 	}
 }

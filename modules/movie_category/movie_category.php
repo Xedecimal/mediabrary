@@ -7,8 +7,8 @@ class ModCategory extends MediaLibrary
 	function __construct()
 	{
 		global $_d;
-		$_d['cat.ds'] = new DataSet($_d['db'], 'category');
-		$this->_template = 'modules/category/t_category.xml';
+		$_d['cat.ds'] = new DataSet($_d['db'], 'movie_category');
+		$this->_template = l('movie_category/t_category.xml');
 	}
 
 	function Link()
@@ -17,7 +17,7 @@ class ModCategory extends MediaLibrary
 
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
 		$_d['movie.cb.query']['joins']['category'] = new Join($_d['cat.ds'],
-			'cat_movie = med_id', 'LEFT JOIN');
+			'cat_movie = mov_id', 'LEFT JOIN');
 		$_d['tmdb.cb.scrape']['category'] = array(&$this, 'cb_tmdb_scrape');
 		$_d['tmdb.cb.postscrape']['category'] = array(&$this, 'cb_tmdb_postscrape');
 
@@ -44,20 +44,20 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
-		$joins = array(new Join($_d['movie.ds'], 'med_id = cat_movie'));
-		$cols = array('med_title' => SqlUnquote('DISTINCT cat_name'),
-			'med_count' => SqlUnquote('COUNT(med_id)'));
+		$joins = array(new Join($_d['movie.ds'], 'mov_id = cat_movie'));
+		$cols = array('mov_title' => SqlUnquote('DISTINCT cat_name'),
+			'mov_count' => SqlUnquote('COUNT(mov_id)'));
 
 		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
 
 		foreach ($cats as $c)
 		{
-			$this->_items[] = $c['med_title'];
-			$this->_metadata[$c['med_title']] = array(
-				'med_count' => $c['med_count'],
-				'med_title' => $c['med_title'],
-				'med_thumb' => "img/category-{$c['med_title']}.jpg"
+			$this->_items[] = $c['mov_title'];
+			$this->_metadata[$c['mov_title']] = array(
+				'mov_count' => $c['mov_count'],
+				'mov_title' => $c['mov_title'],
+				'med_thumb' => "img/category-{$c['mov_title']}.jpg"
 			);
 		}
 	}
@@ -78,13 +78,13 @@ class ModCategory extends MediaLibrary
 	function cb_movie_head()
 	{
 		$t = new Template();
-		return $t->ParseFile(l('category/t.xml'));
+		return $t->ParseFile(l('movie_category/t.xml'));
 	}
 
 	function cb_movie_unscraped_filter($ds_items, $fs_items)
 	{
 		foreach ($ds_items as $ds)
-			unset($fs_items[$ds['med_path']]);
+			unset($fs_items[$ds['mov_path']]);
 		return $fs_items;
 	}
 
@@ -111,7 +111,7 @@ class ModCategory extends MediaLibrary
 		foreach ($this->cats as $c)
 		{
 			$_d['cat.ds']->Add(array(
-				'cat_movie' => $item['med_id'],
+				'cat_movie' => $item['mov_id'],
 				'cat_name' => $c
 			), true);
 		}
@@ -122,7 +122,7 @@ class ModCategory extends MediaLibrary
 		global $_d;
 		$t = new Template($_d);
 		$t->ReWrite('category', array(&$this, 'TagCategory'));
-		return $t->ParseFile(l('category/item.xml'));
+		return $t->ParseFile(l('movie_category/item.xml'));
 	}
 
 	function TagCategory($t, $g)
@@ -133,7 +133,7 @@ class ModCategory extends MediaLibrary
 
 		unset($query['match']['cat_name']);
 		$query['columns'] = array('cat_name' => SqlUnquote('DISTINCT cat_name'),
-			'cat_count' => SqlUnquote('COUNT(med_id)'));
+			'cat_count' => SqlUnquote('COUNT(mov_id)'));
 		$query['group'] = 'cat_name';
 
 		$cats = $_d['movie.ds']->Get($query);

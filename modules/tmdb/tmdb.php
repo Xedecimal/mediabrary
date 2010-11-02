@@ -29,7 +29,7 @@ class ModTMDB extends Module
 		if (@$_d['q'][1] == 'find')
 		{
 			$d = $_d['movie.ds']->GetOne(array('match' => array(
-				'med_path' => GetVar('path'))));
+				'mov_path' => GetVar('path'))));
 
 			$title = GetVar('title');
 			$path = GetVar('path');
@@ -42,14 +42,14 @@ class ModTMDB extends Module
 		{
 			$mm = new ModMovie;
 			$item = $mm->ScrapeFS(GetVar('target'));
-			$item += $_d['movie.ds']->GetOne(array('match' => array('med_path' => $item['fs_path'])));
+			$item += $_d['movie.ds']->GetOne(array('match' => array('mov_path' => $item['fs_path'])));
 			
-			if (empty($item['med_title'])) $item['med_title'] = $item['fs_title'];
-			if (empty($item['med_path'])) $item['med_path'] = stripslashes($item['fs_path']);
+			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
+			if (empty($item['mov_path'])) $item['mov_path'] = stripslashes($item['fs_path']);
 
 			if (GetVar('fast') == 1)
 			{
-				$title = $item['med_title'].' '.$item['fs_date'];
+				$title = $item['mov_title'].' '.$item['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
 				usort($sx_movies, array('ModTMDB', 'cmp_title'));
 				if (empty($sx_movies))
@@ -60,10 +60,10 @@ class ModTMDB extends Module
 
 			$item = ModTMDB::Scrape($item, $tmdbid);
 			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
-			if (empty($item)) die(json_encode(array('error' => 'Not found', 'med_path' => GetVar('target'))));
+			if (empty($item)) die(json_encode(array('error' => 'Not found', 'mov_path' => GetVar('target'))));
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
 			$added = $_d['movie.ds']->Add($item, true);
-			if (empty($item['med_id'])) $item['med_id'] = $added;
+			if (empty($item['mov_id'])) $item['mov_id'] = $added;
 			RunCallbacks($_d['tmdb.cb.postscrape'], $item);
 			if (GetVar('fast') == 1) die('Fixed!');
 			die(json_encode($item + $media));
@@ -72,18 +72,18 @@ class ModTMDB extends Module
 		{
 			$path = GetVar('path');
 			if (!empty($path))
-				$_d['movie.ds']->Remove(array('med_path' => $path));
+				$_d['movie.ds']->Remove(array('mov_path' => $path));
 		}
 		else if (@$_d['q'][1] == 'covers')
 		{
 			$path = GetVar('path');
-			$match = array('med_path' => $path);
+			$match = array('mov_path' => $path);
 			$item = $_d['movie.ds']->Get(array('match' => $match));
 
-			if (empty($item) || empty($item[0]['med_tmdbid']))
+			if (empty($item) || empty($item[0]['mov_tmdbid']))
 				die("This movie doesn't seem fully scraped.");
 
-			$covers = ModTMDB::GetCovers($item[0]['med_tmdbid']);
+			$covers = ModTMDB::GetCovers($item[0]['mov_tmdbid']);
 			$ret = '';
 			foreach ($covers as $ix => $c)
 				$ret .= '<a href="'.$path.'" class="tmdb-aCover"><img src="'.$c.'" /></a>';
@@ -180,13 +180,13 @@ class ModTMDB extends Module
 	{
 		$ret = '<a href="{{fs_path}}" id="tmdb-aSearch"><img src="img/find.png"
 			alt="Find" /></a>';
-		if (!empty($t->vars['med_date']))
+		if (!empty($t->vars['mov_date']))
 		{
 			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
 				alt="Remove" /></a>';
 			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
 				alt="Select New Cover" /></a>';
-			$ret .= '<a href="http://www.themoviedb.org/movie/{{med_tmdbid}}" target="_blank"><img src="modules/tmdb/img/tmdb.png" alt="tmdb" /></a>';
+			$ret .= '<a href="http://www.themoviedb.org/movie/{{mov_tmdbid}}" target="_blank"><img src="modules/tmdb/img/tmdb.png" alt="tmdb" /></a>';
 		}
 		return $ret;
 	}
@@ -195,15 +195,15 @@ class ModTMDB extends Module
 	{
 		$ret = array();
 	
-		if ($md['med_clean'] == 0) return $ret;
+		if ($md['mov_clean'] == 0) return $ret;
 		
-		$title = ModMovie::CleanTitleForFile($md['med_title']);
-		$year = substr($md['med_date'], 0, 4);
+		$title = ModMovie::CleanTitleForFile($md['mov_title']);
+		$year = substr($md['mov_date'], 0, 4);
 
 		if (count(glob("img/meta/movie/thm_$title ($year).*")) < 1)
 		{
 			varinfo("Fixing cover for $title ($year).");
-			$this->FixCover($md['med_path']);
+			$this->FixCover($md['mov_path']);
 			flush();
 		}
 
@@ -311,9 +311,9 @@ class ModTMDB extends Module
 
 		# Scrape some general information
 
-		$movie['med_tmdbid'] = $id;
-		$movie['med_title'] = trim((string)$sx->movies->movie->name);
-		$movie['med_date'] = trim((string)$sx->movies->movie->released);
+		$movie['mov_tmdbid'] = $id;
+		$movie['mov_title'] = trim((string)$sx->movies->movie->name);
+		$movie['mov_date'] = trim((string)$sx->movies->movie->released);
 
 		$dst_pinfo = pathinfo($movie['fs_path']);
 		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
@@ -381,8 +381,8 @@ class ModTMDB extends Module
 	{
 		global $_d;
 
-		$md = $_d['movie.ds']->Get(array('match' => array('med_path' => $p)));
-		$covers = ModTMDB::GetCovers($md[0]['med_tmdbid']);
+		$md = $_d['movie.ds']->Get(array('match' => array('mov_path' => $p)));
+		$covers = ModTMDB::GetCovers($md[0]['mov_tmdbid']);
 		foreach ($covers as $c)
 		{
 			if (!$data = @file_get_contents($c)) continue;
@@ -395,7 +395,7 @@ class ModTMDB extends Module
 			break;
 		}
 		if (empty($data)) varinfo("No data on any covers were found for"
-			." <a href=\"http://www.themoviedb.org/movie/{$md[0]['med_tmdbid']}\">"
+			." <a href=\"http://www.themoviedb.org/movie/{$md[0]['mov_tmdbid']}\">"
 			."this</a>, sorry.\n");
 		return 1;
 	}

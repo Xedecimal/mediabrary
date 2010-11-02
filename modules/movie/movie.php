@@ -9,7 +9,7 @@ class ModMovie extends MediaLibrary
 		global $_d;
 
 		$_d['movie.source'] = 'file';
-		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'med_id');
+		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'mov_id');
 
 		$this->_class = 'movie';
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
@@ -116,7 +116,8 @@ class ModMovie extends MediaLibrary
 			$t = new Template();
 			$item = $this->ScrapeFS(GetVar('path'));
 			$query = $_d['movie.cb.query'];
-			$query['match'] = array('med_path' => $item['fs_path']);
+			$query['match'] = array('mov_path' => $item['fs_path']);
+
 			$item = array_merge($item, $_d['movie.ds']->GetOne($query));
 			if (!empty($_d['movie.cb.detail']))
 				foreach ($_d['movie.cb.detail'] as $cb)
@@ -138,13 +139,13 @@ class ModMovie extends MediaLibrary
 			//$pinfo = pathinfo($src);
 			$meta = $this->ScrapeFS($src);
 			$dr = $_d['movie.ds']->GetOne(array(
-				'match' => array('med_path' => str_replace('&', ':', $src))
+				'match' => array('mov_path' => str_replace('&', ':', $src))
 			));
 			if (!empty($dr)) $meta = array_merge($meta, $dr);
 
-			$ftitle = $meta['med_title'];
+			$ftitle = $meta['mov_title'];
 			$ftitle = $this->CleanTitleForFile($ftitle);
-			$fyear = substr($meta['med_date'], 0, 4);
+			$fyear = substr($meta['mov_date'], 0, 4);
 
 			$dst = "{$m[1]}{$ftitle} ({$fyear}).".strtolower($m[3]);
 
@@ -160,8 +161,8 @@ class ModMovie extends MediaLibrary
 
 			// Apply Database Transformations
 
-			$_d['movie.ds']->Update(array('med_path' => $src),
-				array('med_path' => $dst));
+			$_d['movie.ds']->Update(array('mov_path' => $src),
+				array('mov_path' => $dst));
 
 			die('Fixed');
 		}
@@ -213,21 +214,21 @@ class ModMovie extends MediaLibrary
 		$this->_ds = array();
 		foreach ($_d['movie.ds']->Get() as $dr)
 		{
-			$p = $dr['med_path'];
+			$p = $dr['mov_path'];
 
 			# This one is already clean, skip it.
 
-			if (!empty($dr['med_clean']))
+			if (!empty($dr['mov_clean']))
 			{
 				unset($this->_files[$p]);
 				continue;
 			}
 
-			if (!file_exists($dr['med_path']))
+			if (!file_exists($dr['mov_path']))
 			{
 				$ret['cleanup'][] = "Removed database entry for non-existing '"
 					.$p."'";
-				$_d['movie.ds']->Remove(array('med_path' => $p));
+				$_d['movie.ds']->Remove(array('mov_path' => $p));
 			}
 
 			$this->_ds[$p] = $dr;
@@ -262,25 +263,25 @@ EOF;
 
 			# Date Related
 
-			$date = $md['med_date'];
+			$date = $md['mov_date'];
 			$year = substr($date, 0, 4);
 
 			# Missing month and day.
 
 			if (strlen($date) < 10)
 			{
-				$ret['Scrape'][] = "File {$md['med_path']} has incorrectly
+				$ret['Scrape'][] = "File {$md['mov_path']} has incorrectly
 					scraped year \"{$year}\"";
 				$clean = false;
 			}
 
 			# Title Related
 
-			$title = ModMovie::CleanTitleForFile($md['med_title']);
+			$title = ModMovie::CleanTitleForFile($md['mov_title']);
 
 			# Validate strict naming conventions.
 
-			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['med_path']))
+			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['mov_path']))
 			{
 				$url = "movie/fix?path=$uep";
 				$ext = strtolower(fileext($file['fs_filename']));
@@ -292,8 +293,8 @@ EOD;
 			}
 
 			$_d['movie.ds']->Update(
-				array('med_id' => $md['med_id']),
-				array('med_clean' => $clean)
+				array('mov_id' => $md['mov_id']),
+				array('mov_clean' => $clean)
 			);
 
 			$ret = array_merge_recursive($ret, RunCallbacks($_d['movie.cb.check'], $md));
@@ -335,22 +336,22 @@ EOD;
 		if (!empty($_d['movie.cb.lqc']))
 			$query = RunCallbacks($_d['movie.cb.lqc'], $query);
 
-		$query['group'] = 'med_id';
+		$query['group'] = 'mov_id';
 		$ret = array();
 
 		$movies = $_d['movie.ds']->Get($query);
 		foreach ($movies as $i)
 		{
-			$i['url'] = urlencode($i['med_path']);
+			$i['url'] = urlencode($i['mov_path']);
 			// Emulate a file system if we're not indexing it.
-			if (!isset($ret[$i['med_path']]))
+			if (!isset($ret[$i['mov_path']]))
 			{
-				$i['fs_path'] = $i['med_path'];
-				$i['fs_filename'] = basename($i['med_path']);
-				$i['fs_title'] = $i['med_title'];
-				$ret[$i['med_path']] = $i;
+				$i['fs_path'] = $i['mov_path'];
+				$i['fs_filename'] = basename($i['mov_path']);
+				$i['fs_title'] = $i['mov_title'];
+				$ret[$i['mov_path']] = $i;
 			}
-			else $ret[$i['med_path']] += $i;
+			else $ret[$i['mov_path']] += $i;
 		}
 
 		return $ret;

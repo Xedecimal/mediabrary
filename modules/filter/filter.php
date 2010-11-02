@@ -31,7 +31,7 @@ class ModFilter extends Module
 		if ($type == 'cert')
 		{
 			$_d['movie.cb.query']['joins']['md'] =
-				new Join($_d['movie_detail.ds'], "md_name = 'certification' AND md_movie = med_id", 'LEFT JOIN');
+				new Join($_d['movie_detail.ds'], "md_name = 'certification' AND md_movie = mov_id", 'LEFT JOIN');
 			$checks = GetVar('filter.checks');
 			if (!empty($checks))
 				$_d['movie.cb.query']['match']['md_value'] =
@@ -46,7 +46,7 @@ class ModFilter extends Module
 			if ($type == 'obtained')
 			{
 				$_d['movie.cb.query']['joins']['md'] =
-					new Join($_d['movie_date.ds'], "md_name = 'obtained' AND md_movie = med_id", 'LEFT JOIN');
+					new Join($_d['movie_date.ds'], "md_name = 'obtained' AND md_movie = mov_id", 'LEFT JOIN');
 				$_d['movie.cb.query']['match']['md_date'] =
 					SqlBetween(date('Y-m-d', $min), date('Y-m-d', $max+1));
 				$_d['movie.cb.query']['order'] = array('md_date' => 'DESC');
@@ -54,7 +54,7 @@ class ModFilter extends Module
 			else if ($type == 'rating')
 			{
 				$_d['movie.cb.query']['joins']['mf'] =
-					new Join($_d['movie_float.ds'], "mf_name = 'rating' AND mf_movie = med_id", 'LEFT JOIN');
+					new Join($_d['movie_float.ds'], "mf_name = 'rating' AND mf_movie = mov_id", 'LEFT JOIN');
 				$_d['movie.cb.query']['match']['mf_value'] =
 					SqlBetween($min, $max);
 				$_d['movie.cb.query']['order'] = array('mf_value' => 'DESC');
@@ -83,14 +83,14 @@ class ModFilter extends Module
 		}
 		if ($_d['q'][1] == 'get')
 		{
-			$type = GetVar('filter.type', 'med_date');
+			$type = GetVar('filter.type', 'mov_date');
 
-			if ($type == 'YEAR(med_date)')
+			if ($type == 'YEAR(mov_date)')
 			{
 				$query = $_d['movie.cb.query'];
 				$query['columns'] = array(
-					'min' => SqlUnquote('YEAR(min(med_date))'),
-					'max' => SqlUnquote('YEAR(max(med_date))')
+					'min' => SqlUnquote('YEAR(min(mov_date))'),
+					'max' => SqlUnquote('YEAR(max(mov_date))')
 				);
 				$query['match'][$type] = SqlMore('0000-00-00');
 
@@ -162,7 +162,7 @@ class FilterReleased
 	function __construct()
 	{
 		$this->_text = 'Released';
-		$this->_col = 'YEAR(med_date)';
+		$this->_col = 'YEAR(mov_date)';
 		$this->_match = SqlBetween(GetVar('filter.min'), GetVar('filter.max'));
 	}
 }

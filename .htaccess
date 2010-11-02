@@ -3,8 +3,6 @@ Options Indexes FollowSymLinks MultiViews
 <IfModule mod_rewrite.c>
 	RewriteEngine on
 
-	RewriteBase /Media
-
 	# ignore existing files
 	RewriteCond %{REQUEST_FILENAME} !-f
 

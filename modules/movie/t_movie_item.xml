@@ -8,7 +8,7 @@
 				src="modules/movie/img/information.png" /></a>
 			<callback ds="_d" name="movie.cb.cover" />
 		</div>
-		{{med_title}}
+		{{mov_title}}
 		</div>
 	</div>
 </item>

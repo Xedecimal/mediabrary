@@ -103,7 +103,8 @@ class ModMediaInfo extends Module
 		global $_d;
 
 		$target = str_replace('"', '\"', $item['fs_path']);
-		$out = `/usr/local/bin/mediainfo --Output=XML "{$target}"`;
+		$out = `mediainfo --Output=XML "{$target}"`;
+		if (empty($out)) { echo "Error loading media info."; return $item; }
 		$sx = simplexml_load_string(preg_replace('//', '', $out));
 
 		$tracks = $sx->xpath('//File/track');
