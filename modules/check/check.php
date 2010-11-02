@@ -47,7 +47,7 @@ class ModCheck extends Module
 		{
 			$msgs = null;
 			foreach ($ms as $m)
-				$msgs .= $m.'<br />';
+				$msgs .= '<p>'.$m.'</p>';
 			$ret .= $vp->ParseVars($g, array(
 				'id' => $ix,
 				'title' => $t,
