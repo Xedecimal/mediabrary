@@ -35,6 +35,8 @@ class ModMain extends Module
 	}
 }
 
+if (!file_exists('config.xml')) copy('config.default.xml', 'config.xml');
+
 Module::Register('ModMain');
 
 ?>
