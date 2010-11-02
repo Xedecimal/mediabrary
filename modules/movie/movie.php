@@ -152,7 +152,10 @@ class ModMovie extends MediaLibrary
 			// Apply File Transformations
 
 			rename($src, $dst);
-			touch($dst);
+			if (!@touch($dst))
+			{
+				Error("Could not touch: $dst.");
+			}
 
 			preg_rename('img/meta/movie/*'.filenoext($m[2]).'*',
 				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
@@ -288,6 +291,7 @@ EOF;
 				$bn = basename($p);
 				$ret['File Name Compliance'][] = <<<EOD
 <a href="{$url}" class="a-fix">Fix</a> File "$bn" should be "$title ($year).$ext".
+	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
 EOD;
 				$clean = false;
 			}

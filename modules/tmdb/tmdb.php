@@ -305,6 +305,7 @@ class ModTMDB extends Module
 		global $_d;
 
 		$xml = file_get_contents(TMDB_INFO.$id);
+		if (empty($xml)) Error('Could not get: '.TMDB_INFO.$id);
 		if (!empty($_d['tmdb.cb.scrape']))
 			RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);
 		$sx = simplexml_load_string($xml);
