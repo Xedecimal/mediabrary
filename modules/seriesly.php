@@ -22,6 +22,8 @@ class ModSeriesly extends Module
 		if (!$this->Active) return;
 
 		$xml = file_get_contents('php://input');
+		if (empty($xml)) die();
+
 		file_put_contents('seriesly.txt', $xml, FILE_APPEND);
 		$sx = simplexml_load_string($xml);
 		foreach ($sx->xpath('//release[quality="HDTV"]/url') as $url)

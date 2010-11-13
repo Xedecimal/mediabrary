@@ -179,7 +179,7 @@ class ModTVSeries extends MediaLibrary
 	{
 		global $_d;
 
-		require_once('File/Bittorrent2/Decode.php');
+		/*require_once('File/Bittorrent2/Decode.php');
 		$btd = new File_Bittorrent2_Decode;
 		$mtve = new ModTVEpisode;
 		$ret = '';
@@ -211,7 +211,7 @@ class ModTVSeries extends MediaLibrary
 			}
 		}
 
-		return $ret;
+		return $ret;*/
 	}
 
 	static function GetAllSeries()
