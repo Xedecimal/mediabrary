@@ -18,6 +18,37 @@ class ModTVSeries extends MediaLibrary
 				2 => 'med_title'
 			)
 		);
+
+		$this->CheckActive('tv');
+	}
+
+	function Prepare()
+	{
+		if (!$this->Active) return;
+
+		global $_d;
+
+		if ($_d['q'][1] == 'getrss')
+		{
+			$max_date = 0;
+
+			// Get up to this date.
+			if (file_exists('rss_check.txt'))
+				$stop_date = file_get_contents('rss_check.txt');
+			else $stop_date = 0;
+
+			foreach ($_d['config']->feeds->feed as $f)
+			{
+				$url = $f->attributes()->href;
+				$date = $this->GetFeed($url, $stop_date);
+				if ($date > $max_date) $max_date = $date;
+			}
+
+			// Do not re-check after this date.
+			file_put_contents('rss_check.txt', $max_date);
+
+			die();
+		}
 	}
 
 	function Get()
@@ -173,6 +204,30 @@ class ModTVSeries extends MediaLibrary
 		}
 
 		return $ret;
+	}
+
+	function GetFeed($url, $stop_date)
+	{
+		$xml = file_get_contents($url);
+		$xs = simplexml_load_string($xml);
+
+		$max_date = 0;
+		foreach ($xs->entry as $e)
+		{
+			$date = strtotime($e->updated);
+			$href = @(string)$e->link->attributes()->href;
+			$fname = basename($href);
+			if (empty($fname)) continue;
+			if ($date > $max_date) $max_date = $date;
+			if ($date > $stop_date)
+			{
+				echo "Getting: {$fname}";
+				file_put_contents("/data/nas/transfer/autoload/{$fname}",
+					file_get_contents($href));
+			}
+		}
+
+		return $max_date;
 	}
 
 	static function GetDownloadingEpisodes($series)
