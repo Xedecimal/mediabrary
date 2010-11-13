@@ -28,7 +28,7 @@ class ModTVSeries extends MediaLibrary
 
 		global $_d;
 
-		if ($_d['q'][1] == 'getrss')
+		if (@$_d['q'][1] == 'getrss')
 		{
 			$max_date = 0;
 
