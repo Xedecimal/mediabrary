@@ -14,9 +14,6 @@ class ModScrapeTVDB
 		$sid = ModScrapeTVDB::GetSID($path);
 		$key = ModScrapeTVDB::_tvdb_key;
 
-		#@TODO: Don't be referencing config, the whole path should have already come through here.
-		#$dst = $_d['config']['tv_path']."/$series/.info.zip";
-		#file_put_contents($dst, file_get_contents("http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip"));
 		$dst = $path.'/.info.zip';
 		file_put_contents($dst, file_get_contents("http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip"));
 
@@ -47,7 +44,6 @@ class ModScrapeTVDB
 		}
 		else $info = array();
 		$file_title = "$path/.title.txt";
-		varinfo($file_title);
 		if (file_exists($file_title)) $realname = file_get_contents($file_title);
 		else $realname = basename($path);
 		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($realname);
@@ -61,18 +57,17 @@ class ModScrapeTVDB
 		return $sid;
 	}
 
-	static function GetXML($series, $path, $download = false)
+	static function GetXML($series, $download = false)
 	{
 		global $_d;
 
-		$sid = ModScrapeTVDB::GetSID($path);
+		$sid = ModScrapeTVDB::GetSID($series);
 		if ($sid == -1) {
-			echo "Could not locate this series $path";
+			echo "Could not locate this series $series";
 			return null;
 		}
 
-		#@TODO: Don't reference config here.
-		$infoloc = "$path/.info.zip";
+		$infoloc = "$series/.info.zip";
 		if ($download || !file_exists($infoloc))
 		{
 			$url = 'http://www.thetvdb.com/api/138419DAB0A9141D/series/'
@@ -84,6 +79,20 @@ class ModScrapeTVDB
 		$xml = $za->getFromName('en.xml');
 		$za->close();
 		return simplexml_load_string($xml);
+	}
+
+	static function GetEps($series)
+	{
+		$sx = ModScrapeTVDB::GetXML($series);
+		foreach ($sx->Episode as $ep)
+		{
+			$sn = (int)$ep->SeasonNumber;
+			$en = (int)$ep->EpisodeNumber;
+			$ret[$sn][$en]['aired'] = MyDateTimestamp($ep->FirstAired);
+			if (empty($ret[$sn][$en]['title']))
+				$ret[$sn][$en]['title'] = $ep->EpisodeName;
+		}
+		return $ret;
 	}
 }
 
