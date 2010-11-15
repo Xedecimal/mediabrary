@@ -81,16 +81,16 @@ class ModScrapeTVDB
 		return simplexml_load_string($xml);
 	}
 
-	static function GetEps($series)
+	static function GetInfo($series)
 	{
 		$sx = ModScrapeTVDB::GetXML($series);
 		foreach ($sx->Episode as $ep)
 		{
 			$sn = (int)$ep->SeasonNumber;
 			$en = (int)$ep->EpisodeNumber;
-			$ret[$sn][$en]['aired'] = MyDateTimestamp($ep->FirstAired);
-			if (empty($ret[$sn][$en]['title']))
-				$ret[$sn][$en]['title'] = $ep->EpisodeName;
+			$ret['eps'][$sn][$en]['aired'] = MyDateTimestamp($ep->FirstAired);
+			if (empty($ret['eps'][$sn][$en]['title']))
+				$ret['eps'][$sn][$en]['title'] = $ep->EpisodeName;
 		}
 		return $ret;
 	}

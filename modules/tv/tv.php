@@ -191,19 +191,20 @@ class ModTVSeries extends MediaLibrary
 
 				$sn = (int)$info['med_season'];
 				$en = (int)$info['med_episode'];
+				$epname = '';
 				if (!empty($eps[$sn][$en]['title']))
-				{
 					$epname = $eps[$sn][$en]['title'];
-				}
 				if (!empty($epname))
 					$epname = MediaLibrary::CleanTitleForFile($epname, false);
+				if (!empty($eps['series']))
+					$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
 
 				# <series> / <series> - S<season>E<episode> - <title>.avi
-				if (!preg_match('@([^/]+)/([^/]+) - S([0-9]{2})E([0-9]{2}) - '.preg_quote($epname).'\.([^.]+)$@', $episode))
+				if (!preg_match("@([^/]+)/({$eps['series']}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
 				{
 					$info['med_season'] = sprintf('%02d', $info['med_season']);
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
-					$fname = "{$info['med_series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
+					$fname = "{$eps['series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
 					$url = l('tv/rename?src='.urlencode($episode).'&dst='.urlencode(dirname($episode).'/'.$fname.'.'.fileext($episode)));
 					$ret['File Name Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$fname\"";
 				}
@@ -314,14 +315,16 @@ class ModTVSeries extends MediaLibrary
 		return true;
 	}
 
-	static function GetEps($series)
+	static function GetInfo($series)
 	{
 		$eps = array();
 		foreach (ModTVSeries::$scrapers as $s)
 		{
-			$neps = $s::GetEps($series);
-			$eps += $neps;
+			$neps = $s::GetInfo($series);
+			$eps = array_replace_recursive($eps, $neps);
 		}
+		/*if ($series == '/data/nas/TV/House')
+			varinfo($eps);*/
 		return $eps;
 	}
 }
@@ -405,7 +408,7 @@ class ModTVEpisode extends MediaLibrary
 		global $_d;
 		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
 
-		$sx = ModScrapeTVDB::GetXML($this->_vars['med_title'], $this->_vars['med_path']);
+		$sx = ModScrapeTVDB::GetXML($this->_vars['med_path']);
 		if (!empty($sx))
 		{
 			$elEps = $sx->xpath('//Episode');
@@ -493,10 +496,10 @@ class ModTVEpisode extends MediaLibrary
 			$eps += $down[$series];
 
 		# All Episodes
-		$aeps = ModTVSeries::GetEps($series);
+		$aeps = ModTVSeries::GetInfo($series);
 
 		$ret = array();
-		foreach ($aeps as $sn => $season)
+		foreach ($aeps['eps'] as $sn => $season)
 		foreach ($season as $en => $ep)
 		{
 			$snp = sprintf('%02d', $sn);
@@ -510,8 +513,9 @@ class ModTVEpisode extends MediaLibrary
 					$sname = basename($series);
 					$query = rawurlencode("$sname S{$snp}E{$enp}");
 					$ser = rawurlencode($series);
+					$aired = date('m/d/Y', $ep['aired']);
 					$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
-						$series S{$snp}E{$enp}</a> - {$ep['aired']} <a
+						$series S{$snp}E{$enp}</a> - {$aired} <a
 						href=\"{{app_abs}}/tv/grab?series=$ser&season=$snp&episode=$enp\"
 						target=\"_blank\">Attempt quick torrent grab</a>";
 				}

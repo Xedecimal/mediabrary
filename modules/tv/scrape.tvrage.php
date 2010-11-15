@@ -56,20 +56,21 @@ class ModScrapeTVRage
 		return simplexml_load_string(file_get_contents($infoloc));
 	}
 
-	static function GetEps($series)
+	static function GetInfo($series)
 	{
 		$ret = array();
 
 		$sx = ModScrapeTVRage::GetXML($series);
+		$ret['series'] = trim((string)$sx->name);
 		foreach ($sx->xpath('//Season') as $s)
 		{
 			$sn = (int)$s->attributes()->no;
 			foreach ($s->xpath('episode') as $ep)
 			{
 				$eout['aired'] = MyDateTimestamp($ep->airdate);
-				$eout['title'] = $ep->title;
+				$eout['title'] = (string)$ep->title;
 				$en = (int)$ep->seasonnum;
-				$ret[$sn][$en] = $eout;
+				$ret['eps'][$sn][$en] = $eout;
 			}
 		}
 
