@@ -67,7 +67,11 @@ class ModScrapeTVRage
 			$sn = (int)$s->attributes()->no;
 			foreach ($s->xpath('episode') as $ep)
 			{
-				$eout['aired'] = MyDateTimestamp($ep->airdate);
+				// Blank date.
+				if ($ep->airdate == '0000-00-00')
+					$eout['aired'] = null;
+				else
+					$eout['aired'] = MyDateTimestamp($ep->airdate);
 				$eout['title'] = (string)$ep->title;
 				$en = (int)$ep->seasonnum;
 				$ret['eps'][$sn][$en] = $eout;
