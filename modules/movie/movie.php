@@ -153,10 +153,7 @@ class ModMovie extends MediaLibrary
 			// Apply File Transformations
 
 			rename($src, $dst);
-			if (!@touch($dst))
-			{
-				Error("Could not touch: $dst.");
-			}
+			@touch($dst);
 
 			preg_rename('img/meta/movie/*'.filenoext($m[2]).'*',
 				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
