@@ -89,7 +89,7 @@ class ModTVSeries extends MediaLibrary
 
 		else if (@$_d['q'][1] == 'series')
 		{
-			$series = GetVar('name');
+			$series = Server::GetVar('name');
 			$m = new ModTVEpisode();
 			$m->_vars['med_path'] = $series;
 			$m->_vars['med_title'] = basename($series);
@@ -98,7 +98,7 @@ class ModTVSeries extends MediaLibrary
 		}
 		else if (@$_d['q'][1] == 'search')
 		{
-			return ModScrapeTVDB::Find(GetVar('series'));
+			return ModScrapeTVDB::Find(Server::GetVar('series'));
 			die();
 		}
 		else if (@$_d['q'][1] == 'items')
@@ -133,13 +133,13 @@ class ModTVSeries extends MediaLibrary
 		}
 		else if (@$_d['q'][1] == 'rename')
 		{
-			if (!rename(GetVar('src'), GetVar('dst'))) die('Error!');
+			if (!rename(Server::GetVar('src'), Server::GetVar('dst'))) die('Error!');
 			else die('Done.');
 		}
 		else if (@$_d['q'][1] == 'grab')
 		{
-			if (ModTVSeries::GrabEpisode(GetVar('series'), GetVar('season'),
-				GetVar('episode')))
+			if (ModTVSeries::GrabEpisode(Server::GetVar('series'), Server::GetVar('season'),
+				Server::GetVar('episode')))
 				return "Successful!";
 			return "Failure!";
 		}

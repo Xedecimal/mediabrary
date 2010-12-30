@@ -123,7 +123,7 @@ class ModMovie extends MediaLibrary
 				foreach ($_d['movie.cb.detail'] as $cb)
 					$item = call_user_func($cb, $item);
 			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
-			$item['fs_filename'] = basename(GetVar('path'));
+			$item['fs_filename'] = basename(Server::GetVar('path'));
 			$t->Set($item);
 			$this->_item = $item;
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
@@ -133,7 +133,7 @@ class ModMovie extends MediaLibrary
 		{
 			// Collect Information
 			//$src = '/'.implode('/', array_splice($_d['q'], 2));
-			$src = GetVar('path');
+			$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
 			//$pinfo = pathinfo($src);

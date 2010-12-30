@@ -17,7 +17,7 @@ class ModPlayer extends Module
 
 		if ($_d['q'][0] != 'player') return;
 
-		$p = GetVar('path');
+		$p = Server::GetVar('path');
 
 		if (is_file($p))
 			$d = dirname($p);

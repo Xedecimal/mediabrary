@@ -26,20 +26,20 @@ class ModFilter extends Module
 		global $_d;
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
 
-		$type = GetVar('filter.type');
+		$type = Server::GetVar('filter.type');
 
 		if ($type == 'cert')
 		{
 			$_d['movie.cb.query']['joins']['md'] =
 				new Join($_d['movie_detail.ds'], "md_name = 'certification' AND md_movie = mov_id", 'LEFT JOIN');
-			$checks = GetVar('filter.checks');
+			$checks = Server::GetVar('filter.checks');
 			if (!empty($checks))
 				$_d['movie.cb.query']['match']['md_value'] =
 					SqlIn($checks);
 		}
 
-		$min = GetVar('filter.min');
-		$max = GetVar('filter.max');
+		$min = Server::GetVar('filter.min');
+		$max = Server::GetVar('filter.max');
 
 		if (!empty($min) && !@$_d['movie.exclusive'])
 		{
@@ -83,7 +83,7 @@ class ModFilter extends Module
 		}
 		if ($_d['q'][1] == 'get')
 		{
-			$type = GetVar('filter.type', 'mov_date');
+			$type = Server::GetVar('filter.type', 'mov_date');
 
 			if ($type == 'YEAR(mov_date)')
 			{
@@ -121,7 +121,7 @@ class ModFilter extends Module
 			{
 				$items[0] = array(
 					'source' => $type,
-					'checks' => GetVar('filter.checks', array())
+					'checks' => Server::GetVar('filter.checks', array())
 				);
 				die(json_encode($items[0]));
 			}
@@ -129,8 +129,8 @@ class ModFilter extends Module
 			{
 				$items[0] = array('min' => 0, 'max' => 1);
 			}
-			$items[0]['cmin'] = GetVar('filter.min', $items[0]['min']);
-			$items[0]['cmax'] = GetVar('filter.max', $items[0]['max']);
+			$items[0]['cmin'] = Server::GetVar('filter.min', $items[0]['min']);
+			$items[0]['cmax'] = Server::GetVar('filter.max', $items[0]['max']);
 			$items[0]['source'] = $type;
 			die(json_encode($items[0]));
 		}
@@ -138,7 +138,7 @@ class ModFilter extends Module
 		{
 			$type = $_SESSION['filter.type'] = $_d['q'][2];
 			if ($type == 'cert')
-				$_SESSION['filter.checks'] = GetVar('checks');
+				$_SESSION['filter.checks'] = Server::GetVar('checks');
 			else // Date
 			{
 				$_SESSION['filter.min'] = $_d['q'][3];
@@ -163,7 +163,8 @@ class FilterReleased
 	{
 		$this->_text = 'Released';
 		$this->_col = 'YEAR(mov_date)';
-		$this->_match = SqlBetween(GetVar('filter.min'), GetVar('filter.max'));
+		$this->_match = Database::SqlBetween(Server::GetVar('filter.min'),
+			Server::GetVar('filter.max'));
 	}
 }
 

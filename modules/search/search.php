@@ -8,7 +8,7 @@ class ModSearch extends Module
 
 		if ($_d['q'][0] != 'search') return;
 
-		$_SESSION['search.query'] = GetVar('term');
+		$_SESSION['search.query'] = Server::GetVar('term');
 		die();
 	}
 
@@ -18,7 +18,7 @@ class ModSearch extends Module
 
 		$_d['movie.cb.head'][] = array($this, 'movie_cb_head');
 
-		$q = GetVar('search.query');
+		$q = Server::GetVar('search.query');
 		if (!empty($q))
 		{
 			$_d['movie.cb.query']['match']['mov_title'] = SqlLike("%{$q}%");
@@ -28,7 +28,7 @@ class ModSearch extends Module
 	function movie_cb_head()
 	{
 		$t = new Template();
-		$t->Set('query', GetVar('search.query', ''));
+		$t->Set('query', Server::GetVar('search.query', ''));
 		return $t->ParseFile('modules/search/t.xml');
 	}
 }

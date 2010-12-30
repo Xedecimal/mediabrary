@@ -21,7 +21,7 @@ class ModCategory extends MediaLibrary
 		$_d['tmdb.cb.scrape']['category'] = array(&$this, 'cb_tmdb_scrape');
 		$_d['tmdb.cb.postscrape']['category'] = array(&$this, 'cb_tmdb_postscrape');
 
-		$cat = GetVar('category');
+		$cat = Server::GetVar('category');
 
 		if ($cat == 'Remove Filter') unset($_SESSION['category']);
 		else if ($cat == 'Unscraped')
@@ -143,7 +143,7 @@ class ModCategory extends MediaLibrary
 		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Remove Filter', 'cat_count' => 0);
 
-		$curcat = GetVar('category');
+		$curcat = Server::GetVar('category');
 
 		// Get relative sizes for a tag cloud display
 		foreach ($cats as $ix => $c)

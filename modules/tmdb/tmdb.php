@@ -29,11 +29,11 @@ class ModTMDB extends Module
 		if (@$_d['q'][1] == 'find')
 		{
 			$d = $_d['movie.ds']->GetOne(array('match' => array(
-				'mov_path' => GetVar('path'))));
+				'mov_path' => Server::GetVar('path'))));
 
-			$title = GetVar('title');
-			$path = GetVar('path');
-			if (GetVar('manual', 0) == 0 && preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
+			$title = Server::GetVar('title');
+			$path = Server::GetVar('path');
+			if (Server::GetVar('manual', 0) == 0 && preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
 				$title .= ' '.$m[1];
 
 			die(ModTMDB::Find($path, $title));
@@ -41,13 +41,13 @@ class ModTMDB extends Module
 		else if (@$_d['q'][1] == 'scrape')
 		{
 			$mm = new ModMovie;
-			$item = $mm->ScrapeFS(GetVar('target'));
+			$item = $mm->ScrapeFS(Server::GetVar('target'));
 			$item += $_d['movie.ds']->GetOne(array('match' => array('mov_path' => $item['fs_path'])));
 			
 			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
 			if (empty($item['mov_path'])) $item['mov_path'] = stripslashes($item['fs_path']);
 
-			if (GetVar('fast') == 1)
+			if (Server::GetVar('fast') == 1)
 			{
 				$title = $item['mov_title'].' '.$item['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
@@ -56,7 +56,7 @@ class ModTMDB extends Module
 					die('Found nothing for '.$title);
 				$tmdbid = $sx_movies[0]->id;
 			}
-			else $tmdbid = GetVar('tmdb_id');
+			else $tmdbid = Server::GetVar('tmdb_id');
 
 			$item = ModTMDB::Scrape($item, $tmdbid);
 			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
@@ -65,18 +65,18 @@ class ModTMDB extends Module
 			$added = $_d['movie.ds']->Add($item, true);
 			if (empty($item['mov_id'])) $item['mov_id'] = $added;
 			RunCallbacks($_d['tmdb.cb.postscrape'], $item);
-			if (GetVar('fast') == 1) die('Fixed!');
+			if (Server::GetVar('fast') == 1) die('Fixed!');
 			die(json_encode($item + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')
 		{
-			$path = GetVar('path');
+			$path = Server::GetVar('path');
 			if (!empty($path))
 				$_d['movie.ds']->Remove(array('mov_path' => $path));
 		}
 		else if (@$_d['q'][1] == 'covers')
 		{
-			$path = GetVar('path');
+			$path = Server::GetVar('path');
 			$match = array('mov_path' => $path);
 			$item = $_d['movie.ds']->Get(array('match' => $match));
 
@@ -91,10 +91,10 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'cover')
 		{
-			$dst = 'img/meta/movie/thm_'.filenoext(basename(GetVar('path'))).'.'.
-				fileext(GetVar('img'));
-			file_put_contents($dst, file_get_contents(GetVar('img')));
-			die(json_encode(array('fs_path' => GetVar('path'), 'med_thumb' => $dst)));
+			$dst = 'img/meta/movie/thm_'.filenoext(basename(Server::GetVar('path'))).'.'.
+				fileext(Server::GetVar('img'));
+			file_put_contents($dst, file_get_contents(Server::GetVar('img')));
+			die(json_encode(array('fs_path' => Server::GetVar('path'), 'med_thumb' => $dst)));
 		}
 		else if (@$_d['q'][1] == 'fixCover')
 		{

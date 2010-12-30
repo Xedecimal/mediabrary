@@ -35,7 +35,7 @@ class ModSimilar extends Module
 	function TagItem($t, $g)
 	{
 		$token = Glue::GetToken();
-		$keys = Glue::FindObject($token, GetVar('s'));
+		$keys = Glue::FindObject($token, Server::GetVar('s'));
 		$items = Glue::GetSimilar($token, $keys[0]);
 
 		$vp = new VarParser();
