@@ -103,7 +103,7 @@ class ModMovie extends MediaLibrary
 					$total++;
 				}
 			}
-			$size = GetSizeString($size);
+			$size = File::SizeToString($size);
 			$text = "{$size} of {$total} Movies";
 
 			$r['default'] = '<div class="main-link" id="divMainMovies"><a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';

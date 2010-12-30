@@ -75,7 +75,7 @@ class ModTVSeries extends MediaLibrary
 					$total++;
 				}
 			}
-			$size = GetSizeString($size);
+			$size = File::SizeToString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
 
 			$r['default'] = '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
