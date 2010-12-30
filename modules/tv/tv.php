@@ -69,7 +69,7 @@ class ModTVSeries extends MediaLibrary
 				$series = count(glob("$p/*", GLOB_ONLYDIR));
 
 				$total = $size = 0;
-				foreach (Comb($cp, '#downloads#i', OPT_FILES) as $f)
+				foreach (File::Comb($p, '#downloads#i', SCAN_FILES) as $f)
 				{
 					$size += filesize($f);
 					$total++;
@@ -480,7 +480,7 @@ class ModTVEpisode extends MediaLibrary
 			}
 		}
 
-		arksort($ret);
+		Arr::ARKSort($ret);
 		return $ret;
 	}
 
