@@ -7,7 +7,7 @@ class ModCategory extends MediaLibrary
 	function __construct()
 	{
 		global $_d;
-		$_d['cat.ds'] = new DataSet($_d['db'], 'movie_category');
+		$_d['cat.ds'] = new DataSet($_d['db'], 'movie_category', 'cat_id');
 		$this->_template = Module::L('movie_category/t_category.xml');
 	}
 
