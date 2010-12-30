@@ -14,7 +14,7 @@ class ModRoulette extends Module
 
 	function cb_head()
 	{
-		$js = p('roulette/js.js');
+		$js = Module::P('roulette/js.js');
 		return <<<EOF
 <script type="text/javascript" src="$js"></script>
 EOF;
@@ -23,19 +23,19 @@ EOF;
 	function cb_movie_head()
 	{
 		$t = new Template();
-		return $t->ParseFile(l('roulette/t.xml'));
+		return $t->ParseFile(Module::L('roulette/t.xml'));
 	}
 
 	function cb_tv_buttons()
 	{
-		$icon = p('roulette/img/icon.gif');
+		$icon = Module::P('roulette/img/icon.gif');
 		return '<a href="#" id="a-roulette-tv"><img src="'
 			.$icon.'" alt="Roulette" /></a>';
 	}
 
 	function cb_movie_buttons()
 	{
-		$img = p('roulette/img/icon.gif');
+		$img = Module::P('roulette/img/icon.gif');
 		return '<a href="#" id="a-roulette"><img src="'.$img.'" alt="roulette" /></a>';
 	}
 }

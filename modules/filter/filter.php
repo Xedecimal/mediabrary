@@ -67,7 +67,7 @@ class ModFilter extends Module
 	function cb_movie_head()
 	{
 		$t = new Template();
-		return $t->ParseFile(l('filter/t.xml'));
+		return $t->ParseFile(Module::L('filter/t.xml'));
 	}
 
 	function Get()
@@ -79,7 +79,7 @@ class ModFilter extends Module
 		if ($_d['q'][1] == 'content')
 		{
 			$t = new Template();
-			die($t->ParseFile(l('filter/content.xml')));
+			die($t->ParseFile(Module::L('filter/content.xml')));
 		}
 		if ($_d['q'][1] == 'get')
 		{

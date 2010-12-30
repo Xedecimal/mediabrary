@@ -10,7 +10,7 @@ class ModSimilar extends Module
 
 		$t = new Template();
 		$t->ReWrite('item', array(&$this, 'TagItem'));
-		die($t->ParseFile(l('similar/t.xml')));
+		die($t->ParseFile(Module::L('similar/t.xml')));
 	}
 
 	function Link()
@@ -27,7 +27,7 @@ class ModSimilar extends Module
 	function cb_buttons_similar($t)
 	{
 		if (!isset($t->vars['med_title'])) return;
-		$icon = p('similar/img/icon.png');
+		$icon = Module::P('similar/img/icon.png');
 		return '<a href="{{med_title}}" id="a-similar"><img src="'.
 			$icon.'" alt="icon" /></a>';
 	}
@@ -49,8 +49,8 @@ class ModSimilar extends Module
 
 	function cb_head()
 	{
-		$js = p('similar/js.js');
-		$css = p('similar/css.css');
+		$js = Module::P('similar/js.js');
+		$css = Module::P('similar/css.css');
 
 		return <<<EOF
 <script type="text/javascript" src="$js"></script>

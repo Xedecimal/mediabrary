@@ -86,7 +86,7 @@ class ModPlayer extends Module
 
 		$p = !empty($t->vars['med_path']) ? $t->vars['med_path'] : $t->vars['fs_path'];
 
-		$icon = p('player/img/play.png');
+		$icon = Module::P('player/img/play.png');
 		return '<a href="player?path='.urlencode($p).'"><img src="'.$icon.'"
 			alt="Play Series" /></a>';
 	}

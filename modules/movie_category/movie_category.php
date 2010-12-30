@@ -8,7 +8,7 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 		$_d['cat.ds'] = new DataSet($_d['db'], 'movie_category');
-		$this->_template = l('movie_category/t_category.xml');
+		$this->_template = Module::L('movie_category/t_category.xml');
 	}
 
 	function Link()
@@ -79,7 +79,7 @@ class ModCategory extends MediaLibrary
 	function cb_movie_head()
 	{
 		$t = new Template();
-		return $t->ParseFile(l('movie_category/t.xml'));
+		return $t->ParseFile(Module::L('movie_category/t.xml'));
 	}
 
 	function cb_movie_unscraped_filter($ds_items, $fs_items)
@@ -123,7 +123,7 @@ class ModCategory extends MediaLibrary
 		global $_d;
 		$t = new Template($_d);
 		$t->ReWrite('category', array(&$this, 'TagCategory'));
-		return $t->ParseFile(l('movie_category/item.xml'));
+		return $t->ParseFile(Module::L('movie_category/item.xml'));
 	}
 
 	function TagCategory($t, $g)

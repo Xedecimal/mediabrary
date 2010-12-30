@@ -23,8 +23,8 @@ class ModTMDB extends Module
 	{
 		global $_d;
 
-		$_d['head'] .= '<script type="text/javascript" src="'.
-			p('tmdb/tmdb.js').'"></script>';
+		$r['head'] = '<script type="text/javascript" src="'.
+			Module::P('tmdb/tmdb.js').'"></script>';
 
 		if (@$_d['q'][1] == 'find')
 		{
@@ -59,8 +59,8 @@ class ModTMDB extends Module
 			else $tmdbid = Server::GetVar('tmdb_id');
 
 			$item = ModTMDB::Scrape($item, $tmdbid);
-			$media = ModMovie::GetMedia('movie', $item, p('movie/img/missing.png'));
-			if (empty($item)) die(json_encode(array('error' => 'Not found', 'mov_path' => GetVar('target'))));
+			$media = ModMovie::GetMedia('movie', $item, Module::P('movie/img/missing.png'));
+			if (empty($item)) die(json_encode(array('error' => 'Not found', 'mov_path' => Server::GetVar('target'))));
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
 			$added = $_d['movie.ds']->Add($item, true);
 			if (empty($item['mov_id'])) $item['mov_id'] = $added;
@@ -304,7 +304,10 @@ class ModTMDB extends Module
 	{
 		global $_d;
 
-		$xml = file_get_contents(TMDB_INFO.$id);
+		$ctx_timeout = stream_context_create(array('http' =>
+			array('timeout' => 1)));
+
+		$xml = file_get_contents(TMDB_INFO.$id, 0, $ctx_timeout);
 		if (empty($xml)) Error('Could not get: '.TMDB_INFO.$id);
 		if (!empty($_d['tmdb.cb.scrape']))
 			RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);

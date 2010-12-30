@@ -1,7 +1,7 @@
 <?php
 
-require_once(l('tv/scrape.tvdb.php'));
-require_once(l('tv/scrape.tvrage.php'));
+require_once(Module::L('tv/scrape.tvdb.php'));
+require_once(Module::L('tv/scrape.tvrage.php'));
 
 class ModTVSeries extends MediaLibrary
 {
@@ -205,7 +205,7 @@ class ModTVSeries extends MediaLibrary
 					$info['med_season'] = sprintf('%02d', $info['med_season']);
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
 					$fname = "{$eps['series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
-					$url = l('tv/rename?src='.urlencode($episode).'&dst='.urlencode(dirname($episode).'/'.$fname.'.'.fileext($episode)));
+					$url = Module::L('tv/rename?src='.urlencode($episode).'&dst='.urlencode(dirname($episode).'/'.$fname.'.'.fileext($episode)));
 					$ret['File Name Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$fname\"";
 				}
 			}
