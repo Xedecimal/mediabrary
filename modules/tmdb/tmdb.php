@@ -339,7 +339,7 @@ class ModTMDB extends Module
 		if (!empty($urls))
 		{
 			$url = (string)$urls[0];
-			$data = file_get_contents($url);
+			$data = file_get_contents($url, 0, $ctx_timeout);
 
 			if (!empty($data))
 			{
@@ -364,7 +364,7 @@ class ModTMDB extends Module
 			if (!empty($url))
 			{
 				$src_pinfo = pathinfo($url);
-				$data = file_get_contents($url);
+				$data = file_get_contents($url, 0, $ctx_timeout);
 				file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
 					"{$src_pinfo['extension']}", $data);
 			}
