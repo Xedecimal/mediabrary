@@ -244,7 +244,8 @@ class ModTMDB extends Module
 
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
 		$title = urlencode(trim($title));
-		$xml = file_get_contents(TMDB_FIND.$title);
+		$xml = @file_get_contents(TMDB_FIND.$title);
+		if (empty($xml)) return null;
 
 		$sx = simplexml_load_string($xml);
 		$sx_movies = $sx->xpath('//movies/movie');
@@ -341,7 +342,7 @@ class ModTMDB extends Module
 		if (!empty($urls))
 		{
 			$url = (string)$urls[0];
-			$data = file_get_contents($url, 0, $ctx_timeout);
+			$data = @file_get_contents($url, 0, $ctx_timeout);
 
 			if (!empty($data))
 			{
@@ -366,9 +367,10 @@ class ModTMDB extends Module
 			if (!empty($url))
 			{
 				$src_pinfo = pathinfo($url);
-				$data = file_get_contents($url, 0, $ctx_timeout);
-				file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
-					"{$src_pinfo['extension']}", $data);
+				$data = @file_get_contents($url, 0, $ctx_timeout);
+				if (!empty($data))
+					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
+						"{$src_pinfo['extension']}", $data);
 			}
 		}
 
@@ -394,7 +396,7 @@ class ModTMDB extends Module
 			if (!$data = @file_get_contents($c)) continue;
 			$src_pinfo = pathinfo($c);
 			$dst_pinfo = pathinfo($p);
-			$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
+			$dst_pinfo['filename'] = File::GetFile($dst_pinfo['basename']);
 			$dst = 'img/meta/movie/thm_'.$dst_pinfo['filename'].'.'.$src_pinfo['extension'];
 			varinfo("Writing cover: '{$dst}'.");
 			file_put_contents($dst, $data);
