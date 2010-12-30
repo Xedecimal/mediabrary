@@ -84,6 +84,7 @@ class ModScrapeTVDB
 	static function GetInfo($series)
 	{
 		$sx = ModScrapeTVDB::GetXML($series);
+		if (empty($sx)) return array();
 		foreach ($sx->Episode as $ep)
 		{
 			$sn = (int)$ep->SeasonNumber;
