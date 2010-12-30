@@ -72,7 +72,7 @@ class ModMovie extends MediaLibrary
 		$this->_items = $this->CollectDS();
 
 		if (!empty($_d['movie.cb.filter']))
-			$this->_items = RunCallbacks($_d['movie.cb.filter'], $this->_items,
+			$this->_items = U::RunCallbacks($_d['movie.cb.filter'], $this->_items,
 				$this->_files);
 
 		if (!empty($_d['movie.cb.fsquery']['limit']))
@@ -157,9 +157,9 @@ class ModMovie extends MediaLibrary
 			rename($src, $dst);
 			@touch($dst);
 
-			preg_rename('img/meta/movie/*'.filenoext($m[2]).'*',
+			File::PregRename('img/meta/movie/*'.File::GetFile($m[2]).'*',
 				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
-					filenoext($m[2]))).'(\..*)$#i',
+					File::GetFile($m[2]))).'(\..*)$#i',
 				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
 
 			// Apply Database Transformations
@@ -258,7 +258,7 @@ EOF;
 
 			# Filename related
 
-			if (!empty($md['fs_path']) && fileext($md['fs_path']) != 'avi')
+			if (!empty($md['fs_path']) && File::ext($md['fs_path']) != 'avi')
 			{
 				$ret['File Name Compliance'][] = "File {$file['fs_path']} has a bad extension.";
 				$clean = false;
@@ -287,7 +287,7 @@ EOF;
 			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['mov_path']))
 			{
 				$url = "movie/fix?path=$uep";
-				$ext = strtolower(fileext($file['fs_filename']));
+				$ext = strtolower(File::ext($file['fs_filename']));
 				$bn = basename($p);
 				$ret['File Name Compliance'][] = <<<EOD
 <a href="{$url}" class="a-fix">Fix</a> File "$bn" should be "$title ($year).$ext".
@@ -301,7 +301,7 @@ EOD;
 				array('mov_clean' => $clean)
 			);
 
-			$ret = array_merge_recursive($ret, RunCallbacks($_d['movie.cb.check'], $md));
+			$ret = array_merge_recursive($ret, U::RunCallbacks($_d['movie.cb.check'], $md));
 		}
 
 		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
@@ -337,7 +337,7 @@ EOD;
 		$query = $_d['movie.cb.query'];
 
 		if (!empty($_d['movie.cb.lqc']))
-			$query = RunCallbacks($_d['movie.cb.lqc'], $query);
+			$query = U::RunCallbacks($_d['movie.cb.lqc'], $query);
 
 		$query['group'] = 'mov_id';
 		$ret = array();

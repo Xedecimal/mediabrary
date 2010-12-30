@@ -64,7 +64,7 @@ class ModTMDB extends Module
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
 			$added = $_d['movie.ds']->Add($item, true);
 			if (empty($item['mov_id'])) $item['mov_id'] = $added;
-			RunCallbacks($_d['tmdb.cb.postscrape'], $item);
+			U::RunCallbacks($_d['tmdb.cb.postscrape'], $item);
 			if (Server::GetVar('fast') == 1) die('Fixed!');
 			die(json_encode($item + $media));
 		}
@@ -91,8 +91,8 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'cover')
 		{
-			$dst = 'img/meta/movie/thm_'.filenoext(basename(Server::GetVar('path'))).'.'.
-				fileext(Server::GetVar('img'));
+			$dst = 'img/meta/movie/thm_'.File::GetFile(basename(Server::GetVar('path'))).'.'.
+				File::ext(Server::GetVar('img'));
 			file_put_contents($dst, file_get_contents(Server::GetVar('img')));
 			die(json_encode(array('fs_path' => Server::GetVar('path'), 'med_thumb' => $dst)));
 		}
@@ -310,7 +310,7 @@ class ModTMDB extends Module
 		$xml = file_get_contents(TMDB_INFO.$id, 0, $ctx_timeout);
 		if (empty($xml)) Error('Could not get: '.TMDB_INFO.$id);
 		if (!empty($_d['tmdb.cb.scrape']))
-			RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);
+			U::RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);
 		$sx = simplexml_load_string($xml);
 
 		# Scrape some general information
@@ -320,7 +320,7 @@ class ModTMDB extends Module
 		$movie['mov_date'] = trim((string)$sx->movies->movie->released);
 
 		$dst_pinfo = pathinfo($movie['fs_path']);
-		$dst_pinfo['filename'] = filenoext($dst_pinfo['basename']);
+		$dst_pinfo['filename'] = File::GetFile($dst_pinfo['basename']);
 
 		# Scrape a cover thumbnail
 

@@ -71,7 +71,7 @@ class ModPlayer extends Module
 		}
 		else $ret .= $this->AddM3U(1, $np.'/'.$f, @$regions[$f]);
 
-		SendDownloadStart(filenoext(basename($p)).'.m3u');
+		SendDownloadStart(File::GetFile(basename($p)).'.m3u');
 		die($ret);
 	}
 
@@ -106,9 +106,9 @@ class ModPlayer extends Module
 		{
 			$opts = "\r\n#EXTVLCOPT:start-time=$r[0]\r\n";
 			$opts .= "#EXTVLCOPT:stop-time=$r[1]";
-			$ret .= $this->AddM3UFile($ix, $path, filenoext(basename($path)).' - '.$t, $opts);
+			$ret .= $this->AddM3UFile($ix, $path, File::GetFile(basename($path)).' - '.$t, $opts);
 		}
-		else $ret = $this->AddM3UFile($ix, $path, filenoext(basename($path)));
+		else $ret = $this->AddM3UFile($ix, $path, File::GetFile(basename($path)));
 
 		return $ret;
 	}

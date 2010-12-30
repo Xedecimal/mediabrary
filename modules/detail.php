@@ -29,7 +29,7 @@ class ModDetail extends Module
 		$this->details['certification'] = xpath_value($sx, '//movies/movie/certification');
 		$this->details['trailer'] = xpath_value($sx, '//movies/movie/trailer');
 		$this->details['url'] = xpath_value($sx, '//movies/movie/homepage');
-		$this->dates['obtained'] = TimestampToMySql(filemtime(stripslashes($item['fs_path'])));
+		$this->dates['obtained'] = Database::TimestampToMySql(filemtime(stripslashes($item['fs_path'])));
 	}
 
 	function cb_tmdb_postscrape($item)
@@ -77,7 +77,7 @@ class ModDetail extends Module
 		foreach ($details as $det)
 			if (!empty($det['md_value']))
 				$item['details'][$det['md_name']] = $det['md_value'];
-		$item['details']['Size'] = GetSizeString(filesize($item['fs_path']));
+		$item['details']['Size'] = File::SizeToString(filesize($item['fs_path']));
 
 		if (!empty($item['details']['trailer']))
 		{
