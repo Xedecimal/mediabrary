@@ -153,7 +153,7 @@ class ModCategory extends MediaLibrary
 			else $cats[$ix]['cat_class'] = 'category';
 			$trel[$c['cat_name']] = $c['cat_count'];
 		}
-		$sizes = get_relative_sizes($trel, 12, 24);
+		$sizes = Math::RespectiveSize($trel, 12, 24);
 
 		$vp = new VarParser();
 		foreach ($cats as $c)
