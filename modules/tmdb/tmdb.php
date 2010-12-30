@@ -100,6 +100,8 @@ class ModTMDB extends Module
 		{
 			if ($this->FixCover($_POST['path'])) die('Fixed!');
 		}
+
+		return $r;
 	}
 
 	# Check Extension
