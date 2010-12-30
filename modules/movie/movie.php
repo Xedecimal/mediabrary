@@ -115,7 +115,7 @@ class ModMovie extends MediaLibrary
 		if (@$_d['q'][1] == 'detail')
 		{
 			$t = new Template();
-			$item = $this->ScrapeFS(GetVar('path'));
+			$item = $this->ScrapeFS(Server::GetVar('path'));
 			$query = $_d['movie.cb.query'];
 			$query['match'] = array('mov_path' => $item['fs_path']);
 
