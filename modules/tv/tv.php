@@ -64,13 +64,9 @@ class ModTVSeries extends MediaLibrary
 		{
 			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
 
-			foreach ($_d['config']->paths->path as $p)
+			foreach ($_d['config']['paths']['tv'] as $p)
 			{
-				if ($p->attributes()->type != 'tv') continue;
-
-				$cp = $p->attributes()->path;
-
-				$series = count(glob("$cp/*", GLOB_ONLYDIR));
+				$series = count(glob("$p/*", GLOB_ONLYDIR));
 
 				$total = $size = 0;
 				foreach (Comb($cp, '#downloads#i', OPT_FILES) as $f)
@@ -107,15 +103,14 @@ class ModTVSeries extends MediaLibrary
 			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 
-			foreach ($_d['config']->xpath('paths/path[@type="tv"]') as $p)
+			foreach ($_d['config']['paths']['tv'] as $p)
 			{
-				$r = $p->attributes()->path;
-				$dp = opendir($r);
+				$dp = opendir($p);
 				while ($f = readdir($dp))
 				{
 					if ($f[0] == '.') continue;
-					if (!is_dir($r.'/'.$f)) continue;
-					$dirs[] = $r.'/'.$f;
+					if (!is_dir($p.'/'.$f)) continue;
+					$dirs[] = $p.'/'.$f;
 				}
 			}
 
@@ -127,8 +122,9 @@ class ModTVSeries extends MediaLibrary
 				$this->_items[$f] += $this->GetMedia('tv', $this->_items[$f], $this->_missing_image);
 			}
 
-			# Root directory is not included.
-			unset($this->_items[$_d['config']['tv_path']]);
+			# Root directories are not included.
+			foreach ($_d['config']['paths']['tv'] as $p)
+				unset($this->_items[$p]);
 
 			die(parent::Get());
 		}
@@ -173,8 +169,8 @@ class ModTVSeries extends MediaLibrary
 		$ret = array();
 		$mte = new ModTVEpisode;
 
-		foreach ($_d['config']->xpath('paths/path[@type="tv"]') as $p)
-		foreach (glob($p->attributes()->path.'/*') as $series)
+		foreach ($_d['config']['paths']['tv'] as $p)
+		foreach (glob($p.'/*') as $series)
 		{
 			foreach (ModTVSeries::$scrapers as $s)
 				$eps = $s::GetEps($series);
@@ -283,8 +279,8 @@ class ModTVSeries extends MediaLibrary
 		global $_d;
 
 		$ret = array();
-		foreach ($_d['config']->xpath('paths/path[@type="tv"]') as $p)
-			foreach (glob($p->attributes()->path.'/*') as $fx)
+		foreach ($_d['config']['paths']['tv'] as $p)
+			foreach (glob($p.'/*') as $fx)
 				$ret[] = $fx;
 
 		return $ret;

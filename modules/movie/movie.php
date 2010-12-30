@@ -94,10 +94,10 @@ class ModMovie extends MediaLibrary
 
 			$total = $size = 0;
 
-			foreach ($_d['config']->paths->path as $p)
+			foreach ($_d['config']['paths']['movie'] as $p)
 			{
-				if ($p->attributes()->type != 'movie') continue;
-				foreach (Comb($p->attributes()->path, '/downloads/i', OPT_FILES) as $f)
+				$files = File::Comb($p, '/downloads|subtitles/i', SCAN_FILES);
+				foreach ($files as $f)
 				{
 					$size += filesize($f);
 					$total++;
@@ -206,8 +206,8 @@ class ModMovie extends MediaLibrary
 
 		# Collect known filesystem data
 
-		foreach ($_d['config']->xpath('paths/path[@type="movie"]') as $p)
-		foreach(glob($p->attributes()->path.'/*') as $f)
+		foreach ($_d['config']['paths']['movie'] as $p)
+		foreach(glob($p.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
 			$this->_files[$f] = $this->ScrapeFS($f);
@@ -316,10 +316,9 @@ EOD;
 
 		$ret = array();
 
-		foreach ($_d['config']->paths->path as $p)
+		foreach ($_d['config']['paths']['movie'] as $p)
 		{
-			if ($p->attributes()->type != 'movie') continue;
-			foreach (glob($p->attributes()->path.'/*') as $f)
+			foreach (glob($p.'/*') as $f)
 			{
 				if (is_dir($f)) continue;
 				$ret[$f] = $this->ScrapeFS($f);
