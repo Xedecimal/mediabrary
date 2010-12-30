@@ -49,7 +49,7 @@ class ModTMDB extends Module
 
 			if (Server::GetVar('fast') == 1)
 			{
-				$title = $item['mov_title'].' '.$item['fs_date'];
+				$title = $item['mov_title'].' '.@$item['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
 				usort($sx_movies, array('ModTMDB', 'cmp_title'));
 				if (empty($sx_movies))
