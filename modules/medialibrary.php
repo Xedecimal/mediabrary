@@ -66,7 +66,6 @@ class MediaLibrary extends Module
 
 		$path = $item['fs_path'];
 		$pinfo = pathinfo($path);
-		$pinfo['filename'] = filenoext($pinfo['basename']);
 
 		$query = preg_quote("img/meta/{$type}/thm_{$pinfo['filename']}");
 		$images = glob($query.'.*');
