@@ -76,7 +76,7 @@ class MediaLibrary extends Module
 		else $ret['med_thumb'] = $default_thumb;
 
 		$images = glob("img/meta/{$type}/bd_{$pinfo['filename']}.*");
-		if (!empty($images)) $ret['med_bd'] = URL($images[0]);
+		if (!empty($images)) $ret['med_bd'] = HM::URL($images[0]);
 
 		return $ret;
 	}
