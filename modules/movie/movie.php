@@ -88,6 +88,8 @@ class ModMovie extends MediaLibrary
 	{
 		global $_d;
 
+		# Main Page
+
 		if (empty($_d['q'][0]))
 		{
 			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
