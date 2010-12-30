@@ -173,7 +173,7 @@ class ModTVSeries extends MediaLibrary
 		foreach (glob($p.'/*') as $series)
 		{
 			foreach (ModTVSeries::$scrapers as $s)
-				$eps = $s::GetEps($series);
+				$eps = $s::GetInfo($series);
 
 			foreach (glob($series.'/*') as $episode)
 			{
@@ -189,8 +189,8 @@ class ModTVSeries extends MediaLibrary
 				$sn = (int)$info['med_season'];
 				$en = (int)$info['med_episode'];
 				$epname = '';
-				if (!empty($eps[$sn][$en]['title']))
-					$epname = $eps[$sn][$en]['title'];
+				if (!empty($eps['eps'][$sn][$en]['title']))
+					$epname = $eps['eps'][$sn][$en]['title'];
 				if (!empty($epname))
 					$epname = MediaLibrary::CleanTitleForFile($epname, false);
 				if (!empty($eps['series']))
