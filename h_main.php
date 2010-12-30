@@ -2,11 +2,16 @@
 
 session_start();
 
-require_once('xedlib/h_utility.php');
-HandleErrors();
-SanitizeEnvironment();
-require_once('xedlib/h_module.php');
-require_once('xedlib/h_data.php');
+# Libraries
+require_once('xedlib/classes/Server.php');
+Server::HandleErrors();
+Server::SanitizeEnvironment();
+require_once('xedlib/classes/Module.php');
+require_once('xedlib/classes/HM.php');
+require_once('xedlib/classes/Math.php');
+require_once('xedlib/classes/Arr.php');
+require_once('xedlib/classes/data/Database.php');
+require_once('xedlib/classes/data/DataSet.php');
 
 # Third party
 require_once('xedlib/3rd/spyc.php');
