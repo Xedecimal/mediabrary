@@ -71,7 +71,7 @@ class ModScrapeTVRage
 				if ($ep->airdate == '0000-00-00')
 					$eout['aired'] = null;
 				else
-					$eout['aired'] = MyDateTimestamp($ep->airdate);
+					$eout['aired'] = Database::MyDateTimestamp($ep->airdate);
 				$eout['title'] = (string)$ep->title;
 				$en = (int)$ep->seasonnum;
 				$ret['eps'][$sn][$en] = $eout;

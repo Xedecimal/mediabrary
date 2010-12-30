@@ -88,7 +88,7 @@ class ModScrapeTVDB
 		{
 			$sn = (int)$ep->SeasonNumber;
 			$en = (int)$ep->EpisodeNumber;
-			$ret['eps'][$sn][$en]['aired'] = MyDateTimestamp($ep->FirstAired);
+			$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
 			if (empty($ret['eps'][$sn][$en]['title']))
 				$ret['eps'][$sn][$en]['title'] = $ep->EpisodeName;
 		}

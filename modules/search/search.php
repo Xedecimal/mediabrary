@@ -21,7 +21,7 @@ class ModSearch extends Module
 		$q = Server::GetVar('search.query');
 		if (!empty($q))
 		{
-			$_d['movie.cb.query']['match']['mov_title'] = SqlLike("%{$q}%");
+			$_d['movie.cb.query']['match']['mov_title'] = Database::SqlLike("%{$q}%");
 		}
 	}
 

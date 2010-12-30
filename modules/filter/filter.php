@@ -35,7 +35,7 @@ class ModFilter extends Module
 			$checks = Server::GetVar('filter.checks');
 			if (!empty($checks))
 				$_d['movie.cb.query']['match']['md_value'] =
-					SqlIn($checks);
+					Database::SqlIn($checks);
 		}
 
 		$min = Server::GetVar('filter.min');
@@ -48,7 +48,7 @@ class ModFilter extends Module
 				$_d['movie.cb.query']['joins']['md'] =
 					new Join($_d['movie_date.ds'], "md_name = 'obtained' AND md_movie = mov_id", 'LEFT JOIN');
 				$_d['movie.cb.query']['match']['md_date'] =
-					SqlBetween(date('Y-m-d', $min), date('Y-m-d', $max+1));
+					Database::SqlBetween(date('Y-m-d', $min), date('Y-m-d', $max+1));
 				$_d['movie.cb.query']['order'] = array('md_date' => 'DESC');
 			}
 			else if ($type == 'rating')
@@ -56,11 +56,11 @@ class ModFilter extends Module
 				$_d['movie.cb.query']['joins']['mf'] =
 					new Join($_d['movie_float.ds'], "mf_name = 'rating' AND mf_movie = mov_id", 'LEFT JOIN');
 				$_d['movie.cb.query']['match']['mf_value'] =
-					SqlBetween($min, $max);
+					Database::SqlBetween($min, $max);
 				$_d['movie.cb.query']['order'] = array('mf_value' => 'DESC');
 			}
 			else $_d['movie.cb.query']['match'][$type] =
-				SqlBetween($min, $max);
+				Database::SqlBetween($min, $max);
 		}
 	}
 
@@ -89,29 +89,29 @@ class ModFilter extends Module
 			{
 				$query = $_d['movie.cb.query'];
 				$query['columns'] = array(
-					'min' => SqlUnquote('YEAR(min(mov_date))'),
-					'max' => SqlUnquote('YEAR(max(mov_date))')
+					'min' => Database::SqlUnquote('YEAR(min(mov_date))'),
+					'max' => Database::SqlUnquote('YEAR(max(mov_date))')
 				);
-				$query['match'][$type] = SqlMore('0000-00-00');
+				$query['match'][$type] = Database::SqlMore('0000-00-00');
 
 				$items = $_d['movie.ds']->Get($query);
 			}
 			else if ($type == 'obtained')
 			{
 				$q['columns'] = array(
-					'min' => SqlUnquote('UNIX_TIMESTAMP(min(md_date))'),
-					'max' => SqlUnquote('UNIX_TIMESTAMP(max(md_date))')
+					'min' => Database::SqlUnquote('UNIX_TIMESTAMP(min(md_date))'),
+					'max' => Database::SqlUnquote('UNIX_TIMESTAMP(max(md_date))')
 				);
 				$q['match']['md_name'] = 'obtained';
-				$q['match']['md_date'] = SqlMore('0000-00-00');
+				$q['match']['md_date'] = Database::SqlMore('0000-00-00');
 
 				$items = $_d['movie_date.ds']->Get($q);
 			}
 			else if ($type == 'rating')
 			{
 				$q['columns'] = array(
-					'min' => SqlUnquote('min(CAST(md_value as DECIMAL))'),
-					'max' => SqlUnquote('max(CAST(md_value as DECIMAL))')
+					'min' => Database::SqlUnquote('min(CAST(md_value as DECIMAL))'),
+					'max' => Database::SqlUnquote('max(CAST(md_value as DECIMAL))')
 				);
 				$q['match']['md_name'] = 'rating';
 

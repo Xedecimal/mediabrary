@@ -291,8 +291,8 @@ class ModTMDB extends Module
 		similar_text($_movie['fs_title'], (string)$cmp2->name, $title2);
 		if (isset($_movie['fs_date']))
 		{
-			similar_text($_movie['fs_date'], date('Y', MyDateTimestamp($cmp1->released)), $date1);
-			similar_text($_movie['fs_date'], date('Y', MyDateTimestamp($cmp2->released)), $date2);
+			similar_text($_movie['fs_date'], date('Y', Database::MyDateTimestamp($cmp1->released)), $date1);
+			similar_text($_movie['fs_date'], date('Y', Database::MyDateTimestamp($cmp2->released)), $date2);
 		}
 
 		if ($title1 != $title2) return $title1 <= $title2;

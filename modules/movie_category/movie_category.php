@@ -46,8 +46,8 @@ class ModCategory extends MediaLibrary
 		global $_d;
 
 		$joins = array(new Join($_d['movie.ds'], 'mov_id = cat_movie'));
-		$cols = array('mov_title' => SqlUnquote('DISTINCT cat_name'),
-			'mov_count' => SqlUnquote('COUNT(mov_id)'));
+		$cols = array('mov_title' => Database::SqlUnquote('DISTINCT cat_name'),
+			'mov_count' => Database::SqlUnquote('COUNT(mov_id)'));
 
 		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
 			'group' => 'cat_name'));
@@ -133,8 +133,8 @@ class ModCategory extends MediaLibrary
 		$query = $_d['movie.cb.query'];
 
 		unset($query['match']['cat_name']);
-		$query['columns'] = array('cat_name' => SqlUnquote('DISTINCT cat_name'),
-			'cat_count' => SqlUnquote('COUNT(mov_id)'));
+		$query['columns'] = array('cat_name' => Database::SqlUnquote('DISTINCT cat_name'),
+			'cat_count' => Database::SqlUnquote('COUNT(mov_id)'));
 		$query['group'] = 'cat_name';
 
 		$cats = $_d['movie.ds']->Get($query);

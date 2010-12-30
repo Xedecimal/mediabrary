@@ -20,8 +20,8 @@ class ModRate extends Module
 		$_d['movie.cb.query']['joins']['rate'] = new Join($_d['rate.ds'],
 			'rate_for = mov_id AND rate_from = '.sprintf('%u', ip2long(Server::GetVar('REMOTE_ADDR'))), 'LEFT JOIN');
 
-		if (GetVar('hide_rate'))
-			$_d['movie.cb.query']['match']['rate_amount'] = SqlIs('NULL');
+		if (Server::GetVar('hide_rate'))
+			$_d['movie.cb.query']['match']['rate_amount'] = Database::SqlIs('NULL');
 	}
 
 	function Prepare()

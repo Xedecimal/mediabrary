@@ -87,7 +87,7 @@ class ModMediaInfo extends Module
 		global $_d;
 
 		$ret = array();
-		$cols = array('path' => SqlUnquote('DISTINCT cod_path'));
+		$cols = array('path' => Database::SqlUnquote('DISTINCT cod_path'));
 		$dr = $_d['medinfo.ds']->Get(array('columns' => $cols));
 		foreach ($dr as $r)
 			if (!file_exists($r['path']))
