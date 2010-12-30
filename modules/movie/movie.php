@@ -90,7 +90,7 @@ class ModMovie extends MediaLibrary
 
 		if (empty($_d['q'][0]))
 		{
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
+			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
 
 			$total = $size = 0;
 
@@ -106,7 +106,8 @@ class ModMovie extends MediaLibrary
 			$size = GetSizeString($size);
 			$text = "{$size} of {$total} Movies";
 
-			return '<div class="main-link" id="divMainMovies"><a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
+			$r['default'] = '<div class="main-link" id="divMainMovies"><a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
+			return $r;
 		}
 
 		if (@$_d['q'][0] != 'movie') return;

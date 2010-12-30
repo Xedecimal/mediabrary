@@ -62,7 +62,7 @@ class ModTVSeries extends MediaLibrary
 
 		if (empty($_d['q'][0]))
 		{
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
+			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
 
 			foreach ($_d['config']->paths->path as $p)
 			{
@@ -82,7 +82,8 @@ class ModTVSeries extends MediaLibrary
 			$size = GetSizeString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
 
-			return '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
+			$r['default'] = '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
+			return $r;
 		}
 
 		if (@$_d['q'][0] != 'tv') return;

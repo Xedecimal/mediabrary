@@ -12,11 +12,8 @@ require_once('modules/medialibrary.php');
 
 date_default_timezone_set('America/Los_Angeles');
 
-$_d['app_abs'] = GetRelativePath(dirname(__FILE__));
-$_d['q'] = explode('/', GetVar('q'));
-$_d['app_dir'] = __DIR__;
-$_d['app_abs'] = GetRelativePath(dirname(__FILE__));
-$_d['head'] = '';
+if (!file_exists('config/config.yml'))
+	copy('config/default.yml', 'config/config.yml');
 
 $_d['config'] = simplexml_load_file('config.xml');
 $_d['db'] = new Database();
@@ -30,8 +27,12 @@ class ModMain extends Module
 	{
 		global $_d;
 
-		if (empty($_d['q'][0])) $_d['head'] .=
+		if (!empty($_d['q'][0])) return;
+
+		$r['head'] =
 			'<link rel="stylesheet" type="text/css" href="css/_main.css" />';
+
+		return $r;
 	}
 }
 

@@ -10,10 +10,10 @@ class ModCheck extends Module
 
 		if (empty($_d['q'][0]))
 		{
-			$_d['nav.links']['Check Your Library'] = 'check';
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/check/css.css" />';
+			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/check/css.css" />';
 			#return '<a href="check" id="a-check"></a>';
 		}
+
 		if ($_d['q'][0] != 'check') return;
 
 		// Allow realtime output

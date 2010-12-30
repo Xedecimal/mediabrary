@@ -9,5 +9,5 @@ Options Indexes FollowSymLinks MultiViews
 	# ignore existing directories
 	RewriteCond %{REQUEST_FILENAME} !-d
 
-	RewriteRule ^(.*)$ index.php?q=$1 [L,QSA]
+	RewriteRule ^(.*)$ index.php?rw=$1 [L,QSA]
 </IfModule>

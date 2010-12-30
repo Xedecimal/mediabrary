@@ -24,16 +24,16 @@ class ModMediaInfo extends Module
 
 		if (empty($_d['q'][0]) || $_d['q'][0] == 'mediainfo')
 		{
-			$_d['head'] .= '<link type="text/css" rel="stylesheet" href="modules/mediainfo/css.css" />';
-			if (empty($_d['q'][0]))
-				$_d['nav.links']['Video and Audio Statistics'] = 'mediainfo';
+			$r['head'] = '<link type="text/css" rel="stylesheet"'
+				.' href="modules/mediainfo/css.css" />';
 		}
 
 		if ($_d['q'][0] != 'mediainfo') return;
 
 		$t = new Template();
 		$t->ReWrite('item', array($this, 'TagItem'));
-		return $t->ParseFile('modules/mediainfo/t.xml');
+		$r['default'] = $t->ParseFile('modules/mediainfo/t.xml');
+		return $r;
 	}
 
 	function TagItem($t, $g)

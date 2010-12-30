@@ -12,7 +12,7 @@ app_abs = '{{app_abs}}';
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/xedlib/css/form.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/css.css" />
 <callback ds="_d" name="cb.head" />
-{{head}}
+<block name="head" />
 </head>
 <body>
 <block name="default" />
