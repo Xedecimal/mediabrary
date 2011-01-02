@@ -184,9 +184,9 @@ class ModTMDB extends Module
 			alt="Find" /></a>';
 		if (!empty($t->vars['mov_date']))
 		{
-			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
+			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/database_delete.png"
 				alt="Remove" /></a>';
-			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
+			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/images.png"
 				alt="Select New Cover" /></a>';
 			$ret .= '<a href="http://www.themoviedb.org/movie/{{mov_tmdbid}}" target="_blank"><img src="modules/tmdb/img/tmdb.png" alt="tmdb" /></a>';
 		}
