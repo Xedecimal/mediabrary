@@ -67,7 +67,7 @@ class MediaLibrary extends Module
 		$path = $item['fs_path'];
 		$pinfo = pathinfo($path);
 
-		$query = preg_quote("img/meta/{$type}/thm_{$pinfo['filename']}");
+		$query = "img/meta/{$type}/thm_{$pinfo['filename']}";
 		$images = glob($query.'.*');
 		// Do not encode this, javascript cant decode it. Encode in php
 		// elsewhere.
