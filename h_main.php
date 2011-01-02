@@ -26,7 +26,17 @@ if (!file_exists('config/config.yml'))
 
 $_d['config'] = spyc_load_file('config/config.yml');
 $_d['db'] = new Database();
-$_d['db']->Open($_d['config']['db']);
+
+/** Unknown Database */
+$_d['db']->Handlers[1049] = 'need_install';
+
+function need_install()
+{
+	global $_d;
+	@$_d['db']->Queries(file_get_contents('install.sql'));
+}
+
+@$_d['db']->Open($_d['config']['db']);
 
 require_once('xedlib/modules/nav.php');
 
