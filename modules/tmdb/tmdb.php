@@ -45,7 +45,7 @@ class ModTMDB extends Module
 			$item += $_d['movie.ds']->GetOne(array('match' => array('mov_path' => $item['fs_path'])));
 			
 			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
-			if (empty($item['mov_path'])) $item['mov_path'] = stripslashes($item['fs_path']);
+			if (empty($item['mov_path'])) $item['mov_path'] = $item['fs_path'];
 
 			if (Server::GetVar('fast') == 1)
 			{
