@@ -68,7 +68,7 @@ class ModMovie extends MediaLibrary
 		$query = $_d['movie.cb.query'];
 		$this->_items = array();
 
-		$this->_files = $this->CollectFS();
+		#$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
 
 		if (!empty($_d['movie.cb.filter']))
