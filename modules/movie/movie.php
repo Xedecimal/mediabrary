@@ -98,8 +98,7 @@ class ModMovie extends MediaLibrary
 
 			foreach ($_d['config']['paths']['movie'] as $p)
 			{
-				$files = File::Comb($p, '/downloads|subtitles/i', SCAN_FILES);
-				foreach ($files as $f)
+				foreach (glob($p.'/*') as $f)
 				{
 					$size += filesize($f);
 					$total++;
