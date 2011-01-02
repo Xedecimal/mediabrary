@@ -1,4 +1,4 @@
 glob:nbproject/private/*
 glob:img/meta/*
-glob:config.xml
 glob:rss_check.txt
+glob:config/config.yml
