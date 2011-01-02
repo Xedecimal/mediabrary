@@ -15,4 +15,3 @@ paths:
 			- client /.*/
         source /data/nas
         target http://public.webserver:82/nas
-
