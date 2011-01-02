@@ -337,6 +337,10 @@ class ModTMDB extends Module
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');
 
+		# Prepare our meta folder for movies.
+
+		if (!file_exists('img/meta/movie')) File::MakeFullDir('img/meta/movie');
+
 		# Covers are available to grab
 
 		if (!empty($urls))
