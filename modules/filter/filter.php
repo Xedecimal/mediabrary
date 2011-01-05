@@ -31,7 +31,8 @@ class ModFilter extends Module
 		if ($type == 'cert')
 		{
 			$_d['movie.cb.query']['joins']['md'] =
-				new Join($_d['movie_detail.ds'], "md_name = 'certification' AND md_movie = mov_id", 'LEFT JOIN');
+				new Join($_d['movie_detail.ds'], "md_name = 'certification'
+					AND md_movie = mov_id", 'LEFT JOIN');
 			$checks = Server::GetVar('filter.checks');
 			if (!empty($checks))
 				$_d['movie.cb.query']['match']['md_value'] =
