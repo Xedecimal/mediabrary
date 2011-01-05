@@ -19,6 +19,7 @@ class ModDetail extends Module
 		if ($cert == 'None') unset($_SESSION['cert']);
 		else if (!empty($cert))
 		{
+			if ($cert == 'Uncertified') $cert = '';
 			$_d['movie.cb.query']['joins']['detail'] =
 				new Join($_d['movie_detail.ds'], 'md_movie = mov_id', 'LEFT JOIN');
 			$_d['movie.cb.query']['match']['md_name'] = 'certification';
@@ -35,8 +36,7 @@ class ModDetail extends Module
 	{
 		global $_d;
 
-		if ($_d['q'][0] == 'cert')
-			$_SESSION['cert'] = $_d['q'][1];
+		if ($_d['q'][0] == 'cert') $_SESSION['cert'] = $_d['q'][1];
 	}
 
 	function Get()
@@ -51,7 +51,10 @@ class ModDetail extends Module
 		$q['group'] = 'md_value';
 		$certs = $_d['movie_detail.ds']->Get($q);
 
-		foreach ($certs as $c) $cloud[$c['cert']] = $c['movies'];
+		foreach ($certs as $c)
+		{
+			$cloud[empty($c['cert']) ? 'Uncertified' : $c['cert']] = $c['movies'];
+		}
 		$cloud['None'] = 0;
 
 		$cloud = Math::RespectiveSize($cloud);
