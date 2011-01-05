@@ -295,6 +295,24 @@ EOD;
 				$clean = false;
 			}
 
+			# Look for cover or backdrop.
+
+			$covers = glob("img/meta/movie/thm_$title ($year).*");
+			if (empty($covers))
+			{
+				$ret['Media'][] = "Missing cover for {$md['mov_path']}";
+				$clean = false;
+			}
+
+			$bd = glob("img/meta/movie/thm_$title ($year).*");
+			if (empty($bd))
+			{
+				$ret['Media'][] = "Missing backdrop for {$md['mov_path']}";
+				$clean = false;
+			}
+
+			# If we can, mark this movie clean to skip further checks.
+
 			$_d['movie.ds']->Update(
 				array('mov_id' => $md['mov_id']),
 				array('mov_clean' => $clean)
