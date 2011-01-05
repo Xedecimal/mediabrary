@@ -33,6 +33,8 @@ class ModCategory extends MediaLibrary
 			$_d['movie.cb.filter']['unscraped'] =
 				array(&$this, 'cb_movie_unscraped_filter');
 		}
+		else if ($cat == 'Dirty')
+			$_d['movie.cb.query']['match']['mov_clean'] = 0;
 		else if ($cat == 'All') $_d['movie.cb.query']['match'] = 1;
 		else if (!empty($cat))
 		{
@@ -141,6 +143,7 @@ class ModCategory extends MediaLibrary
 
 		$cats[] = array('cat_name' => 'All', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);
+		$cats[] = array('cat_name' => 'Dirty', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Remove Filter', 'cat_count' => 0);
 
 		$curcat = Server::GetVar('category');
