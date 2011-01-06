@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS `movie` (
   `mov_title` varchar(255) NOT NULL,
   `mov_date` date NOT NULL,
   `mov_tmdbid` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`mov_id`)
+  PRIMARY KEY (`mov_id`),
+  UNIQUE KEY `mov_path` (`mov_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 # Data exporting was unselected.
