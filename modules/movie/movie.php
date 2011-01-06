@@ -293,11 +293,14 @@ EOF;
 
 			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['mov_path']))
 			{
-				$url = "movie/fix?path=$uep";
+				$urlfix = "movie/fix?path=$uep";
+				$urlunfix = "tmdb/remove?path=$uep";
 				$ext = strtolower(File::ext($file['fs_filename']));
 				$bn = basename($p);
 				$ret['File Name Compliance'][] = <<<EOD
-<a href="{$url}" class="a-fix">Fix</a> File "$bn" should be "$title ($year).$ext".
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$title ($year).$ext".
 	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
 EOD;
 				$clean = false;
@@ -308,14 +311,20 @@ EOD;
 			$covers = glob("img/meta/movie/thm_$title ($year).*");
 			if (empty($covers))
 			{
-				$ret['Media'][] = "Missing cover for {$md['mov_path']}";
+				$urlunfix = "tmdb/remove?path=$uep";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mov_path']}
+EOD;
 				$clean = false;
 			}
 
 			$bd = glob("img/meta/movie/thm_$title ($year).*");
 			if (empty($bd))
 			{
-				$ret['Media'][] = "Missing backdrop for {$md['mov_path']}";
+				$urlunfix = "tmdb/remove?path=$uep";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mov_path']}
+EOD;
 				$clean = false;
 			}
 

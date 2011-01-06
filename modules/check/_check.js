@@ -11,6 +11,11 @@ $(function () {
 		return false;
 	});
 
+	$('.a-nogo').click(function () {
+		$.get($(this).attr('href'));
+		return false;
+	});
+
 	$('.a-fixall').click(function () {
 		window.hitall = true;
 		stepFix();
