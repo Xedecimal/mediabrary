@@ -133,17 +133,23 @@ class ModMovie extends MediaLibrary
 		}
 		else if (@$_d['q'][1] == 'fix')
 		{
-			// Collect Information
-			//$src = '/'.implode('/', array_splice($_d['q'], 2));
+			# Collect generic information.
+
 			$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
-			//$pinfo = pathinfo($src);
+			# Collect filesystem information on this path.
+
 			$meta = $this->ScrapeFS($src);
+
+			# Append database information on this path.
+
 			$dr = $_d['movie.ds']->GetOne(array(
 				'match' => array('mov_path' => str_replace('&', ':', $src))
 			));
 			if (!empty($dr)) $meta = array_merge($meta, $dr);
+
+			# Figure out what the file should be named.
 
 			$ftitle = $meta['mov_title'];
 			$ftitle = $this->CleanTitleForFile($ftitle);
@@ -151,17 +157,19 @@ class ModMovie extends MediaLibrary
 
 			$dst = "{$m[1]}{$ftitle} ({$fyear}).".strtolower($m[3]);
 
-			// Apply File Transformations
+			# Apply File Transformations
 
 			rename($src, $dst);
 			@touch($dst);
+
+			# Rename covers and backdrops as well.
 
 			File::PregRename('img/meta/movie/*'.File::GetFile($m[2]).'*',
 				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
 					File::GetFile($m[2]))).'(\..*)$#i',
 				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
 
-			// Apply Database Transformations
+			# Apply Database Transformations
 
 			$_d['movie.ds']->Update(array('mov_path' => $src),
 				array('mov_path' => $dst));
