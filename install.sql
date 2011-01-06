@@ -1,11 +1,3 @@
-# --------------------------------------------------------
-# Host:                         127.0.0.1
-# Server version:               5.1.31-community-log
-# Server OS:                    Win32
-# HeidiSQL version:             6.0.0.3627
-# Date/time:                    2011-01-01 23:07:00
-# --------------------------------------------------------
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
