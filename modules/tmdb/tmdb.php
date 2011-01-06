@@ -47,22 +47,31 @@ class ModTMDB extends Module
 			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
 			if (empty($item['mov_path'])) $item['mov_path'] = $item['fs_path'];
 
+			# Fast scrape doesn't come with tmdbid.
 			if (Server::GetVar('fast') == 1)
 			{
 				$title = $item['mov_title'].' '.@$item['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
 				usort($sx_movies, array('ModTMDB', 'cmp_title'));
-				if (empty($sx_movies))
-					die('Found nothing for '.$title);
+				if (empty($sx_movies)) die('Found nothing for '.$title);
 				$tmdbid = $sx_movies[0]->id;
 			}
 			else $tmdbid = Server::GetVar('tmdb_id');
 
+			# Do the actual scrape.
 			$item = ModTMDB::Scrape($item, $tmdbid);
-			$media = ModMovie::GetMedia('movie', $item, Module::P('movie/img/missing.png'));
-			if (empty($item)) die(json_encode(array('error' => 'Not found', 'mov_path' => Server::GetVar('target'))));
+
+			# Collect updated information.
+			$media = ModMovie::GetMedia('movie', $item,
+				Module::P('movie/img/missing.png'));
+			if (empty($item)) die(json_encode(array('error' => 'Not found',
+				'mov_path' => Server::GetVar('target'))));
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
+
+			# Update the database
 			$added = $_d['movie.ds']->Add($item, true);
+
+			# Run all module callbacks
 			if (empty($item['mov_id'])) $item['mov_id'] = $added;
 			U::RunCallbacks($_d['tmdb.cb.postscrape'], $item);
 			if (Server::GetVar('fast') == 1) die('Fixed!');
@@ -328,21 +337,17 @@ class ModTMDB extends Module
 		# Scrape a cover thumbnail
 
 		# Don't re-scrape a cover.
-
 		$media = ModMovie::GetMedia('movie', $movie, null);
 		if (!empty($media['med_thumb'])) return $movie;
 
 		# Collect covers
-
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');
 
 		# Prepare our meta folder for movies.
-
 		if (!file_exists('img/meta/movie')) File::MakeFullDir('img/meta/movie');
 
 		# Covers are available to grab
-
 		if (!empty($urls))
 		{
 			$url = (string)$urls[0];
@@ -350,8 +355,7 @@ class ModTMDB extends Module
 
 			if (!empty($data))
 			{
-				// Clean up existing covers
-
+				# Clean up existing covers
 				$unlink = glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*');
 				if (count($unlink) > 5) die('Something just tried to delete more than 5 covers.');
 				foreach ($unlink as $f) unlink($f);
@@ -365,7 +369,6 @@ class ModTMDB extends Module
 			}
 
 			# Scrape a large backdrop
-
 			$xp_back = '//movies/movie/images/image[@type="backdrop"][@size="poster"]';
 			$url = xpath_attr($sx, $xp_back, 'url');
 			if (!empty($url))

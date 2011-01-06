@@ -261,6 +261,7 @@ EOF;
 			}
 
 			$md = $this->_ds[$p];
+
 			$clean = true;
 
 			# Filename related
