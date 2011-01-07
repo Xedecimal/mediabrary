@@ -155,7 +155,8 @@ class ModMovie extends MediaLibrary
 			$ftitle = $this->CleanTitleForFile($ftitle);
 			$fyear = substr($meta['mov_date'], 0, 4);
 
-			$dst = "{$m[1]}{$ftitle} ({$fyear}).".strtolower($m[3]);
+			$dstf = "{$m[1]}{$ftitle} ({$fyear})";
+			$dst = "$dstf.".strtolower($m[3]);
 
 			# Apply File Transformations
 
@@ -163,11 +164,12 @@ class ModMovie extends MediaLibrary
 			@touch($dst);
 
 			# Rename covers and backdrops as well.
-
-			File::PregRename('img/meta/movie/*'.File::GetFile($m[2]).'*',
-				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
-					File::GetFile($m[2]))).'(\..*)$#i',
-				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
+			
+			$md = 'img/meta/movie';
+			$cover = "$md/thm_".File::GetFile($m[2]);
+			$backd = "$md/bd_".File::GetFile($m[2]);
+			if (file_exists($cover)) rename($cover, "$md/thm_{$ftitle} ({$fyear})");
+			if (file_exists($backd)) rename($backd, "$md/bd_{$ftitle} ({$fyear})");
 
 			# Apply Database Transformations
 
@@ -309,8 +311,7 @@ EOD;
 
 			# Look for cover or backdrop.
 
-			$covers = glob("img/meta/movie/thm_$title ($year).*");
-			if (empty($covers))
+			if (!file_exists("img/meta/movie/thm_$title ($year)"))
 			{
 				$urlunfix = "tmdb/remove?path=$uep";
 				$ret['Media'][] = <<<EOD
@@ -319,8 +320,7 @@ EOD;
 				$clean = false;
 			}
 
-			$bd = glob("img/meta/movie/thm_$title ($year).*");
-			if (empty($bd))
+			if (!file_exists("img/meta/movie/bd_$title ($year)"))
 			{
 				$urlunfix = "tmdb/remove?path=$uep";
 				$ret['Media'][] = <<<EOD

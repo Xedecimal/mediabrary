@@ -100,8 +100,7 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'cover')
 		{
-			$dst = 'img/meta/movie/thm_'.File::GetFile(basename(Server::GetVar('path'))).'.'.
-				File::ext(Server::GetVar('img'));
+			$dst = 'img/meta/movie/thm_'.File::GetFile(basename(Server::GetVar('path')));
 			file_put_contents($dst, file_get_contents(Server::GetVar('img')));
 			die(json_encode(array('fs_path' => Server::GetVar('path'), 'med_thumb' => $dst)));
 		}
@@ -361,10 +360,10 @@ class ModTMDB extends Module
 				foreach ($unlink as $f) unlink($f);
 
 				$src_pinfo = pathinfo($url);
-				$dst = "img/meta/movie/thm_".
-					"{$dst_pinfo['filename']}.{$src_pinfo['extension']}";
+				$movie['med_thumb'] = "img/meta/movie/thm_".
+					"{$dst_pinfo['filename']}";
 
-				if (!file_put_contents($dst, $data))
+				if (!file_put_contents($movie['med_thumb'], $data))
 					trigger_error("Cannot write the cover image.", ERR_FATAL);
 			}
 
@@ -376,8 +375,7 @@ class ModTMDB extends Module
 				$src_pinfo = pathinfo($url);
 				$data = @file_get_contents($url, 0, $ctx_timeout);
 				if (!empty($data))
-					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
-						"{$src_pinfo['extension']}", $data);
+					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}", $data);
 			}
 		}
 
