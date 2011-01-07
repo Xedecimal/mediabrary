@@ -67,7 +67,8 @@ class ModTMDB extends Module
 
 			if (empty($item)) die(json_encode(array('error' => 'Not found',
 				'mov_path' => Server::GetVar('target'))));
-			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
+			foreach ($item as $k => $v) if (substr($k, 0, 3) != 'mov')
+				unset($item[$k]);
 
 			# Update the database
 			$added = $_d['movie.ds']->Add($item, true);
