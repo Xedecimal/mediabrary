@@ -316,6 +316,7 @@ EOD;
 				$urlunfix = "tmdb/remove?path=$uep";
 				$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mov_path']}
+- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
 EOD;
 				$clean = false;
 			}
