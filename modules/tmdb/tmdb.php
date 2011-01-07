@@ -337,9 +337,10 @@ class ModTMDB extends Module
 
 		# Scrape a cover thumbnail
 
-		# Don't re-scrape a cover.
+		# Don't re-scrape a cover and backdrop.
 		$media = ModMovie::GetMedia('movie', $movie, null);
-		if (!empty($media['med_thumb'])) return $movie;
+		if (!empty($media['med_thumb']) && !empty($media['med_bd']))
+			return $movie;
 
 		# Collect covers
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
@@ -361,6 +362,7 @@ class ModTMDB extends Module
 				if (count($unlink) > 5) die('Something just tried to delete more than 5 covers.');
 				foreach ($unlink as $f) unlink($f);
 
+				# Place new cover
 				$src_pinfo = pathinfo($url);
 				$movie['med_thumb'] = "img/meta/movie/thm_".
 					"{$dst_pinfo['filename']}";
