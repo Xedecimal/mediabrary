@@ -63,7 +63,8 @@ class ModTMDB extends Module
 
 			# Collect updated information.
 			$media = ModMovie::GetMedia('movie', $item,
-				Module::P('movie/img/missing.png'));
+				Module::P('movie/img/missing.jpg'));
+
 			if (empty($item)) die(json_encode(array('error' => 'Not found',
 				'mov_path' => Server::GetVar('target'))));
 			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
