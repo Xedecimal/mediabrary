@@ -367,7 +367,7 @@ EOD;
 	{
 		global $_d;
 
-		if (empty($_d['movie.cb.query']['match']) && empty($_d['movie.cb.nolimit']))
+		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = array(0, 50);
 
 		$query = $_d['movie.cb.query'];
