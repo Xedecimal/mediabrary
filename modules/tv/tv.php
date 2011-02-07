@@ -173,7 +173,7 @@ class ModTVSeries extends MediaLibrary
 		foreach (glob($p.'/*') as $series)
 		{
 			foreach (ModTVSeries::$scrapers as $s)
-				$eps = $s::GetInfo($series);
+				$eps = call_user_func(array($s, 'GetInfo'), $series);
 
 			foreach (glob($series.'/*') as $episode)
 			{
