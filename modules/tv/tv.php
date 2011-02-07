@@ -182,7 +182,7 @@ class ModTVSeries extends MediaLibrary
 				$info = $mte->ScrapeFS($episode);
 				if (empty($info['med_season']))
 				{
-					varinfo("Cannot recognize: $episode");
+					U::VarInfo("Cannot recognize: $episode");
 					continue;
 				}
 
