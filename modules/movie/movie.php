@@ -68,7 +68,7 @@ class ModMovie extends MediaLibrary
 		$query = $_d['movie.cb.query'];
 		$this->_items = array();
 
-		#$this->_files = $this->CollectFS();
+		$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
 
 		if (!empty($_d['movie.cb.filter']))
@@ -133,35 +133,45 @@ class ModMovie extends MediaLibrary
 		}
 		else if (@$_d['q'][1] == 'fix')
 		{
-			// Collect Information
-			//$src = '/'.implode('/', array_splice($_d['q'], 2));
+			# Collect generic information.
+
 			$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
-			//$pinfo = pathinfo($src);
+			# Collect filesystem information on this path.
+
 			$meta = $this->ScrapeFS($src);
+
+			# Append database information on this path.
+
 			$dr = $_d['movie.ds']->GetOne(array(
 				'match' => array('mov_path' => str_replace('&', ':', $src))
 			));
 			if (!empty($dr)) $meta = array_merge($meta, $dr);
 
+			# Figure out what the file should be named.
+
 			$ftitle = $meta['mov_title'];
 			$ftitle = $this->CleanTitleForFile($ftitle);
 			$fyear = substr($meta['mov_date'], 0, 4);
 
-			$dst = "{$m[1]}{$ftitle} ({$fyear}).".strtolower($m[3]);
+			$dstf = "{$m[1]}{$ftitle} ({$fyear})";
+			$dst = "$dstf.".strtolower($m[3]);
 
-			// Apply File Transformations
+			# Apply File Transformations
 
 			rename($src, $dst);
 			@touch($dst);
 
-			File::PregRename('img/meta/movie/*'.File::GetFile($m[2]).'*',
-				'#img/meta/movie/(.*)'.preg_quote(str_replace('#', '/',
-					File::GetFile($m[2]))).'(\..*)$#i',
-				'img/meta/movie/\1'.$ftitle.' ('.$fyear.')\2');
+			# Rename covers and backdrops as well.
+			
+			$md = 'img/meta/movie';
+			$cover = "$md/thm_".File::GetFile($m[2]);
+			$backd = "$md/bd_".File::GetFile($m[2]);
+			if (file_exists($cover)) rename($cover, "$md/thm_{$ftitle} ({$fyear})");
+			if (file_exists($backd)) rename($backd, "$md/bd_{$ftitle} ({$fyear})");
 
-			// Apply Database Transformations
+			# Apply Database Transformations
 
 			$_d['movie.ds']->Update(array('mov_path' => $src),
 				array('mov_path' => $dst));
@@ -253,6 +263,7 @@ EOF;
 			}
 
 			$md = $this->_ds[$p];
+
 			$clean = true;
 
 			# Filename related
@@ -285,15 +296,41 @@ EOF;
 
 			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['mov_path']))
 			{
-				$url = "movie/fix?path=$uep";
+				$urlfix = "movie/fix?path=$uep";
+				$urlunfix = "tmdb/remove?path=$uep";
 				$ext = strtolower(File::ext($file['fs_filename']));
 				$bn = basename($p);
 				$ret['File Name Compliance'][] = <<<EOD
-<a href="{$url}" class="a-fix">Fix</a> File "$bn" should be "$title ($year).$ext".
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$title ($year).$ext".
 	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
 EOD;
 				$clean = false;
 			}
+
+			# Look for cover or backdrop.
+
+			if (!file_exists("img/meta/movie/thm_$title ($year)"))
+			{
+				$urlunfix = "tmdb/remove?path=$uep";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mov_path']}
+- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
+EOD;
+				$clean = false;
+			}
+
+			if (!file_exists("img/meta/movie/bd_$title ($year)"))
+			{
+				$urlunfix = "tmdb/remove?path=$uep";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mov_path']}
+EOD;
+				$clean = false;
+			}
+
+			# If we can, mark this movie clean to skip further checks.
 
 			$_d['movie.ds']->Update(
 				array('mov_id' => $md['mov_id']),
@@ -330,7 +367,7 @@ EOD;
 	{
 		global $_d;
 
-		if (empty($_d['movie.cb.query']['match']) && empty($_d['movie.cb.nolimit']))
+		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = array(0, 50);
 
 		$query = $_d['movie.cb.query'];

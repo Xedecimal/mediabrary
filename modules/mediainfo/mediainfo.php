@@ -15,7 +15,8 @@ class ModMediaInfo extends Module
 	{
 		global $_d;
 
-		$_d['movie.cb.detail'][] = array($this, 'movie_cb_detail');
+		# TODO: Bad place to process media info, do it elsewhere to speed things up.
+		#$_d['movie.cb.detail'][] = array($this, 'movie_cb_detail');
 
 		if (empty($_d['q'][0]))
 			$_d['nav.links']['Video and Audio Statistics'] = 'mediainfo';

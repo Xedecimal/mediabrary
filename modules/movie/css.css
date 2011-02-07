@@ -28,6 +28,13 @@
 .quick-buttons img { height: 32px; }
 
 .quick-buttons { background: #000; text-align: center; }
-.movie-details { overflow: hidden; color: #FFF; font-size: 30pt; font-weight: bold; }
+.movie-details
+{
+	overflow: hidden;
+	color: #FFF;
+	font-size: 30pt;
+	font-weight: bold;
+	text-shadow: #000 2px 2px;
+}
 
 #filter-toggle { float: right; }

@@ -1,5 +1,6 @@
 <div id="movie-detail">
-	<div class="movie-buttons"><a href="movie/down/{{fs_filename}}"><img src="movie/img/disk.png"
+	<div class="movie-buttons"><a
+		href="movie/down/{{fs_filename}}"><img src="movie/img/save_as.png"
 		alt="Download" /></a><callback ds="_d" name="movie.cb.buttons" /></div>
 
 	<input type="hidden" id="movie-id" value="{{mov_id}}" />

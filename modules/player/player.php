@@ -27,13 +27,13 @@ class ModPlayer extends Module
 		# Translate a path to a faster source
 
 		$trans = array($p);
-		foreach ($_d['config']->player->trans as $t)
+		foreach ($_d['config']['player']['trans'] as $t)
 		{
-			$c = $t->attributes()->client;
+			$c = $t['client'];
 			if (preg_match($c, $_SERVER['REMOTE_ADDR']))
 			{
-				$np = str_replace($t->attributes()->source,
-					$t->attributes()->target, $d);
+				$np = str_replace($t['source'],
+					$t['target'], $d);
 				break;
 			}
 		}
@@ -71,7 +71,7 @@ class ModPlayer extends Module
 		}
 		else $ret .= $this->AddM3U(1, $np.'/'.$f, @$regions[$f]);
 
-		SendDownloadStart(File::GetFile(basename($p)).'.m3u');
+		Server::SendDownloadStart(File::GetFile(basename($p)).'.m3u');
 		die($ret);
 	}
 

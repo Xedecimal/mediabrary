@@ -15,9 +15,60 @@ class ModDetail extends Module
 	{
 		global $_d;
 
+		$cert = Server::GetVar('cert');
+		if ($cert == 'None') unset($_SESSION['cert']);
+		else if (!empty($cert))
+		{
+			if ($cert == 'Uncertified') $cert = '';
+			$_d['movie.cb.query']['joins']['detail'] =
+				new Join($_d['movie_detail.ds'], 'md_movie = mov_id', 'LEFT JOIN');
+			$_d['movie.cb.query']['match']['md_name'] = 'certification';
+			$_d['movie.cb.query']['match']['md_value'] = $cert;
+			$_d['movie.skipfs'] = true;
+		}
+
 		$_d['tmdb.cb.postscrape']['detail'] = array(&$this, 'cb_tmdb_postscrape');
 		$_d['tmdb.cb.scrape']['detail'] = array(&$this, 'cb_tmdb_scrape');
 		$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
+	}
+
+	function Prepare()
+	{
+		global $_d;
+
+		if ($_d['q'][0] == 'cert') $_SESSION['cert'] = $_d['q'][1];
+	}
+
+	function Get()
+	{
+		global $_d;
+
+		$q['columns']['cert'] = 'md_value';
+		$q['columns']['movies'] = Database::SqlCount('mov_id');
+		$q['joins']['movie'] = new Join($_d['movie.ds'], 'mov_id = md_movie',
+			'LEFT JOIN');
+		$q['match']['md_name'] = 'certification';
+		$q['group'] = 'md_value';
+		$certs = $_d['movie_detail.ds']->Get($q);
+
+		foreach ($certs as $c)
+		{
+			$cloud[empty($c['cert']) ? 'Uncertified' : $c['cert']] = $c['movies'];
+		}
+		$cloud['None'] = 0;
+
+		$cloud = Math::RespectiveSize($cloud);
+
+		$out = '';
+		foreach ($cloud as $c => $s)
+			$out .= '<a href="{{app_abs}}/cert/'.$c.'" class="aCert category"
+				style="font-size: '.$s.'px;">'.$c.'</a> ';
+
+		$url = Module::P('detail/detail.js');
+		$r['head'] = '<script type="text/javascript" src="'.$url.'"></script>';
+		$r['filters'] = '<div class="filter">'.$out.'</div>';
+
+		return $r;
 	}
 
 	function cb_tmdb_scrape($item, $xml)

@@ -6,7 +6,7 @@ class ModRate extends Module
 	{
 		global $_d;
 
-		$_d['rate.ds'] = new DataSet($_d['db'], 'rate');
+		$_d['rate.ds'] = new DataSet($_d['db'], 'rate', 'rate_id');
 	}
 
 	function Link()

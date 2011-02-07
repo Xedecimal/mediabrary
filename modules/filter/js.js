@@ -2,11 +2,6 @@ $(function () {
 	$.get('filter/get', function (data) {
 		if (data.source == 'obtained') { data.step = 2592000; data.type = 'slider'; }
 		else if (data.source == 'rating') { data.step = 0.5; data.type = 'slider' }
-		else if (data.source == 'cert')
-		{
-			data.items = { 'Unrated': '', 'PG': 'PG', 'PG-13': 'PG-13', 'R': 'R', 'NC-17': 'NC-17'};
-			data.type = 'checks';
-		}
 		else { data.step = 1; data.type = 'slider'; }
 		showValue(data.cmin, data.cmax);
 
@@ -40,29 +35,6 @@ function createSlider(data)
 
 	$('#date-slider').slider('values', 0, data.cmin);
 	$('#date-slider').slider('values', 1, data.cmax);
-}
-
-function createChecks(data)
-{
-	html = '';
-	$.each(data.items, function (name, val) {
-		html += '<label><input type="checkbox" name="'+data.source+'" value="'+val
-			+'" class="cert" /> '+name+'</label> ';
-	})
-	$('#date-slider').html(html);
-
-	$.each(data.checks, function (ix, val) {
-		console.log(val);
-		$('.cert[value='+val+']').attr('checked', 'checked');
-	});
-
-	$('.cert').change(function () {
-		var opts = [];
-		$('.cert:checked').each(function () { opts.push($(this).val()); })
-		$.post('filter/set/'+$('#selFilterType').val(), {checks: opts}, function () {
-			window.refreshAll();
-		});
-	});
 }
 
 function showValue(ts1, ts2)

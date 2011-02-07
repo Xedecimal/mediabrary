@@ -1,5 +1,5 @@
 $(function () {
-	$('.aCategory').live('click', function () {
+	$('.aCert').live('click', function () {
 		$.get($(this).attr('href'), function () {
 			window.refreshAll();
 		});

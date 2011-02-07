@@ -47,22 +47,33 @@ class ModTMDB extends Module
 			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
 			if (empty($item['mov_path'])) $item['mov_path'] = $item['fs_path'];
 
+			# Fast scrape doesn't come with tmdbid.
 			if (Server::GetVar('fast') == 1)
 			{
 				$title = $item['mov_title'].' '.@$item['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
 				usort($sx_movies, array('ModTMDB', 'cmp_title'));
-				if (empty($sx_movies))
-					die('Found nothing for '.$title);
+				if (empty($sx_movies)) die('Found nothing for '.$title);
 				$tmdbid = $sx_movies[0]->id;
 			}
 			else $tmdbid = Server::GetVar('tmdb_id');
 
+			# Do the actual scrape.
 			$item = ModTMDB::Scrape($item, $tmdbid);
-			$media = ModMovie::GetMedia('movie', $item, Module::P('movie/img/missing.png'));
-			if (empty($item)) die(json_encode(array('error' => 'Not found', 'mov_path' => Server::GetVar('target'))));
-			foreach ($item as $k => $v) if ($k[0] != 'm') unset($item[$k]);
+
+			# Collect updated information.
+			$media = ModMovie::GetMedia('movie', $item,
+				Module::P('movie/img/missing.jpg'));
+
+			if (empty($item)) die(json_encode(array('error' => 'Not found',
+				'mov_path' => Server::GetVar('target'))));
+			foreach ($item as $k => $v) if (substr($k, 0, 3) != 'mov')
+				unset($item[$k]);
+
+			# Update the database
 			$added = $_d['movie.ds']->Add($item, true);
+
+			# Run all module callbacks
 			if (empty($item['mov_id'])) $item['mov_id'] = $added;
 			U::RunCallbacks($_d['tmdb.cb.postscrape'], $item);
 			if (Server::GetVar('fast') == 1) die('Fixed!');
@@ -91,8 +102,7 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'cover')
 		{
-			$dst = 'img/meta/movie/thm_'.File::GetFile(basename(Server::GetVar('path'))).'.'.
-				File::ext(Server::GetVar('img'));
+			$dst = 'img/meta/movie/thm_'.File::GetFile(basename(Server::GetVar('path')));
 			file_put_contents($dst, file_get_contents(Server::GetVar('img')));
 			die(json_encode(array('fs_path' => Server::GetVar('path'), 'med_thumb' => $dst)));
 		}
@@ -184,9 +194,9 @@ class ModTMDB extends Module
 			alt="Find" /></a>';
 		if (!empty($t->vars['mov_date']))
 		{
-			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/remove.png"
+			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/database_delete.png"
 				alt="Remove" /></a>';
-			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/covers.png"
+			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/images.png"
 				alt="Select New Cover" /></a>';
 			$ret .= '<a href="http://www.themoviedb.org/movie/{{mov_tmdbid}}" target="_blank"><img src="modules/tmdb/img/tmdb.png" alt="tmdb" /></a>';
 		}
@@ -327,22 +337,19 @@ class ModTMDB extends Module
 
 		# Scrape a cover thumbnail
 
-		# Don't re-scrape a cover.
-
+		# Don't re-scrape a cover and backdrop.
 		$media = ModMovie::GetMedia('movie', $movie, null);
-		if (!empty($media['med_thumb'])) return $movie;
+		if (!empty($media['med_thumb']) && !empty($media['med_bd']))
+			return $movie;
 
 		# Collect covers
-
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
 		$urls = xpath_attrs($sx, $xp_thumb, 'url');
 
 		# Prepare our meta folder for movies.
-
 		if (!file_exists('img/meta/movie')) File::MakeFullDir('img/meta/movie');
 
 		# Covers are available to grab
-
 		if (!empty($urls))
 		{
 			$url = (string)$urls[0];
@@ -350,22 +357,21 @@ class ModTMDB extends Module
 
 			if (!empty($data))
 			{
-				// Clean up existing covers
-
+				# Clean up existing covers
 				$unlink = glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*');
 				if (count($unlink) > 5) die('Something just tried to delete more than 5 covers.');
 				foreach ($unlink as $f) unlink($f);
 
+				# Place new cover
 				$src_pinfo = pathinfo($url);
-				$dst = "img/meta/movie/thm_".
-					"{$dst_pinfo['filename']}.{$src_pinfo['extension']}";
+				$movie['med_thumb'] = "img/meta/movie/thm_".
+					"{$dst_pinfo['filename']}";
 
-				if (!file_put_contents($dst, $data))
+				if (!file_put_contents($movie['med_thumb'], $data))
 					trigger_error("Cannot write the cover image.", ERR_FATAL);
 			}
 
 			# Scrape a large backdrop
-
 			$xp_back = '//movies/movie/images/image[@type="backdrop"][@size="poster"]';
 			$url = xpath_attr($sx, $xp_back, 'url');
 			if (!empty($url))
@@ -373,8 +379,7 @@ class ModTMDB extends Module
 				$src_pinfo = pathinfo($url);
 				$data = @file_get_contents($url, 0, $ctx_timeout);
 				if (!empty($data))
-					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}.".
-						"{$src_pinfo['extension']}", $data);
+					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}", $data);
 			}
 		}
 
