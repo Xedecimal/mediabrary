@@ -64,6 +64,9 @@ class ModTVSeries extends MediaLibrary
 		{
 			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
 
+			$series = $size = $total = 0;
+
+			if (!empty($_d['config']['paths']['tv']))
 			foreach ($_d['config']['paths']['tv'] as $p)
 			{
 				$series = count(glob("$p/*", GLOB_ONLYDIR));

@@ -96,6 +96,7 @@ class ModMovie extends MediaLibrary
 
 			$total = $size = 0;
 
+			if (!empty($_d['config']['paths']['movie']))
 			foreach ($_d['config']['paths']['movie'] as $p)
 			{
 				foreach (glob($p.'/*') as $f)
@@ -379,6 +380,7 @@ EOD;
 		$ret = array();
 
 		$movies = $_d['movie.ds']->Get($query);
+		if (!empty($movies))
 		foreach ($movies as $i)
 		{
 			$i['url'] = urlencode($i['mov_path']);
