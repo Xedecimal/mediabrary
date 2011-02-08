@@ -317,7 +317,7 @@ class ModTVSeries extends MediaLibrary
 		$eps = array();
 		foreach (ModTVSeries::$scrapers as $s)
 		{
-			$neps = $s::GetInfo($series);
+			$neps = call_user_func(array($s, 'GetInfo'), $series);
 			$eps = array_replace_recursive($eps, $neps);
 		}
 		/*if ($series == '/data/nas/TV/House')
