@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS `codec` (
   `cod_path` varchar(255) NOT NULL,
   `cod_name` varchar(255) NOT NULL,
   `cod_value` varchar(255) NOT NULL,
-  PRIMARY KEY (`cod_id`)
+  PRIMARY KEY (`cod_id`),
+  UNIQUE KEY `cod_path_cod_name` (`cod_path`,`cod_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 # Data exporting was unselected.
@@ -51,11 +52,11 @@ CREATE TABLE IF NOT EXISTS `movie_category` (
 # Dumping structure for table mediabrary.movie_date
 CREATE TABLE IF NOT EXISTS `movie_date` (
   `md_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `md_movie` int(10) unsigned NOT NULL DEFAULT '0',
+  `md_movie` int(10) unsigned NOT NULL,
   `md_name` varchar(255) NOT NULL,
-  `md_date` date NOT NULL,
+  `md_value` date NOT NULL,
   PRIMARY KEY (`md_id`),
-  KEY `FK_movie_date_movie` (`md_movie`),
+  UNIQUE KEY `md_movie_md_name` (`md_movie`,`md_name`),
   CONSTRAINT `FK_movie_date_movie` FOREIGN KEY (`md_movie`) REFERENCES `movie` (`mov_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -66,10 +67,10 @@ CREATE TABLE IF NOT EXISTS `movie_date` (
 CREATE TABLE IF NOT EXISTS `movie_detail` (
   `md_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `md_movie` int(10) unsigned NOT NULL DEFAULT '0',
-  `md_name` varchar(255) NOT NULL DEFAULT '0',
-  `md_value` varchar(255) NOT NULL DEFAULT '0',
+  `md_name` varchar(255) NOT NULL,
+  `md_value` mediumtext NOT NULL,
   PRIMARY KEY (`md_id`),
-  KEY `FK_movie_detail_movie` (`md_movie`),
+  UNIQUE KEY `md_movie_md_name` (`md_movie`,`md_name`),
   CONSTRAINT `FK_movie_detail_movie` FOREIGN KEY (`md_movie`) REFERENCES `movie` (`mov_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -78,13 +79,13 @@ CREATE TABLE IF NOT EXISTS `movie_detail` (
 
 # Dumping structure for table mediabrary.movie_float
 CREATE TABLE IF NOT EXISTS `movie_float` (
-  `mf_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `mf_movie` int(10) unsigned NOT NULL,
-  `mf_name` varchar(255) NOT NULL,
-  `mf_value` float NOT NULL,
-  PRIMARY KEY (`mf_id`),
-  KEY `FK_movie_float_movie` (`mf_movie`),
-  CONSTRAINT `FK_movie_float_movie` FOREIGN KEY (`mf_movie`) REFERENCES `movie` (`mov_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `md_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `md_movie` int(10) unsigned NOT NULL,
+  `md_name` varchar(255) NOT NULL,
+  `md_value` float NOT NULL,
+  PRIMARY KEY (`md_id`),
+  UNIQUE KEY `md_movie_md_name` (`md_movie`,`md_name`),
+  CONSTRAINT `FK_movie_float_movie` FOREIGN KEY (`md_movie`) REFERENCES `movie` (`mov_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 # Data exporting was unselected.
@@ -95,6 +96,7 @@ CREATE TABLE IF NOT EXISTS `rate` (
   `rate_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `rate_for` int(10) unsigned NOT NULL,
   `rate_from` int(10) unsigned NOT NULL,
+  `rate_amount` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`rate_id`),
   UNIQUE KEY `rate_for` (`rate_for`),
   CONSTRAINT `FK_rate_movie` FOREIGN KEY (`rate_for`) REFERENCES `movie` (`mov_id`) ON DELETE CASCADE ON UPDATE CASCADE
