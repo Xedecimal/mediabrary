@@ -23,6 +23,7 @@ class MediaLibrary extends Module
 		$ret = null;
 		$scraped = false;
 
+		if (!empty($this->_items))
 		foreach ($this->_items as $i)
 		{
 			foreach (array_keys($i) as $k) $i[$k] = htmlspecialchars($i[$k]);

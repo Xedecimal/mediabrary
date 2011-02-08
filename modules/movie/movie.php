@@ -215,6 +215,7 @@ class ModMovie extends MediaLibrary
 
 		# Collect known filesystem data
 
+		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach(glob($p.'/*') as $f)
 		{
@@ -352,6 +353,7 @@ EOD;
 
 		$ret = array();
 
+		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		{
 			foreach (glob($p.'/*') as $f)

@@ -106,6 +106,7 @@ class ModTVSeries extends MediaLibrary
 			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 
+			if (!empty($_d['config']['paths']['tv']))
 			foreach ($_d['config']['paths']['tv'] as $p)
 			{
 				$dp = opendir($p);
@@ -117,8 +118,9 @@ class ModTVSeries extends MediaLibrary
 				}
 			}
 
-			asort($dirs);
+			if (is_array(@$dirs)) asort($dirs);
 
+			if (!empty($dirs))
 			foreach ($dirs as $f)
 			{
 				$this->_items[$f] = $this->ScrapeFS($f);
@@ -126,6 +128,7 @@ class ModTVSeries extends MediaLibrary
 			}
 
 			# Root directories are not included.
+			if (!empty($_d['config']['paths']['tv']))
 			foreach ($_d['config']['paths']['tv'] as $p)
 				unset($this->_items[$p]);
 
@@ -172,6 +175,7 @@ class ModTVSeries extends MediaLibrary
 		$ret = array();
 		$mte = new ModTVEpisode;
 
+		if (!empty($_d['config']['paths']['tv']))
 		foreach ($_d['config']['paths']['tv'] as $p)
 		foreach (glob($p.'/*') as $series)
 		{
@@ -282,6 +286,7 @@ class ModTVSeries extends MediaLibrary
 		global $_d;
 
 		$ret = array();
+		if (!empty($_d['config']['paths']['tv']))
 		foreach ($_d['config']['paths']['tv'] as $p)
 			foreach (glob($p.'/*') as $fx)
 				$ret[] = $fx;
