@@ -18,46 +18,34 @@ class ModMovie extends MediaLibrary
 			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
-				3 => 'fs_ext'
-			),
+				3 => 'fs_ext'),
 
 			# title[date].ext
 			/*'#([^/\[]+)\[([0-9]{4})\].*\.([^.]+)#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
-				3 => 'fs_ext'
-			),*/
+				3 => 'fs_ext'),*/
 
 			# title (date).ext
-			'#/([^/]+) \((\d+)\)\.([^.]+)$#' => array(
+			'#/([^/]+)\s*\((\d{4})\).*\.([^.]+)$#' => array(
 				1 => 'fs_title',
 				2 => 'fs_date',
 				3 => 'fs_ext'),
 
-			# title date.ext
-			'#([^/{]+)[{]*([0-9]{4}).*\.([^.]+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'
-			),
-
 			# title [strip].ext
-			'#([^/\[]+?)\s*\[.*\.([^.]+)$#' => array(
+			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
 				1 => 'fs_title',
-				2 => 'fs_ext'
-			),
+				2 => 'fs_ext'),
 
 			# title.ext
 			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
 				1 => 'fs_title',
-				3 => 'fs_ext'
-			),
+				3 => 'fs_ext'),
 
 			# title.ext
 			'#([^/]+)\s*\.(\S+)$#' => array(
 				1 => 'fs_title',
-				2 => 'fs_ext'
-			)
+				2 => 'fs_ext')
 		);
 	}
 
@@ -238,9 +226,11 @@ class ModMovie extends MediaLibrary
 				continue;
 			}
 
+			# Remove missing items
+
 			if (!file_exists($dr['mov_path']))
 			{
-				$ret['cleanup'][] = "Removed database entry for non-existing '"
+				$rep['cleanup'][] = "Removed database entry for non-existing '"
 					.$p."'";
 				$_d['movie.ds']->Remove(array('mov_path' => $p));
 			}
@@ -248,12 +238,16 @@ class ModMovie extends MediaLibrary
 			$this->_ds[$p] = $dr;
 		}
 
-		# Walk through all known movies.
+		# Iterate all known items.
 
 		foreach ($this->_files as $p => $file)
 		{
-			# This file not exist in the database.
 			$uep = urlencode($p);
+
+			# We reported information in here to place in $ret later.
+			$rep = array();
+
+			# This item not exist in the database.
 
 			if (!isset($this->_ds[$p]))
 			{
@@ -266,14 +260,12 @@ EOF;
 
 			$md = $this->_ds[$p];
 
-			$clean = true;
-
 			# Filename related
 
 			if (!empty($md['fs_path']) && File::ext($md['fs_path']) != 'avi')
 			{
-				$ret['File Name Compliance'][] = "File {$file['fs_path']} has a bad extension.";
-				$clean = false;
+				$rep['File Name Compliance'][] = "File {$file['fs_path']} has a
+					bad extension.";
 			}
 
 			# Date Related
@@ -285,9 +277,8 @@ EOF;
 
 			if (strlen($date) < 10)
 			{
-				$ret['Scrape'][] = "File {$md['mov_path']} has incorrectly
-					scraped year \"{$year}\"";
-				$clean = false;
+				$rep['Scrape'][] = "File {$md['mov_path']} has incorrectly
+					scraped date \"{$year}\"";
 			}
 
 			# Title Related
@@ -296,19 +287,20 @@ EOF;
 
 			# Validate strict naming conventions.
 
-			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#', $md['mov_path']))
+			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#',
+				$md['mov_path']))
 			{
 				$urlfix = "movie/fix?path=$uep";
 				$urlunfix = "tmdb/remove?path=$uep";
 				$ext = strtolower(File::ext($file['fs_filename']));
 				$bn = basename($p);
-				$ret['File Name Compliance'][] = <<<EOD
+				$rep['File Name Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <A href="{$urlunfix}" class="a-nogo">Unscrape</a>
 File "$bn" should be "$title ($year).$ext".
-	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
+	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+		target="_blank">Reference</a>
 EOD;
-				$clean = false;
 			}
 
 			# Look for cover or backdrop.
@@ -316,30 +308,38 @@ EOD;
 			if (!file_exists("img/meta/movie/thm_$title ($year)"))
 			{
 				$urlunfix = "tmdb/remove?path=$uep";
-				$ret['Media'][] = <<<EOD
+				$rep['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mov_path']}
-- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}" target="_blank">Reference</a>
+- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+	target="_blank">Reference</a>
 EOD;
-				$clean = false;
 			}
 
 			if (!file_exists("img/meta/movie/bd_$title ($year)"))
 			{
 				$urlunfix = "tmdb/remove?path=$uep";
-				$ret['Media'][] = <<<EOD
+				$rep['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mov_path']}
 EOD;
-				$clean = false;
+			}
+
+			$rep = array_merge_recursive($rep, U::RunCallbacks($_d['movie.cb.check'], $md));
+
+			# If anything was reported for this item, it is not clean.
+
+			if (empty($rep))
+			{
+				$_d['movie.ds']->Update(
+					array('mov_id' => $md['mov_id']),
+					array('mov_clean' => 1)
+				);
+			}
+			else
+			{
+				$ret = array_merge_recursive($ret, $rep);
 			}
 
 			# If we can, mark this movie clean to skip further checks.
-
-			$_d['movie.ds']->Update(
-				array('mov_id' => $md['mov_id']),
-				array('mov_clean' => $clean)
-			);
-
-			$ret = array_merge_recursive($ret, U::RunCallbacks($_d['movie.cb.check'], $md));
 		}
 
 		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
@@ -355,12 +355,10 @@ EOD;
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
+		foreach (glob($p.'/*') as $f)
 		{
-			foreach (glob($p.'/*') as $f)
-			{
-				if (is_dir($f)) continue;
-				$ret[$f] = $this->ScrapeFS($f);
-			}
+			if (is_dir($f)) continue;
+			$ret[$f] = $this->ScrapeFS($f);
 		}
 
 		return $ret;
@@ -372,6 +370,11 @@ EOD;
 
 		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = array(0, 50);
+		if (empty($_d['movie.cb.query']['match']))
+		{
+			$_d['movie.cb.query']['match']['md_name'] = 'obtained';
+			$_d['movie.cb.query']['order'] = 'md_value DESC';
+		}
 
 		$query = $_d['movie.cb.query'];
 

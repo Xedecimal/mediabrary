@@ -105,6 +105,12 @@ class MediaLibrary extends Module
 		return $ret;
 	}
 
+	static function UncleanTitle($title)
+	{
+		# Fix transposed ", The".
+		return preg_replace('/(.*), The/', 'The \1', $title);
+	}
+
 	function Check() { return array(); }
 }
 

@@ -111,6 +111,7 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
+		if (!empty($this->cats))
 		foreach ($this->cats as $c)
 		{
 			$_d['cat.ds']->Add(array(

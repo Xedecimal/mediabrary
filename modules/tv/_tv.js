@@ -34,9 +34,11 @@ $(function () {
 		window.scraped = 0;
 		$('.tv-item').each(function (ix, item) {
 			window.scrape_total += 1;
-			$.get('tv/search/'+$(item).attr('title'), function (data) {
+			$.get('tv/search', { series: $(item).attr('title') },
+				function () {
 				window.scraped += 1;
-				$("#progressbar").progressbar('option', 'value', window.scraped * 100 / window.scrape_total);
+				$("#progressbar").progressbar('option', 'value',
+					window.scraped * 100 / window.scrape_total);
 				if (window.scraped == window.scrape_total) window.location.reload();
 			});
 		});

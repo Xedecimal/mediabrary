@@ -98,7 +98,10 @@ class ModTVSeries extends MediaLibrary
 		}
 		else if (@$_d['q'][1] == 'search')
 		{
-			return ModScrapeTVDB::Find(Server::GetVar('series'));
+			$ret = '';
+			foreach (ModTVSeries::$scrapers as $s)
+				$ret .= $s::Find(Server::GetVar('series'), true);
+			return $ret;
 			die();
 		}
 		else if (@$_d['q'][1] == 'items')
@@ -309,9 +312,9 @@ class ModTVSeries extends MediaLibrary
 			.rawurlencode($name).'&mode=rss'
 			."&season={$season}&episode=".
 			$episode;
-		varinfo($url);
+		U::VarInfo($url);
 		$xml = file_get_contents($url);
-		varinfo($xml);
+		U::VarInfo($xml);
 		$sx = simplexml_load_string($xml);
 		$link = $sx->xpath('//channel/item/link');
 		if (empty($link)) return false;
@@ -328,8 +331,6 @@ class ModTVSeries extends MediaLibrary
 			$neps = call_user_func(array($s, 'GetInfo'), $series);
 			$eps = array_replace_recursive($eps, $neps);
 		}
-		/*if ($series == '/data/nas/TV/House')
-			varinfo($eps);*/
 		return $eps;
 	}
 }
@@ -466,8 +467,8 @@ class ModTVEpisode extends MediaLibrary
 
 			if (!isset($i['med_episode']))
 			{
-				varinfo('Missing episode on this...');
-				varinfo($i);
+				U::VarInfo('Missing episode on this...');
+				U::VarInfo($i);
 			}
 			// Multi-episode file
 			if (preg_match('/([0-9]+)-([0-9]+)/', $i['med_episode'], $m))
@@ -519,10 +520,16 @@ class ModTVEpisode extends MediaLibrary
 					$query = rawurlencode("$sname S{$snp}E{$enp}");
 					$ser = rawurlencode($series);
 					$aired = date('m/d/Y', $ep['aired']);
-					$ret[] = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
+					$rout = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
 						$series S{$snp}E{$enp}</a> - {$aired} <a
 						href=\"{{app_abs}}/tv/grab?series=$ser&season=$snp&episode=$enp\"
 						target=\"_blank\">Attempt quick torrent grab</a>";
+					if (!empty($ep['links']))
+					foreach ($ep['links'] as $n => $l)
+					{
+						$rout .= " - <a href=\"$l\" target=\"_blank\">$n</a>";
+					}
+					$ret[] = $rout;
 				}
 			}
 			else if ($ep['aired'] < strtotime('next week'))

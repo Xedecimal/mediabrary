@@ -41,19 +41,21 @@ class ModTMDB extends Module
 		else if (@$_d['q'][1] == 'scrape')
 		{
 			$mm = new ModMovie;
-			$item = $mm->ScrapeFS(Server::GetVar('target'));
-			$item += $_d['movie.ds']->GetOne(array('match' => array('mov_path' => $item['fs_path'])));
-			
+			$target = Server::GetVar('target');
+			$item = $mm->ScrapeFS($target);
+			$q['match']['mov_path'] = $item['fs_path'];
+			$item += $_d['movie.ds']->GetOne($q);
+
 			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
 			if (empty($item['mov_path'])) $item['mov_path'] = $item['fs_path'];
 
 			# Fast scrape doesn't come with tmdbid.
 			if (Server::GetVar('fast') == 1)
 			{
-				$title = $item['mov_title'].' '.@$item['fs_date'];
+				$title = MediaLibrary::UncleanTitle($item['mov_title']).' '
+					.@$item['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
-				usort($sx_movies, array('ModTMDB', 'cmp_title'));
-				if (empty($sx_movies)) die('Found nothing for '.$title);
+				if (empty($sx_movies)) die('Found nothing for "'.$title.'"');
 				$tmdbid = $sx_movies[0]->id;
 			}
 			else $tmdbid = Server::GetVar('tmdb_id');
@@ -224,6 +226,7 @@ class ModTMDB extends Module
 
 	# Static Methods
 
+	#TODO: Deprecated ?
 	static function Decode($sx_movie)
 	{
 		$ret['id'] = (string)$sx_movie->id;
@@ -248,7 +251,6 @@ class ModTMDB extends Module
 		$reps = array(
 			'#\[[^\]]+\]#' => '',
 			'#([.]{1} |\.|-|_)#' => ' ',
-			'#(ac3|5,1|dvdrip|bdrip|unrated)#i' => '',
 			'#\([^)]*\)#' => '',
 		);
 
@@ -280,7 +282,7 @@ class ModTMDB extends Module
 	{
 		$vp = new VarParser();
 		$sx_movies = ModTMDB::FindXML($args['title']);
-		usort($sx_movies, array('ModTMDB', 'cmp_title'));
+		#usort($sx_movies, array('ModTMDB', 'cmp_title'));
 
 		$ret = null;
 		foreach ($sx_movies as $sx_movie)
@@ -294,6 +296,7 @@ class ModTMDB extends Module
 		return $ret;
 	}
 
+	#TODO: Fails on damn near everything, been ruled out.
 	static function cmp_title($cmp1, $cmp2)
 	{
 		return (double)$cmp1->score < (double)$cmp2->score;
@@ -317,11 +320,13 @@ class ModTMDB extends Module
 	{
 		global $_d;
 
+		session_write_close();
+
 		$ctx_timeout = stream_context_create(array('http' =>
 			array('timeout' => 1)));
 
-		$xml = file_get_contents(TMDB_INFO.$id, 0, $ctx_timeout);
-		if (empty($xml)) Error('Could not get: '.TMDB_INFO.$id);
+		$xml = @file_get_contents(TMDB_INFO.$id, 0, $ctx_timeout);
+		if (empty($xml)) return $movie;
 		if (!empty($_d['tmdb.cb.scrape']))
 			U::RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);
 		$sx = simplexml_load_string($xml);
@@ -359,13 +364,13 @@ class ModTMDB extends Module
 			{
 				# Clean up existing covers
 				$unlink = glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*');
-				if (count($unlink) > 5) die('Something just tried to delete more than 5 covers.');
+				if (count($unlink) > 2) die('Something just tried to delete more than 2 covers.');
 				foreach ($unlink as $f) unlink($f);
 
 				# Place new cover
 				$src_pinfo = pathinfo($url);
 				$movie['med_thumb'] = "img/meta/movie/thm_".
-					"{$dst_pinfo['filename']}";
+					$dst_pinfo['filename'];
 
 				if (!file_put_contents($movie['med_thumb'], $data))
 					trigger_error("Cannot write the cover image.", ERR_FATAL);

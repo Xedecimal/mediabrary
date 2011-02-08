@@ -7,7 +7,7 @@ class ModScrapeTVDB
 
 	//http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/all/en.zip
 
-	static function Find($path)
+	static function Find($path, $full = false)
 	{
 		global $_d;
 
@@ -26,7 +26,7 @@ class ModScrapeTVDB
 		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
 		$pi = pathinfo($ban);
 		$series = basename($path);
-		file_put_contents("img/meta/tv/thm_$series.{$pi['extension']}",
+		file_put_contents("img/meta/tv/thm_$series",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
 		return "Grabbed";
@@ -91,7 +91,11 @@ class ModScrapeTVDB
 			$en = (int)$ep->EpisodeNumber;
 			$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
 			if (empty($ret['eps'][$sn][$en]['title']))
-				$ret['eps'][$sn][$en]['title'] = $ep->EpisodeName;
+				$ret['eps'][$sn][$en]['title'] = (string)$ep->EpisodeName;
+			$eid = (string)$ep->id;
+			$snid = (string)$ep->seasonid;
+			$srid = (string)$ep->seriesid;
+			$ret['eps'][$sn][$en]['links']['TVDB'] = "http://thetvdb.com/index.php?tab=episode&seriesid=$srid&seasonid=$snid&id=$eid";
 		}
 		return $ret;
 	}

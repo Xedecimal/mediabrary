@@ -1,81 +1,20 @@
+<div id="mediainfo">
+<fieldset><legend>Hide Columns</legend>
+<column>
+	<label title="{{title}}"><input type="checkbox" class="hider"
+		value="mit-col{{index}}" /> {{short}}</label>
+</column>
+</fieldset>
 <table id="mediainfo-table">
-<tr>
-	<th>Path</th>
-	<th>Format</th>
-	<!-- <th title="Format Info">FI</th> -->
-	<th>File Size</th>
-	<th>Duration</th>
-	<!-- <th title="Overall Bit Rate">OBR</th> -->
-	<!-- <th>Writer</th> -->
-	<th>VID</th>
-	<!-- <th title="Video Format">VF</th> -->
-	<th title="Codec ID">CID</th>
-	<!-- <th title="Codec ID Hint">CIDH</th> -->
-	<!-- <th>Video Duration</th> -->
-	<th title="Video Bit Rate">VBR</th>
-	<th title="Horizontal Resolution">X</th>
-	<th title="Vertical Resolution">Y</th>
-	<th title="Aspect Ratio">AR</th>
-	<th title="Frame Rate">FR</th>
-	<th title="Bits per Pixel">BPP</th>
-	<!-- <th title="Bits per Pixel per Frame">BPPF</th> -->
-	<!-- <th title="Stream Size">SS</th> -->
-	<th title="Audio ID">AID</th>
-	<!-- <th title="Audio Format Version">AFV</th> -->
-	<!-- <th title="Audio Format Profile">AFP</th> -->
-	<!-- <th title="Audio Format Settings Mode">AFSM</th> -->
-	<!-- <th title="Audio Format Settings Mode Extension">AFSME</th> -->
-	<th title="Audio Codec ID">ACID</th>
-	<!-- <th title="Audio Codec ID Hint">ACIH</th> -->
-	<!-- <th title="Audio Duration">AD</th> -->
-	<th title="Audio Bit Rate Mode">ABRM</th>
-	<th title="Audio Bit Rate">ABR</th>
-	<th title="Audio Channels">AC</th>
-	<th title="Audio Sampling Rate">ASR</th>
-	<!-- <th title="Audio Stream Size">ASS</th> -->
-	<!-- <th title="Audio Alignment">AA</th> -->
-	<!-- <th>{{Audio.Interleave__duration}}</th> -->
-	<!-- <th>{{Audio.Interleave__preload_duration}}</th> -->
-</tr>
+	<thead><tr>
+		<column><th class="mit-col{{index}}" title="{{title}}">{{short}}</th></column>
+	</tr></thead>
+<tbody>
 <item>
 	<tr>
-		<td>{{General.Complete_name}}</td>
-		<td>{{General.Format}}</td>
-		<!-- <td>{{General.Format_Info}}</td> -->
-		<td class="col_{{col_gfs}}">{{General.File_size}}</td>
-		<td>{{General.Duration}}</td>
-		<!-- <td>{{General.Overall_bit_rate}}</td> -->
-		<!-- <td>{{General.Writing_library}}</td> -->
-		<!-- <td>{{Video.ID}}</td> -->
-		<!-- <td>{{Video.Format}}</td> -->
-		<td>{{Video.Codec_ID}}</td>
-		<!-- <td>{{Video.Codec_ID_Hint}}</td> -->
-		<!-- <td>{{Video.Duration}}</td> -->
-		<td class="col_{{col_vbr}}">{{Video.Bit_rate}}</td>
-		<td class="col_{{col_vrx}}">{{Video.Width}}</td>
-		<td class="col_{{col_vry}}">{{Video.Height}}</td>
-		<td>{{Video.Display_aspect_ratio}}</td>
-		<td class="col_{{col_vfr}}">{{Video.Frame_rate}}</td>
-		<td>{{Video.Resolution}}</td>
-		<!-- <td>{{Video.Bits__Pixel_Frame_}}</td> -->
-		<!-- <td>{{Video.Stream_size}}</td> -->
-		<!-- <td>{{Audio.ID}}</td> -->
-		<td>{{Audio.Format}}</td>
-		<!-- <td>{{Audio.Format_version}}</td> -->
-		<!-- <td>{{Audio.Format_profile}}</td> -->
-		<!-- <td>{{Audio.Format_Settings_Mode}}</td> -->
-		<!-- <td>{{Audio.Format_Settings_ModeExtension}}</td> -->
-		<td>{{Audio.Codec_ID}}</td>
-		<!-- <td>{{Audio.Codec_ID_Hint}}</td> -->
-		<!-- <td>{{Audio.Duration}}</td> -->
-		<td>{{Audio.Bit_rate_mode}}</td>
-		<td class="col_{{col_abr}}">{{Audio.Bit_rate}}</td>
-		<td class="col_{{col_ach}}">{{Audio.Channel_s_}}</td>
-		<td>{{Audio.Sampling_rate}}</td>
-		<!-- <td>{{Audio.Stream_size}}</td> -->
-		<!-- <td>{{Audio.Alignment}}</td> -->
-		<!-- <td>{{Audio.Interleave__duration}}</td> -->
-		<!-- <td>{{Audio.Interleave__preload_duration}}</td> -->
+		<icol><td class="{{class}}">{{data}}</td></icol>
 	</tr>
 </item>
+</tbody>
 </table>
+</div>

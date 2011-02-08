@@ -2,22 +2,44 @@
 
 class ModSimilar extends Module
 {
-	function Get()
+	function __construct()
 	{
-		global $_d;
+		$this->CheckActive('similar');
+		
+		if (!$this->Active) return;
 
-		if ($_d['q'][0] != 'similar') return;
+		$this->glue = new Glue;
+
+		if (!$tok = $this->glue->Authorize())
+		{
+			die('Click <a href="'.$this->glue->GetAuthURL()
+				.'" target="_blank">here</a> to authorize.');
+		}
 
 		$t = new Template();
 		$t->ReWrite('item', array(&$this, 'TagItem'));
 		die($t->ParseFile(Module::L('similar/t.xml')));
 	}
 
+	function Get()
+	{
+		global $_d;
+
+		$js = Module::P('similar/js.js');
+		$css = Module::P('similar/css.css');
+
+		$ret['head'] =  <<<EOF
+<script type="text/javascript" src="$js"></script>
+<link type="text/css" rel="stylesheet" href="$css" />
+EOF;
+
+		return $ret;
+	}
+
 	function Link()
 	{
 		global $_d;
 
-		$_d['cb.head']['similar'] = array(&$this, 'cb_head');
 		$_d['movie.cb.buttons']['similar'] =
 			array(&$this, 'cb_buttons_similar');
 		$_d['tv.cb.buttons']['similar'] =
@@ -26,9 +48,9 @@ class ModSimilar extends Module
 
 	function cb_buttons_similar($t)
 	{
-		if (!isset($t->vars['med_title'])) return;
+		if (!isset($t->vars['mov_title'])) return;
 		$icon = Module::P('similar/img/icon.png');
-		return '<a href="{{med_title}}" id="a-similar"><img src="'.
+		return '<a href="{{mov_title}}" id="a-similar"><img src="'.
 			$icon.'" alt="icon" /></a>';
 	}
 
@@ -40,41 +62,73 @@ class ModSimilar extends Module
 
 		$vp = new VarParser();
 		$ret = null;
-		foreach ($items as $i)
-		{
-			$ret .= $vp->ParseVars($g, $i);
-		}
+		foreach ($items as $i) $ret .= $vp->ParseVars($g, $i);
 		return $ret;
-	}
-
-	function cb_head()
-	{
-		$js = Module::P('similar/js.js');
-		$css = Module::P('similar/css.css');
-
-		return <<<EOF
-<script type="text/javascript" src="$js"></script>
-<link type="text/css" rel="stylesheet" href="$css" />
-EOF;
 	}
 }
 
 class Glue
 {
+	const conskey = 'accb344de4052d061cb0f33b2446054e';
+	const conssec = 'f244602af7e5e7b1aaa78a75a18d165f';
+
+	const req_url = 'http://api.getglue.com/oauth/request_token';
+	const authurl = 'http://getglue.com/oauth/authorize';
+	const acc_url = 'http://api.getglue.com/oauth/access_token';
+	const api_url = 'http://api.getglue.com/v2';
+
 	static function GetToken()
 	{
 		global $_d;
 
 		$dat = file_get_contents('http://api.getglue.com/v2/user/login?'
 			.http_build_query(array(
-				'userId' => (string)$_d['config']->glue->attributes()->user,
-				'password' => (string)$_d['config']->glue->attributes()->pass
+				'userId' => $_d['config']['glue']['user'],
+				'password' => $_d['config']['glue']['pass']
 			))
 		);
 		$sx = simplexml_load_string($dat);
 		$token = $sx->xpath('//response/ping/token');
 		$token = (string)$token[0];
 		return $token;
+	}
+
+	function __construct()
+	{
+ 		$this->oauth = new OAuth(Glue::conskey,Glue::conssec,
+			OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_URI);
+		$this->oauth->enableDebug();
+	}
+
+	function Authorize()
+	{
+		# We've already authorized.
+		if (!empty($_SESSION['glue_token'])) return $_SESSION['glue_token'];
+
+		# We just accepted the app and need to save the token.
+		if (isset($_SESSION['glue_secret']) && isset($_GET['oauth_token']))
+		{
+			$this->oauth->setToken($_GET['oauth_token'], $_SESSION['glue_secret']);
+			$access_token_info = $oauth->getAccessToken(Glue::acc_url);
+			U::VarInfo($_SESSION);
+			var_dump($access_token_info);
+			$_SESSION['glue_token'] = $access_token_info['oauth_token'];
+			$_SESSION['glue_secret'] = $access_token_info['oauth_token_secret'];
+		}
+
+		# Apparently no authorization happened.
+		return false;
+	}
+
+	function GetAuthURL()
+	{
+		$request_token_info = $this->oauth->getRequestToken(Glue::req_url);
+		$_SESSION['glue_secret'] = $request_token_info['oauth_token_secret'];
+		$q = http_build_query(array(
+			'oauth_token' => $request_token_info['oauth_token'],
+			'oauth_callback' => "http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}"
+		));
+		return Glue::authurl."?$q";
 	}
 
 	static function FindObject($token, $query)

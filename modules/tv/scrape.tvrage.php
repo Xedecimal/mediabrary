@@ -7,12 +7,14 @@ class ModScrapeTVRage
 	const _tvrage_info = 'http://services.tvrage.com/myfeeds/showinfo.php?key=ouF0qPaRHNf7MXPMrQZv&sid=';
 	const _tvrage_list = 'http://services.tvrage.com/myfeeds/episode_list.php?key=ouF0qPaRHNf7MXPMrQZv&sid=';
 
-	function Find($path)
+	static function Find($path, $full = false)
 	{
-		$sid = ModScrapeTVRage::GetSID($path);
+		$sid = ModScrapeTVRage::GetSID($path, $full);
+		if ($full)
+			ModScrapeTVRage::GetXML($path, true);
 	}
 
-	static function GetSID($path)
+	static function GetSID($path, $full = false)
 	{
 		$sc = "$path/.tvrage.season.xml";
 
@@ -22,7 +24,7 @@ class ModScrapeTVRage
 		else $realname = basename($path);
 
 		# Cache data
-		if (!file_exists($sc))
+		if (!file_exists($sc) || $full)
 		{
 			$url = ModScrapeTVRage::_tvrage_find.rawurlencode($realname);
 			$sx = simplexml_load_string(file_get_contents($url));
@@ -68,11 +70,12 @@ class ModScrapeTVRage
 			foreach ($s->xpath('episode') as $ep)
 			{
 				// Blank date.
-				if ($ep->airdate == '0000-00-00')
+				if ($ep->airdate == '0000-00-00' || preg_match('/\d{4}-00-00/', $ep->airdate))
 					$eout['aired'] = null;
 				else
 					$eout['aired'] = Database::MyDateTimestamp($ep->airdate);
 				$eout['title'] = (string)$ep->title;
+				$eout['links']['TVRage'] = (string)$ep->link;
 				$en = (int)$ep->seasonnum;
 				$ret['eps'][$sn][$en] = $eout;
 			}

@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Mediabrary</title>
 <script type="text/javascript">
-app_abs = '{{app_abs}}';
+var app_abs = '{{app_abs}}';
 </script>
 <script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.js"></script>
 <script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.ui.js"></script>

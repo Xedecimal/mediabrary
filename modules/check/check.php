@@ -35,6 +35,7 @@ class ModCheck extends Module
 
 		$this->_msgs = array();
 
+		set_time_limit(0);
 		// Collect check messages
 		foreach ($mods as $m)
 			if (method_exists($m, 'Check'))
