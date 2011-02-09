@@ -238,7 +238,7 @@ EOF;
 
 		$cmd_path = str_replace('*', '\\*', $path);
 		$out = `mediainfo --Output=XML '{$cmd_path}'`;
-		if (empty($out)) echo "Error loading media info.";
+		if (empty($out)) return "Error loading media info.";
 		$sx = simplexml_load_string(preg_replace('/|/', '', $out));
 
 		$tracks = $sx->File->track;
