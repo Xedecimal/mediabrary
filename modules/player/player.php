@@ -17,26 +17,34 @@ class ModPlayer extends Module
 
 		if ($_d['q'][0] != 'player') return;
 
+		if ($_d['q'][1] == 'js')
+		{
+			$t = new Template($_d);
+			$t->use_getvar = true;
+			die($t->ParseFile(Module::L('player/player.js')));
+		}
+		if ($_d['q'][1] == 'try_play')
+		{
+			$p = Server::GetVar('path');
+			$f = basename($p);
+			$trans = ModPlayer::GetTrans($p)."/$f";
+			$url = 'http://'.$_SERVER['REMOTE_ADDR'].':8080/requests/status.xml'
+				.'?command=in_play&input='.rawurlencode($trans);
+			$xml = @file_get_contents($url);
+			if (!empty($xml)) $res = 'success';
+			else $res = 'failure';
+			die($res);
+		}
+
 		$p = Server::GetVar('path');
 
-		if (is_file($p))
-			$d = dirname($p);
+		if (is_file($p)) $d = dirname($p);
 		else $d = $p;
 		$f = basename($p);
 
 		# Translate a path to a faster source
 
-		$trans = array($p);
-		foreach ($_d['config']['player']['trans'] as $t)
-		{
-			$c = $t['client'];
-			if (preg_match($c, $_SERVER['REMOTE_ADDR']))
-			{
-				$np = str_replace($t['source'],
-					$t['target'], $d);
-				break;
-			}
-		}
+		$np = ModPlayer::GetTrans($p);
 
 		# Locate an use any regioning data
 
@@ -75,6 +83,13 @@ class ModPlayer extends Module
 		die($ret);
 	}
 
+	function Get()
+	{
+		$ret['head'] = '<script type="text/javascript"
+			src="{{app_abs}}/player/js"></script>';
+		return $ret;
+	}
+
 	/**
 	 *
 	 * @global array $_d
@@ -93,7 +108,7 @@ class ModPlayer extends Module
 
 	function cb_buttons_cover($t)
 	{
-		return ' <a href="player?path={{url}}"><img
+		return ' <a href="player?path={{url}}" class="a-play"><img
 			src="modules/player/img/play.png" alt="Play" /></a> ';
 	}
 
@@ -123,6 +138,22 @@ class ModPlayer extends Module
 
 
 EOF;
+	}
+
+	static function GetTrans($p)
+	{
+		global $_d;
+
+		if (is_file($p)) $d = dirname($p);
+		else $d = $p;
+
+		$trans = array($p);
+		foreach ($_d['config']['player']['trans'] as $t)
+		{
+			$c = $t['client'];
+			if (preg_match($c, $_SERVER['REMOTE_ADDR']))
+				return str_replace($t['source'], $t['target'], $d);
+		}
 	}
 }
 
