@@ -242,9 +242,24 @@ EOF;
 			}
 
 			# Title Related
-
 			$title = ModMovie::CleanTitleForFile($md['mov_title']);
-			$ext = strtolower(File::ext($file['fs_filename']));
+
+			# Validate strict naming conventions.
+			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#',
+				$md['mov_path']))
+			{
+				$urlfix = "movie/fix?path=$uep";
+				$urlunfix = "tmdb/remove?path=$uep";
+				$ext = strtolower(File::ext($file['fs_filename']));
+				$bn = basename($p);
+				$rep['File Name Compliance'][] = <<<EOD
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$title ($year).$ext".
+	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+		target="_blank">Reference</a>
+EOD;
+			}
 
 			# Look for cover or backdrop.
 
