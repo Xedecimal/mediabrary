@@ -169,8 +169,6 @@ class ModMovie extends MediaLibrary
 		$ret = array();
 
 		# Collect known filesystem data
-		$pregs = ModMovie::GetFSPregs();
-
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach(glob($p.'/*') as $f)
