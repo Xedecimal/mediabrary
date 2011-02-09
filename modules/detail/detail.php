@@ -8,7 +8,7 @@ class ModDetail extends Module
 
 		$_d['movie_detail.ds'] = new DataSet($_d['db'], 'movie_detail', 'md_id');
 		$_d['movie_date.ds'] = new DataSet($_d['db'], 'movie_date', 'md_id');
-		$_d['movie_float.ds'] = new DataSet($_d['db'], 'movie_float', 'mf_id');
+		$_d['movie_float.ds'] = new DataSet($_d['db'], 'movie_float', 'md_id');
 	}
 
 	function Link()
