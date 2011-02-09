@@ -11,7 +11,7 @@ $(function () {
 	});
 
 	$('.movie-item').live('hover', function (e) {
-		if (e.type == 'mouseover')
+		if (e.type == 'mouseenter')
 		{
 			$(window.current).find('.movie-details').hide();
 			$(this).find('.movie-details').show();
