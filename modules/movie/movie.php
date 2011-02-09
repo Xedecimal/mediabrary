@@ -312,6 +312,35 @@ EOD;
 			else $ret = array_merge_recursive($ret, $rep);
 		}
 
+		# Check for orphaned meta images.
+		foreach (glob('img/meta/movie/*') as $p)
+		{
+			$f = basename($p);
+
+			if (preg_match('/(thm_|bd_)(.*)/', $f, $m))
+			{
+				$found = false;
+				foreach ($_d['config']['paths']['movie'] as $mp)
+				{
+					$paths = glob($mp.'/'.$m[2].'.*');
+					$s = $mp.'/'.$m[2];
+					if (!empty($paths)) $found = true;
+				}
+				if (!$found)
+				{
+					if (!File::SafeDelete($p))
+						$ret['media'][] = "Could not unlink: $p";
+					$ret['media'][] = "Removed orphan cover $p";
+				}
+			}
+			else
+			{
+				if (!File::SafeDelete($p))
+					$ret['media'][] = "Could not unlink: $p";
+				$ret['media'][] = "Removed irrelevant cover: {$p}";
+			}
+		}
+
 		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
 
 		return $ret;
