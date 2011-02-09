@@ -40,46 +40,58 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
-			$mm = new ModMovie;
-			$target = Server::GetVar('target');
-			$item = $mm->ScrapeFS($target);
-			$q['match']['mov_path'] = $item['fs_path'];
-			$item += $_d['movie.ds']->GetOne($q);
+			$movie = ModMovie::GetMovie(Server::GetVar('target'));
 
-			if (empty($item['mov_title'])) $item['mov_title'] = $item['fs_title'];
-			if (empty($item['mov_path'])) $item['mov_path'] = $item['fs_path'];
+			if (empty($movie['mov_title']))
+				$movie['mov_title'] = $movie['fs_title'];
+			if (empty($movie['mp_path']))
+				$movie['mp_path'] = $movie['fs_path'];
 
 			# Fast scrape doesn't come with tmdbid.
 			if (Server::GetVar('fast') == 1)
 			{
-				$title = MediaLibrary::UncleanTitle($item['mov_title']).' '
-					.@$item['fs_date'];
+				$title = MediaLibrary::UncleanTitle($movie['mov_title']).' '
+					.@$movie['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
 				if (empty($sx_movies)) die('Found nothing for "'.$title.'"');
-				$tmdbid = $sx_movies[0]->id;
+				$tmdbid = (string)$sx_movies[0]->id;
 			}
 			else $tmdbid = Server::GetVar('tmdb_id');
 
 			# Do the actual scrape.
-			$item = ModTMDB::Scrape($item, $tmdbid);
+			$movie = ModTMDB::Scrape($movie, $tmdbid);
 
 			# Collect updated information.
-			$media = ModMovie::GetMedia('movie', $item,
+			$media = ModMovie::GetMedia('movie', $movie,
 				Module::P('movie/img/missing.jpg'));
 
-			if (empty($item)) die(json_encode(array('error' => 'Not found',
+			if (empty($movie)) die(json_encode(array('error' => 'Not found',
 				'mov_path' => Server::GetVar('target'))));
-			foreach ($item as $k => $v) if (substr($k, 0, 3) != 'mov')
-				unset($item[$k]);
+
+			# Store paths for later insertion.
+			$paths = $movie['paths'];
+
+			# Pop off anything that doesn't go in the database.
+			foreach ($movie as $k => $v) if (substr($k, 0, 3) != 'mov')
+				unset($movie[$k]);
 
 			# Update the database
-			$added = $_d['movie.ds']->Add($item, true);
+			$added = $_d['movie.ds']->Add($movie, true);
+
+			if (empty($movie['mov_id'])) $movie['mov_id'] = $added;
+
+			# Now that we have something to attach to, lets add all the paths
+			# for this movie.
+			foreach ($paths as $p)
+				$_d['movie_path.ds']->Add(array(
+					'mp_movie' => $movie['mov_id'],
+					'mp_path' => $p
+				), true);
 
 			# Run all module callbacks
-			if (empty($item['mov_id'])) $item['mov_id'] = $added;
-			U::RunCallbacks($_d['tmdb.cb.postscrape'], $item);
+			U::RunCallbacks($_d['tmdb.cb.postscrape'], $movie);
 			if (Server::GetVar('fast') == 1) die('Fixed!');
-			die(json_encode($item + $media));
+			die(json_encode($movie + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')
 		{
@@ -90,7 +102,7 @@ class ModTMDB extends Module
 		else if (@$_d['q'][1] == 'covers')
 		{
 			$path = Server::GetVar('path');
-			$match = array('mov_path' => $path);
+			$match = array('mp_path' => $path);
 			$item = $_d['movie.ds']->Get(array('match' => $match));
 
 			if (empty($item) || empty($item[0]['mov_tmdbid']))

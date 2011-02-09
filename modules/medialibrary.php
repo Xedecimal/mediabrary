@@ -33,30 +33,27 @@ class MediaLibrary extends Module
 		return $ret;
 	}
 
-	function ScrapeFS($path)
+	static function ScrapeFS($path, $pregs)
 	{
 		// Collect path based metadata.
 
-		if (!isset($this->_items[$path]))
+		$mx = 0;
+		foreach ($pregs as $preg => $matches)
 		{
-			$mx = 0;
-			foreach ($this->_fs_scrapes as $preg => $matches)
+			if (preg_match($preg, $path, $m))
 			{
-				if (preg_match($preg, $path, $m))
-				{
-					foreach ($matches as $idx => $col)
-						$this->_items[$path][$col] = $m[$idx];
-					$this->_items[$path]['debug_matched'] = $mx;
-					break;
-				}
-				$mx++;
+				foreach ($matches as $idx => $col)
+					$ret[$col] = $m[$idx];
+				$ret['debug_matched'] = $mx;
+				break;
 			}
-
-			$this->_items[$path]['fs_path'] = $path;
-			$this->_items[$path]['fs_filename'] = basename($path);
+			$mx++;
 		}
 
-		return $this->_items[$path];
+		$ret['fs_path'] = $path;
+		$ret['fs_filename'] = basename($path);
+
+		return $ret;
 	}
 
 	static function GetMedia($type, $item, $default_thumb)

@@ -10,43 +10,13 @@ class ModMovie extends MediaLibrary
 
 		$_d['movie.source'] = 'file';
 		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'mov_id');
+		$mpds = $_d['movie_path.ds'] = new DataSet($_d['db'],
+			'movie_path', 'mp_id');
+		$_d['movie.ds']->AddJoin(new Join($mpds, 'mp_movie = mov_id',
+			'LEFT JOIN'));
 
 		$this->_class = 'movie';
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
-		$this->_fs_scrapes = array(
-			# title [date].ext
-			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'),
-
-			# title[date].ext
-			/*'#([^/\[]+)\[([0-9]{4})\].*\.([^.]+)#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'),*/
-
-			# title (date).ext
-			'#/([^/]+)\s*\((\d{4})\).*\.([^.]+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'),
-
-			# title [strip].ext
-			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_ext'),
-
-			# title.ext
-			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
-				1 => 'fs_title',
-				3 => 'fs_ext'),
-
-			# title.ext
-			'#([^/]+)\s*\.(\S+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_ext')
-		);
 	}
 
 	function Prepare()
@@ -105,9 +75,10 @@ class ModMovie extends MediaLibrary
 		if (@$_d['q'][1] == 'detail')
 		{
 			$t = new Template();
-			$item = $this->ScrapeFS(Server::GetVar('path'));
+			$item = $this->ScrapeFS(Server::GetVar('path'),
+				ModMovie::GetFSPregs());
 			$query = $_d['movie.cb.query'];
-			$query['match'] = array('mov_path' => $item['fs_path']);
+			$query['match'] = array('mp_path' => $item['fs_path']);
 
 			$item = array_merge($item, $_d['movie.ds']->GetOne($query));
 			if (!empty($_d['movie.cb.detail']))
@@ -203,12 +174,14 @@ class ModMovie extends MediaLibrary
 
 		# Collect known filesystem data
 
+		$pregs = ModMovie::GetFSPregs();
+
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach(glob($p.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
-			$this->_files[$f] = $this->ScrapeFS($f);
+			$this->_files[$f] = MediaLibrary::ScrapeFS($f, $pregs);
 		}
 
 		# Collect database information
@@ -216,7 +189,16 @@ class ModMovie extends MediaLibrary
 		$this->_ds = array();
 		foreach ($_d['movie.ds']->Get() as $dr)
 		{
-			$p = $dr['mov_path'];
+			$p = $dr['mp_path'];
+
+			# Remove missing items
+
+			if (empty($dr['mp_path']) || !file_exists($dr['mp_path']))
+			{
+				$ret['cleanup'][] = "Removed database entry for non-existing '"
+					.$p."'";
+				$_d['movie.ds']->Remove(array('mov_id' => $dr['mov_id']));
+			}
 
 			# This one is already clean, skip it.
 
@@ -224,15 +206,6 @@ class ModMovie extends MediaLibrary
 			{
 				unset($this->_files[$p]);
 				continue;
-			}
-
-			# Remove missing items
-
-			if (!file_exists($dr['mov_path']))
-			{
-				$rep['cleanup'][] = "Removed database entry for non-existing '"
-					.$p."'";
-				$_d['movie.ds']->Remove(array('mov_path' => $p));
 			}
 
 			$this->_ds[$p] = $dr;
@@ -251,6 +224,8 @@ class ModMovie extends MediaLibrary
 
 			if (!isset($this->_ds[$p]))
 			{
+				if ($file['fs_part'] > 1) continue;
+
 				$ret['Scrape'][] = <<<EOF
 <a href="movie/scrape?target=$uep&fast=1"
 	class="a-fix">Fix</a> File {$p} needs to be scraped
@@ -287,13 +262,20 @@ EOF;
 
 			# Validate strict naming conventions.
 
-			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#',
-				$md['mov_path']))
+			# Part files need their CD#
+			if (!empty($file['fs_part']))
+				$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
+					.$file['fs_part'].'\.([a-z0-9]+)$#';
+			else
+				$preg = '#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#';
+
+			if (!preg_match($preg, $md['mp_path']))
 			{
 				$urlfix = "movie/fix?path=$uep";
 				$urlunfix = "tmdb/remove?path=$uep";
 				$ext = strtolower(File::ext($file['fs_filename']));
 				$bn = basename($p);
+
 				$rep['File Name Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <A href="{$urlunfix}" class="a-nogo">Unscrape</a>
@@ -309,7 +291,7 @@ EOD;
 			{
 				$urlunfix = "tmdb/remove?path=$uep";
 				$rep['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mov_path']}
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mp_path']}
 - <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
 	target="_blank">Reference</a>
 EOD;
@@ -319,7 +301,7 @@ EOD;
 			{
 				$urlunfix = "tmdb/remove?path=$uep";
 				$rep['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mov_path']}
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mp_path']}
 EOD;
 			}
 
@@ -334,10 +316,7 @@ EOD;
 					array('mov_clean' => 1)
 				);
 			}
-			else
-			{
-				$ret = array_merge_recursive($ret, $rep);
-			}
+			else $ret = array_merge_recursive($ret, $rep);
 
 			# If we can, mark this movie clean to skip further checks.
 		}
@@ -353,12 +332,14 @@ EOD;
 
 		$ret = array();
 
+		$pregs = ModMovie::GetFSPregs();
+
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach (glob($p.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
-			$ret[$f] = $this->ScrapeFS($f);
+			$ret[$f] = $this->ScrapeFS($f, $pregs);
 		}
 
 		return $ret;
@@ -388,17 +369,83 @@ EOD;
 		if (!empty($movies))
 		foreach ($movies as $i)
 		{
-			$i['url'] = urlencode($i['mov_path']);
+			$i['url'] = urlencode($i['mp_path']);
 			// Emulate a file system if we're not indexing it.
-			if (!isset($ret[$i['mov_path']]))
+			if (!isset($ret[$i['mp_path']]))
 			{
-				$i['fs_path'] = $i['mov_path'];
-				$i['fs_filename'] = basename($i['mov_path']);
+				$i['fs_path'] = $i['mp_path'];
+				$i['fs_filename'] = basename($i['mp_path']);
 				$i['fs_title'] = $i['mov_title'];
-				$ret[$i['mov_path']] = $i;
+				$ret[$i['mp_path']] = $i;
 			}
-			else $ret[$i['mov_path']] += $i;
+			else $ret[$i['mp_path']] += $i;
 		}
+
+		return $ret;
+	}
+
+	static function GetFSPregs()
+	{
+		return array(
+			# title [date].ext
+			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'),
+
+			# title[date].ext
+			/*'#([^/\[]+)\[([0-9]{4})\].*\.([^.]+)#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'),*/
+
+			# title (date).ext
+			'#/([^/]+)\s*\((\d{4})\)\.([^.]+)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_ext'),
+
+			# title (date) CDnum.ext
+			'#/([^/]+)\s*\((\d{4})\)\s*CD(\d+)\.([^.]+)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_date',
+				3 => 'fs_part',
+				4 => 'fs_ext'
+			),
+
+			# title [strip].ext
+			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_ext'),
+
+			# title.ext
+			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
+				1 => 'fs_title',
+				3 => 'fs_ext'),
+
+			# title.ext
+			'#([^/]+)\s*\.(\S+)$#' => array(
+				1 => 'fs_title',
+				2 => 'fs_ext')
+		);
+	}
+
+	static function GetMovie($path)
+	{
+		global $_d;
+
+		$q['mp_path'] = $path;
+
+		$ret = MediaLibrary::ScrapeFS($path, ModMovie::GetFSPregs());
+
+		# This is a part, lets try to find the rest of them.
+		if (!empty($ret['fs_part']))
+		{
+			$files = glob(preg_replace('/CD\d+/', 'CD*', $ret['fs_path']));
+			$ret['paths'] = $files;
+		}
+		# Just a single movie
+		else $ret['paths'][$ret['fs_part']] = $ret['fs_path'];
 
 		return $ret;
 	}
