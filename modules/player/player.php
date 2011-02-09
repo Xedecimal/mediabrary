@@ -17,13 +17,13 @@ class ModPlayer extends Module
 
 		if ($_d['q'][0] != 'player') return;
 
-		if ($_d['q'][1] == 'js')
+		if (@$_d['q'][1] == 'js')
 		{
 			$t = new Template($_d);
 			$t->use_getvar = true;
 			die($t->ParseFile(Module::L('player/player.js')));
 		}
-		if ($_d['q'][1] == 'try_play')
+		if (@$_d['q'][1] == 'try_play')
 		{
 			$p = Server::GetVar('path');
 			$f = basename($p);
