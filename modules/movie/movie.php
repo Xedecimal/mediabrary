@@ -94,28 +94,24 @@ class ModMovie extends MediaLibrary
 		else if (@$_d['q'][1] == 'fix')
 		{
 			# Collect generic information.
-
 			$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
 			# Collect filesystem information on this path.
-
-			$meta = $this->ScrapeFS($src);
+			$meta = $this->ScrapeFS($src, ModMovie::GetFSPregs());
 
 			# Append database information on this path.
-
-			$dr = $_d['movie.ds']->GetOne(array(
-				'match' => array('mov_path' => str_replace('&', ':', $src))
-			));
+			$q['match']['mp_path'] = $src;
+			$dr = $_d['movie.ds']->GetOne($q);
 			if (!empty($dr)) $meta = array_merge($meta, $dr);
 
 			# Figure out what the file should be named.
-
-			$ftitle = $meta['mov_title'];
-			$ftitle = $this->CleanTitleForFile($ftitle);
+			$ftitle = $this->CleanTitleForFile($meta['mov_title']);
 			$fyear = substr($meta['mov_date'], 0, 4);
 
-			$dstf = "{$m[1]}{$ftitle} ({$fyear})";
+			if (!empty($meta['fs_part']))
+				$dstf = "{$m[1]}{$ftitle} ({$fyear}) CD{$meta['fs_part']}";
+			else $dstf = "{$m[1]}{$ftitle} ({$fyear})";
 			$dst = "$dstf.".strtolower($m[3]);
 
 			# Apply File Transformations
@@ -133,8 +129,8 @@ class ModMovie extends MediaLibrary
 
 			# Apply Database Transformations
 
-			$_d['movie.ds']->Update(array('mov_path' => $src),
-				array('mov_path' => $dst));
+			$_d['movie_path.ds']->Update(array('mp_path' => $src),
+				array('mp_path' => $dst));
 
 			die('Fixed');
 		}
@@ -173,7 +169,6 @@ class ModMovie extends MediaLibrary
 		$ret = array();
 
 		# Collect known filesystem data
-
 		$pregs = ModMovie::GetFSPregs();
 
 		if (!empty($_d['config']['paths']['movie']))
@@ -181,18 +176,16 @@ class ModMovie extends MediaLibrary
 		foreach(glob($p.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
-			$this->_files[$f] = MediaLibrary::ScrapeFS($f, $pregs);
+			$this->_files[$f] = ModMovie::GetMovie($f);
 		}
 
 		# Collect database information
-
 		$this->_ds = array();
 		foreach ($_d['movie.ds']->Get() as $dr)
 		{
 			$p = $dr['mp_path'];
 
 			# Remove missing items
-
 			if (empty($dr['mp_path']) || !file_exists($dr['mp_path']))
 			{
 				$ret['cleanup'][] = "Removed database entry for non-existing '"
@@ -201,7 +194,6 @@ class ModMovie extends MediaLibrary
 			}
 
 			# This one is already clean, skip it.
-
 			if (!empty($dr['mov_clean']))
 			{
 				unset($this->_files[$p]);
@@ -211,8 +203,7 @@ class ModMovie extends MediaLibrary
 			$this->_ds[$p] = $dr;
 		}
 
-		# Iterate all known items.
-
+		# Iterate all known combined items.
 		foreach ($this->_files as $p => $file)
 		{
 			$uep = urlencode($p);
@@ -259,32 +250,7 @@ EOF;
 			# Title Related
 
 			$title = ModMovie::CleanTitleForFile($md['mov_title']);
-
-			# Validate strict naming conventions.
-
-			# Part files need their CD#
-			if (!empty($file['fs_part']))
-				$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
-					.$file['fs_part'].'\.([a-z0-9]+)$#';
-			else
-				$preg = '#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#';
-
-			if (!preg_match($preg, $md['mp_path']))
-			{
-				$urlfix = "movie/fix?path=$uep";
-				# TODO: Do not directly reference tmdb here!
-				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
-				$ext = strtolower(File::ext($file['fs_filename']));
-				$bn = basename($p);
-
-				$rep['File Name Compliance'][] = <<<EOD
-<a href="{$urlfix}" class="a-fix">Fix</a>
-<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
-File "$bn" should be "$title ($year).$ext".
-	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
-		target="_blank">Reference</a>
-EOD;
-			}
+			$ext = strtolower(File::ext($file['fs_filename']));
 
 			# Look for cover or backdrop.
 
@@ -306,10 +272,40 @@ EOD;
 EOD;
 			}
 
+			# Validate strict naming conventions.
+
+			# Part files need their CD#
+			if (!empty($file['fs_part']))
+			{
+				$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
+					.$file['fs_part'].'\.([a-z0-9]+)$#';
+				$target = "$title ($year) CD{$file['fs_part']}.$ext";
+			}
+			else
+			{
+				$preg = '#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#';
+				$target = "$title ($year).$ext";
+			}
+
+			if (!preg_match($preg, $md['mp_path']))
+			{
+				$urlfix = "movie/fix?path=$uep";
+				# TODO: Do not directly reference tmdb here!
+				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
+				$bn = basename($p);
+
+				$rep['File Name Compliance'][] = <<<EOD
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$target".
+- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+	target="_blank">Reference</a>
+EOD;
+			}
+
 			$rep = array_merge_recursive($rep, U::RunCallbacks($_d['movie.cb.check'], $md));
 
 			# If anything was reported for this item, it is not clean.
-
 			if (empty($rep))
 			{
 				$_d['movie.ds']->Update(
@@ -318,8 +314,6 @@ EOD;
 				);
 			}
 			else $ret = array_merge_recursive($ret, $rep);
-
-			# If we can, mark this movie clean to skip further checks.
 		}
 
 		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
@@ -442,7 +436,7 @@ EOD;
 		# This is a part, lets try to find the rest of them.
 		if (!empty($ret['fs_part']))
 		{
-			$files = glob(preg_replace('/CD\d+/', 'CD*', $ret['fs_path']));
+			$files = glob(preg_replace('/cd\d+/i', 'cd*', $ret['fs_path']));
 			$ret['paths'] = $files;
 		}
 		# Just a single movie
