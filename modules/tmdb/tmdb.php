@@ -262,7 +262,7 @@ class ModTMDB extends Module
 			'#\[[^\]]+\]#' => '',
 			'#([.]{1} |\.|-|_)#' => ' ',
 			'#\([^)]*\)#' => '',
-			"#CD\d+#" => ''
+			"#cd\d+#i" => ''
 		);
 
 		$title = preg_replace(array_keys($reps), array_values($reps), $title);
