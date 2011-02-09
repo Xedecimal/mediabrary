@@ -445,7 +445,7 @@ EOD;
 			$ret['paths'] = $files;
 		}
 		# Just a single movie
-		else $ret['paths'][$ret['fs_part']] = $ret['fs_path'];
+		else $ret['paths'][] = $ret['fs_path'];
 
 		return $ret;
 	}
