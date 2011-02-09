@@ -272,7 +272,8 @@ EOF;
 			if (!preg_match($preg, $md['mp_path']))
 			{
 				$urlfix = "movie/fix?path=$uep";
-				$urlunfix = "tmdb/remove?path=$uep";
+				# TODO: Do not directly reference tmdb here!
+				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
 				$ext = strtolower(File::ext($file['fs_filename']));
 				$bn = basename($p);
 
@@ -289,7 +290,7 @@ EOD;
 
 			if (!file_exists("img/meta/movie/thm_$title ($year)"))
 			{
-				$urlunfix = "tmdb/remove?path=$uep";
+				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
 				$rep['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mp_path']}
 - <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
@@ -299,7 +300,7 @@ EOD;
 
 			if (!file_exists("img/meta/movie/bd_$title ($year)"))
 			{
-				$urlunfix = "tmdb/remove?path=$uep";
+				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
 				$rep['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mp_path']}
 EOD;

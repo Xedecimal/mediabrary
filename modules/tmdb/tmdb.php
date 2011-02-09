@@ -95,9 +95,7 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'remove')
 		{
-			$path = Server::GetVar('path');
-			if (!empty($path))
-				$_d['movie.ds']->Remove(array('mov_path' => $path));
+			$_d['movie.ds']->Remove(array('mov_id' => Server::GetVar('id')));
 		}
 		else if (@$_d['q'][1] == 'covers')
 		{
