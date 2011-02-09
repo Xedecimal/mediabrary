@@ -212,7 +212,6 @@ class ModMovie extends MediaLibrary
 			$rep = array();
 
 			# This item not exist in the database.
-
 			if (!isset($this->_ds[$p]))
 			{
 				if (@$file['fs_part'] > 1) continue;
@@ -227,7 +226,6 @@ EOF;
 			$md = $this->_ds[$p];
 
 			# Filename related
-
 			if (!empty($md['fs_path']) && File::ext($md['fs_path']) != 'avi')
 			{
 				$rep['File Name Compliance'][] = "File {$file['fs_path']} has a
@@ -235,12 +233,10 @@ EOF;
 			}
 
 			# Date Related
-
 			$date = $md['mov_date'];
 			$year = substr($date, 0, 4);
 
 			# Missing month and day.
-
 			if (strlen($date) < 10)
 			{
 				$rep['Scrape'][] = "File {$md['mov_path']} has incorrectly
@@ -305,7 +301,7 @@ EOD;
 
 			$rep = array_merge_recursive($rep, U::RunCallbacks($_d['movie.cb.check'], $md));
 
-			# If anything was reported for this item, it is not clean.
+			# If we can, mark this movie clean to skip further checks.
 			if (empty($rep))
 			{
 				$_d['movie.ds']->Update(
