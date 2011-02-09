@@ -224,7 +224,7 @@ class ModMovie extends MediaLibrary
 
 			if (!isset($this->_ds[$p]))
 			{
-				if ($file['fs_part'] > 1) continue;
+				if (@$file['fs_part'] > 1) continue;
 
 				$ret['Scrape'][] = <<<EOF
 <a href="movie/scrape?target=$uep&fast=1"
