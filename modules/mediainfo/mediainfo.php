@@ -188,6 +188,7 @@ EOF;
 
 		# Collect all modified times of movie files.
 
+		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach (glob($p.'/*') as $f)
 		{
@@ -204,6 +205,7 @@ EOF;
 		foreach ($_d['medinfo.ds']->Get($q) as $r)
 			$dbtimes[$r['path']] = $r['value'];
 
+		if (!empty($mtimes))
 		foreach ($mtimes as $p => $t)
 		if (!isset($dbtimes[$p]) || $dbtimes[$p] != $t)
 		{
