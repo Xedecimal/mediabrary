@@ -296,6 +296,7 @@ class ModTMDB extends Module
 		#usort($sx_movies, array('ModTMDB', 'cmp_title'));
 
 		$ret = null;
+		if (!empty($sx_movies))
 		foreach ($sx_movies as $sx_movie)
 		{
 			$m = ModTMDB::Decode($sx_movie);
