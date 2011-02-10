@@ -126,7 +126,8 @@ class ModTVSeries extends MediaLibrary
 			if (!empty($dirs))
 			foreach ($dirs as $f)
 			{
-				$this->_items[$f] = $this->ScrapeFS($f);
+				$this->_items[$f] = MediaLibrary::ScrapeFS($f,
+					ModTVEpisode::GetFSPregs());
 				$this->_items[$f] += $this->GetMedia('tv', $this->_items[$f], $this->_missing_image);
 			}
 
@@ -343,7 +344,56 @@ class ModTVEpisode extends MediaLibrary
 	{
 		$this->_template = 'modules/tv/t_tv_series.xml';
 		$this->_class = 'episode';
-		$this->_fs_scrapes = array(
+	}
+
+	function Get()
+	{
+		global $_d;
+		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
+
+		$sx = ModScrapeTVDB::GetXML($this->_vars['med_path']);
+		if (!empty($sx))
+		{
+			$elEps = $sx->xpath('//Episode');
+			foreach ($elEps as $elEp)
+			{
+				$s = (int)$elEp->SeasonNumber;
+				if (empty($s)) continue;
+				$e = (int)$elEp->EpisodeNumber;
+				$this->_items[$s][$e]['med_season'] = sprintf('%02d', $s);
+				$this->_items[$s][$e]['med_episode'] = sprintf('%02d', $e);
+				$this->_items[$s][$e]['med_title'] = (string)$elEp->EpisodeName;
+				$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
+				$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
+			}
+		}
+
+		$t = new Template();
+		$t->ReWrite('item', array(&$this, 'TagItem'));
+		$t->Set($this->_vars);
+		return $t->ParseFile($this->_template);
+		return parent::Get();
+	}
+
+	function TagItem($t, $g)
+	{
+		$vp = new VarParser();
+
+		$ret = null;
+		foreach ($this->_items as $s => $ss)
+			foreach ($ss as $e => $es)
+			{
+				if (isset($es['fs_path']))
+					$es['url'] = urlencode($es['fs_path']);
+				$ret .= $vp->ParseVars($g, $es);
+			}
+
+		return $ret;
+	}
+
+	static function GetFSPregs()
+	{
+		return array(
 			# path/{series}/{series} Season {season} - {episode} - {title}.ext
 			'#/([^/]+)/([^/-]+)\s*Season ([0-9]+)\s+-\s+([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
 				1 => 'med_series',
@@ -409,51 +459,6 @@ class ModTVEpisode extends MediaLibrary
 		);
 	}
 
-	function Get()
-	{
-		global $_d;
-		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
-
-		$sx = ModScrapeTVDB::GetXML($this->_vars['med_path']);
-		if (!empty($sx))
-		{
-			$elEps = $sx->xpath('//Episode');
-			foreach ($elEps as $elEp)
-			{
-				$s = (int)$elEp->SeasonNumber;
-				if (empty($s)) continue;
-				$e = (int)$elEp->EpisodeNumber;
-				$this->_items[$s][$e]['med_season'] = sprintf('%02d', $s);
-				$this->_items[$s][$e]['med_episode'] = sprintf('%02d', $e);
-				$this->_items[$s][$e]['med_title'] = (string)$elEp->EpisodeName;
-				$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
-				$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
-			}
-		}
-
-		$t = new Template();
-		$t->ReWrite('item', array(&$this, 'TagItem'));
-		$t->Set($this->_vars);
-		return $t->ParseFile($this->_template);
-		return parent::Get();
-	}
-
-	function TagItem($t, $g)
-	{
-		$vp = new VarParser();
-
-		$ret = null;
-		foreach ($this->_items as $s => $ss)
-			foreach ($ss as $e => $es)
-			{
-				if (isset($es['fs_path']))
-					$es['url'] = urlencode($es['fs_path']);
-				$ret .= $vp->ParseVars($g, $es);
-			}
-
-		return $ret;
-	}
-
 	static function GetExistingEpisodes($series)
 	{
 		global $_d;
@@ -463,7 +468,8 @@ class ModTVEpisode extends MediaLibrary
 		foreach (glob($series.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
-			$i = $tvi->ScrapeFS($f);
+			$i = MediaLibrary::ScrapeFS($f, ModTVEpisode::GetFSPregs());
+			#$i = $tvi->ScrapeFS($f);
 
 			if (!isset($i['med_episode']))
 			{
