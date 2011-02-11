@@ -177,7 +177,8 @@ class ModTVSeries extends MediaLibrary
 		global $_d;
 
 		$ret = array();
-		$mte = new ModTVEpisode;
+
+		$pregs = ModTVEpisode::GetFSPregs();
 
 		if (!empty($_d['config']['paths']['tv']))
 		foreach ($_d['config']['paths']['tv'] as $p)
@@ -190,7 +191,7 @@ class ModTVSeries extends MediaLibrary
 			{
 				if (is_dir($episode)) continue;
 
-				$info = $mte->ScrapeFS($episode);
+				$info = MediaLibrary::ScrapeFS($episode, $pregs);
 				if (empty($info['med_season']))
 				{
 					U::VarInfo("Cannot recognize: $episode");
