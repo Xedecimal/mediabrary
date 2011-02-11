@@ -26,7 +26,9 @@ class MediaLibrary extends Module
 		if (!empty($this->_items))
 		foreach ($this->_items as $i)
 		{
-			foreach (array_keys($i) as $k) $i[$k] = htmlspecialchars($i[$k]);
+			foreach (array_keys($i) as $k)
+				if (is_string($i[$k]))
+					$i[$k] = htmlspecialchars($i[$k]);
 			$ret .= $vp->ParseVars($g, $i);
 		}
 
@@ -102,10 +104,17 @@ class MediaLibrary extends Module
 		return $ret;
 	}
 
-	static function UncleanTitle($title)
+	static function SearchTitle($title)
 	{
+		$reps = array(
+			'/(.*), The/' => 'The \1',
+			'#\[[^\]]+\]#' => '',
+			'#([.]{1} |\.|-|_)#' => ' ',
+			'#\([^)]*\)#' => '',
+			"#cd\d+#i" => '');
+
 		# Fix transposed ", The".
-		return preg_replace('/(.*), The/', 'The \1', $title);
+		return preg_replace(array_keys($reps), array_values($reps), $title);
 	}
 
 	function Check() { return array(); }

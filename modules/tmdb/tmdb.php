@@ -29,7 +29,7 @@ class ModTMDB extends Module
 		if (@$_d['q'][1] == 'find')
 		{
 			$d = $_d['movie.ds']->GetOne(array('match' => array(
-				'mov_path' => Server::GetVar('path'))));
+				'mp_path' => Server::GetVar('path'))));
 
 			$title = Server::GetVar('title');
 			$path = Server::GetVar('path');
@@ -50,7 +50,7 @@ class ModTMDB extends Module
 			# Fast scrape doesn't come with tmdbid.
 			if (Server::GetVar('fast') == 1)
 			{
-				$title = MediaLibrary::UncleanTitle($movie['mov_title']).' '
+				$title = MediaLibrary::SearchTitle($movie['mov_title']).' '
 					.@$movie['fs_date'];
 				$sx_movies = ModTMDB::FindXML($title);
 				if (empty($sx_movies)) die('Found nothing for "'.$title.'"');
@@ -206,7 +206,7 @@ class ModTMDB extends Module
 			alt="Find" /></a>';
 		if (!empty($t->vars['mov_date']))
 		{
-			$ret .= '<a href="{{fs_path}}" id="tmdb-aRemove"><img src="img/database_delete.png"
+			$ret .= '<a href="{{mov_id}}" id="tmdb-aRemove"><img src="img/database_delete.png"
 				alt="Remove" /></a>';
 			$ret .= '<a href="{{fs_path}}" id="tmdb-aCovers"><img src="modules/movie/img/images.png"
 				alt="Select New Cover" /></a>';
@@ -258,14 +258,6 @@ class ModTMDB extends Module
 
 	static function FindXML($title)
 	{
-		$reps = array(
-			'#\[[^\]]+\]#' => '',
-			'#([.]{1} |\.|-|_)#' => ' ',
-			'#\([^)]*\)#' => '',
-			"#cd\d+#i" => ''
-		);
-
-		$title = preg_replace(array_keys($reps), array_values($reps), $title);
 		$title = urlencode(trim($title));
 		$xml = @file_get_contents(TMDB_FIND.$title);
 		if (empty($xml)) return null;
@@ -375,9 +367,8 @@ class ModTMDB extends Module
 			if (!empty($data))
 			{
 				# Clean up existing covers
-				$unlink = glob('img/meta/movie/thm_'.$dst_pinfo['filename'].'.*');
-				if (count($unlink) > 2) die('Something just tried to delete more than 2 covers.');
-				foreach ($unlink as $f) unlink($f);
+				$thm = basename($dst_pinfo['filename'], $dst_pinfo['extension']);
+				unlink('img/meta/movie/thm_'.$thm);
 
 				# Place new cover
 				$src_pinfo = pathinfo($url);

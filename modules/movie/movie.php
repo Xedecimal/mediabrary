@@ -177,6 +177,10 @@ class ModMovie extends MediaLibrary
 			$this->_files[$f] = ModMovie::GetMovie($f);
 		}
 
+		# This will be used later to hunt for things that a file doesn't exist
+		# for.
+		$filelist = array_keys($this->_files);
+
 		# Collect database information
 		$this->_ds = array();
 		foreach ($_d['movie.ds']->Get() as $dr)
@@ -209,113 +213,24 @@ class ModMovie extends MediaLibrary
 			# We reported information in here to place in $ret later.
 			$rep = array();
 
-			# This item not exist in the database.
-			if (!isset($this->_ds[$p]))
+			$rep = array_merge_recursive($rep,
+				$this->CheckDatabaseExistence($file));
+
+			# Database available, run additional checks.
+			if (isset($this->_ds[$p]))
 			{
-				if (@$file['fs_part'] > 1) continue;
-
-				$ret['Scrape'][] = <<<EOF
-<a href="movie/scrape?target=$uep&fast=1"
-	class="a-fix">Fix</a> File {$p} needs to be scraped
-EOF;
-				continue;
+				$md = $this->_ds[$p];
+				$rep = array_merge_recursive($rep, $this->CheckDates($md));
+				$rep = array_merge_recursive($rep,
+					$this->CheckFilename($file, $md));
+				$rep = array_merge_recursive($rep,
+					$this->CheckMedia($file, $md));
+				$rep = array_merge_recursive($rep,
+					U::RunCallbacks($_d['movie.cb.check'], $md));
 			}
-
-			$md = $this->_ds[$p];
-
-			# Filename related
-			if (!empty($md['fs_path']) && File::ext($md['fs_path']) != 'avi')
-			{
-				$rep['File Name Compliance'][] = "File {$file['fs_path']} has a
-					bad extension.";
-			}
-
-			# Date Related
-			$date = $md['mov_date'];
-			$year = substr($date, 0, 4);
-
-			# Missing month and day.
-			if (strlen($date) < 10)
-			{
-				$rep['Scrape'][] = "File {$md['mov_path']} has incorrectly
-					scraped date \"{$year}\"";
-			}
-
-			# Title Related
-			$title = ModMovie::CleanTitleForFile($md['mov_title']);
-
-			# Validate strict naming conventions.
-			if (!preg_match('#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#',
-				$md['mov_path']))
-			{
-				$urlfix = "movie/fix?path=$uep";
-				$urlunfix = "tmdb/remove?path=$uep";
-				$ext = strtolower(File::ext($file['fs_filename']));
-				$bn = basename($p);
-				$rep['File Name Compliance'][] = <<<EOD
-<a href="{$urlfix}" class="a-fix">Fix</a>
-<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
-File "$bn" should be "$title ($year).$ext".
-	- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
-		target="_blank">Reference</a>
-EOD;
-			}
-
-			# Look for cover or backdrop.
-
-			if (!file_exists("img/meta/movie/thm_$title ($year)"))
-			{
-				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
-				$rep['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mp_path']}
-- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
-	target="_blank">Reference</a>
-EOD;
-			}
-
-			if (!file_exists("img/meta/movie/bd_$title ($year)"))
-			{
-				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
-				$rep['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mp_path']}
-EOD;
-			}
-
-			# Validate strict naming conventions.
-
-			# Part files need their CD#
-			if (!empty($file['fs_part']))
-			{
-				$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
-					.$file['fs_part'].'\.([a-z0-9]+)$#';
-				$target = "$title ($year) CD{$file['fs_part']}.$ext";
-			}
-			else
-			{
-				$preg = '#/'.preg_quote($title).' \('.$year.'\)\.([a-z0-9]+)$#';
-				$target = "$title ($year).$ext";
-			}
-
-			if (!preg_match($preg, $md['mp_path']))
-			{
-				$urlfix = "movie/fix?path=$uep";
-				# TODO: Do not directly reference tmdb here!
-				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
-				$bn = basename($p);
-
-				$rep['File Name Compliance'][] = <<<EOD
-<a href="{$urlfix}" class="a-fix">Fix</a>
-<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
-File "$bn" should be "$target".
-- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
-	target="_blank">Reference</a>
-EOD;
-			}
-
-			$rep = array_merge_recursive($rep, U::RunCallbacks($_d['movie.cb.check'], $md));
 
 			# If we can, mark this movie clean to skip further checks.
-			if (empty($rep))
+			if (empty($rep) && isset($md) && $file['fs_part'] < 2)
 			{
 				$_d['movie.ds']->Update(
 					array('mov_id' => $md['mov_id']),
@@ -325,37 +240,186 @@ EOD;
 			else $ret = array_merge_recursive($ret, $rep);
 		}
 
-		# Check for orphaned meta images.
+		$ret = array_merge_recursive($ret, $this->CheckOrphanMedia($filelist));
+
+		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
+
+		return $ret;
+	}
+
+	/**
+	 * Check if a given item exists in the database.
+	 * @param <type> $file
+	 * @return array Array of error messages.
+	 */
+	function CheckDatabaseExistence($file)
+	{
+		$ret = array();
+
+		# This is multipart, we only keep track of the first item.
+		if (@$file['fs_part'] > 1) return $ret;
+
+		$p = $file['fs_path'];
+		if (!isset($this->_ds[$p]))
+		{
+			$uep = urlencode($p);
+
+			$ret['Scrape'][] = <<<EOF
+<a href="movie/scrape?target=$uep&fast=1"
+	class="a-fix">Fix</a> File {$p} needs to be scraped
+EOF;
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Check all date parameters.
+	 * 
+	 * @param array $file Result of ModMovie::GetMovie
+	 * @param array $dbentry Database entry for this movie.
+	 */
+	function CheckDates($md)
+	{
+		$ret = array();
+
+		# Date Related
+		$date = $md['mov_date'];
+		$year = substr($date, 0, 4);
+
+		# Missing month and day.
+		if (strlen($date) < 10)
+		{
+			$ret['Scrape'][] = "File {$md['mov_path']} has incorrectly
+				scraped date \"{$year}\"";
+		}
+
+		return $ret;
+	}
+
+	function CheckFilename($file, $md)
+	{
+		$ret = array();
+
+		$p = $md['mp_path'];
+		$ext = File::ext($p);
+
+		# Filename related
+		if ($ext != 'avi')
+		{
+			$ret['File Name Compliance'][] = "File {$file['fs_path']} has a
+				bad extension.";
+		}
+
+		# Title Related
+		$title = ModMovie::CleanTitleForFile($md['mov_title']);
+
+		# Validate strict naming conventions.
+
+		$next = basename($p, $ext);
+		$date = $md['mov_date'];
+		$year = substr($date, 0, 4);
+
+		# Part files need their CD#
+		if (!empty($file['fs_part']))
+		{
+			$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
+				.$file['fs_part'].'\.(\S+)$#';
+			$target = "$title ($year) CD{$file['fs_part']}.$ext";
+		}
+		else
+		{
+			$preg = '#/'.preg_quote($title).' \('.$year.'\)\.(\S+)$#';
+			$target = "$title ($year).$ext";
+		}
+
+		if (!preg_match($preg, $md['mp_path']))
+		{
+			$urlfix = "movie/fix?path=".urlencode($p);
+			# TODO: Do not directly reference tmdb here!
+			$urlunfix = "tmdb/remove?id={$md['mov_id']}";
+			$bn = basename($p);
+
+			$ret['File Name Compliance'][] = <<<EOD
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$target".
+- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+target="_blank">Reference</a>
+EOD;
+		}
+
+		return $ret;
+	}
+
+	function CheckMedia($file, $md)
+	{
+		$ret = array();
+
+		$p = $md['mp_path'];
+		$ext = File::ext($p);
+		$next = basename($p, $ext);
+		if (empty($file['fs_part']) || $file['fs_part'] < 2)
+		{
+			# Look for cover or backdrop.
+			if (!file_exists("img/meta/movie/thm_$next"))
+			{
+				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mp_path']}
+- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+target="_blank">Reference</a>
+EOD;
+			}
+
+			if (!file_exists("img/meta/movie/bd_$next"))
+			{
+				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mp_path']}
+EOD;
+			}
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Check for orphaned meta images.
+	 */
+	function CheckOrphanMedia($filelist)
+	{
+		$ret = array();
+
 		foreach (glob('img/meta/movie/*') as $p)
 		{
 			$f = basename($p);
 
+			# Proper named thumbnail or backdrop.
 			if (preg_match('/(thm_|bd_)(.*)/', $f, $m))
 			{
 				$found = false;
-				foreach ($_d['config']['paths']['movie'] as $mp)
+
+				foreach ($filelist as $if)
+				if (preg_match('/'.preg_quote($m[2]).'\.(.*)$/', $if))
 				{
-					$paths = glob($mp.'/'.$m[2].'.*');
-					$s = $mp.'/'.$m[2];
-					if (!empty($paths)) $found = true;
+					$found = true;
+					break;
 				}
-				if (!$found)
-				{
-					if (!File::SafeDelete($p))
-						$ret['media'][] = "Could not unlink: $p";
-					$ret['media'][] = "Removed orphan cover $p";
-				}
+
+				if ($found) continue;
+
+				if (!unlink($p))
+					$ret['media'][] = "Could not unlink: $p";
+				else $ret['media'][] = "Removed orphan cover $p";
 			}
 			else
 			{
-				if (!File::SafeDelete($p))
+				if (!unlink($p))
 					$ret['media'][] = "Could not unlink: $p";
-				$ret['media'][] = "Removed irrelevant cover: {$p}";
+				else $ret['media'][] = "Removed irrelevant cover: {$p}";
 			}
 		}
-
-		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
-
 		return $ret;
 	}
 
@@ -372,7 +436,9 @@ EOD;
 		foreach (glob($p.'/*') as $f)
 		{
 			if (is_dir($f)) continue;
-			$ret[$f] = $this->ScrapeFS($f, $pregs);
+			$mov = ModMovie::GetMovie($f);
+			if ($mov['fs_part'] > 1) continue;
+			$ret[$f] = $mov;
 		}
 
 		return $ret;
@@ -446,6 +512,13 @@ EOD;
 				4 => 'fs_ext'
 			),
 
+			# title CDnum.ext
+			'#/([^/]+).*cd(\d+)\.([^.]+)$#i' => array(
+				1 => 'fs_title',
+				2 => 'fs_part',
+				3 => 'fs_ext'
+			),
+
 			# title [strip].ext
 			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
 				1 => 'fs_title',
@@ -474,7 +547,10 @@ EOD;
 		# This is a part, lets try to find the rest of them.
 		if (!empty($ret['fs_part']))
 		{
-			$files = glob(preg_replace('/cd\d+/i', 'cd*', $ret['fs_path']));
+			$qg = File::QuoteGlob($ret['fs_path']);
+			$search = preg_replace('/CD\d+/i', '[Cc][Dd]*',
+				$qg);
+			$files = glob($search);
 			$ret['paths'] = $files;
 		}
 		# Just a single movie

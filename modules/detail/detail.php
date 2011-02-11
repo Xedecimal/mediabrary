@@ -97,7 +97,7 @@ class ModDetail extends Module
 		$rows = $_d['movie_detail.ds']->Get($q);
 		if (empty($rows))
 		{
-			$uep = urlencode($movie['mov_path']);
+			$uep = urlencode($movie['mp_path']);
 			$url = "{{app_abs}}/movie/scrape?target={$uep}&fast=1";
 			$ret['Details'][] = <<<EOD
 <a class="a-fix" href="{$url}">Scrape</a> No certification for

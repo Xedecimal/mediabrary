@@ -4,7 +4,7 @@ $(function () {
 	$('#tmdb-aRemove').live('click', function () {
 		if (confirm('Are you sure?'))
 		{
-			$.get('movie/remove/', {path: $(this).attr('href')}, function () {
+			$.get('movie/remove/', {id: $(this).attr('href')}, function () {
 				$('#dialog-movie').dialog('close');
 			});
 		}
