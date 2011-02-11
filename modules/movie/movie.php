@@ -437,7 +437,7 @@ EOD;
 		{
 			if (is_dir($f)) continue;
 			$mov = ModMovie::GetMovie($f);
-			if ($mov['fs_part'] > 1) continue;
+			if (@$mov['fs_part'] > 1) continue;
 			$ret[$f] = $mov;
 		}
 
