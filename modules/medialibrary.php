@@ -66,8 +66,7 @@ class MediaLibrary extends Module
 
 		$path = $item['fs_path'];
 		$pinfo = pathinfo($path);
-		$fname = basename($pinfo['basename'], 
-'.'.$pinfo['extension']);
+		$fname = basename($pinfo['basename'], '.'.$pinfo['extension']);
 
 		$cover = "img/meta/{$type}/thm_{$fname}";
 
