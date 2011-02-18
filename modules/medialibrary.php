@@ -66,14 +66,16 @@ class MediaLibrary extends Module
 
 		$path = $item['fs_path'];
 		$pinfo = pathinfo($path);
+		$fname = basename($pinfo['basename'], 
+'.'.$pinfo['extension']);
 
-		$cover = "img/meta/{$type}/thm_{$pinfo['filename']}";
+		$cover = "img/meta/{$type}/thm_{$fname}";
 
 		if (file_exists($cover)) $ret['med_thumb'] = str_replace("'", "%27",
 			'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/'.$cover);
 		else $ret['med_thumb'] = $default_thumb;
 
-		$images = glob("img/meta/{$type}/bd_{$pinfo['filename']}.*");
+		$images = glob("img/meta/{$type}/bd_{$fname}.*");
 		if (!empty($images)) $ret['med_bd'] = HM::URL($images[0]);
 
 		return $ret;

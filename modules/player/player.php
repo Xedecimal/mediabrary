@@ -77,7 +77,7 @@ class ModPlayer extends Module
 						@$regions[$xf]);
 				}
 		}
-		else $ret .= $this->AddM3U(1, $np.'/'.$f, @$regions[$f]);
+		else $ret .= $this->AddM3U(1, $np, @$regions[$f]);
 
 		Server::SendDownloadStart(File::GetFile(basename($p)).'.m3u');
 		die($ret);
@@ -131,7 +131,7 @@ class ModPlayer extends Module
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
 		$pi = pathinfo($path);
-		$p = $pi['dirname'].'/'.rawurlencode($pi['basename']);
+		$p = dirname($path).'/'.rawurlencode($pi['basename']);
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
 {$p}
