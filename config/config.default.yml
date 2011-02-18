@@ -6,14 +6,14 @@
 # Format: db: <type>://[username]:[password]@<host>/<database>
 #
 # type: mysql or mysqli is currently supported, sqlite, postgres and mssql are
-#		experimental.
+#   experimental.
 # username: The username to connect as, you do not need to specify if the type
-#		does not require a username.
+#   does not require a username.
 # password: Password, same as above.
 # host: Hostname to connect to, use localhost if you do not have a database
-#		server elsewhere.
+#   server elsewhere.
 # database: The name of the database in the database server that you wish to
-#		connect to.
+#   connect to.
 db: mysql://user:pass@host/mediabrary
 
 # paths
@@ -27,7 +27,7 @@ paths:
   # designates a series of paths where individual movie files are stored. If you
   # have movie files like c:\movies\Anaconda.avi, then this would be c:\movies.
   movie:
-		- /path/to/movie
+    - /path/to/movie
 
   # paths/tv
   #
@@ -35,7 +35,7 @@ paths:
   # located. If you have /path/to/shows/House/House - S01E01 - Title.avi then
   # you would use /path/to/shows.
   tv:
-		- /path/to/tv
+    - /path/to/tv
 
 # glue
 #
@@ -59,28 +59,28 @@ player:
   # Translations
   #
   # Format
-  # - client <regular_expression>
-  #		source <source match>
-  #		target <target match>
+  # - client: <regular_expression>
+  #   source: <source match>
+  #   target: <target match>
   #
   # Enter a series of 3 lines per entry for a single translation. This will
   # first match a client location based on the 'client' line. Then if their
   # request starts with 'source', it will replace it with 'target'. eg.
-  # - client /192.168.*.*/
-  #		source c:/movies
-  #		target \\sambashare\c\movies
+  # - client: /192.168.*.*/
+  #   source: c:/movies
+  #   target: \\sambashare\c\movies
   # - client /.*/
-  #		source c:/movies
-  #		target http://www.mydomain.com/movies
+  #   source: c:/movies
+  #   target: http://www.mydomain.com/movies
   # Above will direct all traffic on 192.168.*.*, that attempts to access a file
   # located in c:/movies, over to your samba share. Otherwise, it'll land on the
   # next client match and translate files from c:/movies over to a webserver
   # where they may be accessible. Debugging this sytem is done largely in the
   # m3u files that that player generates when you attempt to play something.
   trans:
-    - client /192.168.1.*/
-      source /data/nas
-      target http://192.168.1.1:82/nas
-    - client /.*/
-      source /data/nas
-      target http://public.webserver:82/nas
+    - client: /192.168.1.*/
+      source: /data/nas
+      target: http://192.168.1.1:82/nas
+    - client: /.*/
+      source: /data/nas
+      target: http://public.webserver:82/nas
