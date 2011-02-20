@@ -17,6 +17,27 @@ class ModPlayer extends Module
 
 		if ($_d['q'][0] != 'player') return;
 
+		# Present player selections.
+		if (@$_d['q'][1] == 'select')
+		{
+			$t = new Template($_d);
+			$p = Server::GetVar('path');
+			$t->Set('path', urlencode($p));
+
+			$f = basename($p);
+			$tp = ModPlayer::GetTrans($p);
+			$t->Set('tpath', "$tp/$f");
+
+			die($t->ParseFile(Module::L('player/select.xml')));
+		}
+
+		# Return a translated path.
+		if (@$_d['q'][1] == 'translate')
+		{
+			$p = Server::GetVar('path');
+			$f = basename($p);
+			die(ModPlayer::GetTrans($p).'/'.$f);
+		}
 		if (@$_d['q'][1] == 'js')
 		{
 			$t = new Template($_d);
