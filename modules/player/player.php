@@ -21,13 +21,7 @@ class ModPlayer extends Module
 		if (@$_d['q'][1] == 'select')
 		{
 			$t = new Template($_d);
-			$p = Server::GetVar('path');
-			$t->Set('path', urlencode($p));
-
-			$f = basename($p);
-			$tp = ModPlayer::GetTrans($p);
-			$t->Set('tpath', "$tp/$f");
-
+			$t->Set('id', $_d['q'][2]);
 			die($t->ParseFile(Module::L('player/select.xml')));
 		}
 
@@ -57,50 +51,45 @@ class ModPlayer extends Module
 			die($res);
 		}
 
-		$p = Server::GetVar('path');
+		# Here down will download an M3U file.
 
-		if (is_file($p)) $d = dirname($p);
-		else $d = $p;
-		$f = basename($p);
-
-		# Translate a path to a faster source
-
-		$np = ModPlayer::GetTrans($p);
-
-		# Locate an use any regioning data
-
-		if (file_exists($d.'/.regions.xml'))
-		{
-			$sx = simplexml_load_file($d.'/.regions.xml');
-			foreach ($sx->media as $m)
-			{
-				foreach ($m->region as $r)
-				{
-					$reg[(string)$r->attributes()->title] = array(
-						(int)$r->attributes()->start,
-						(int)$r->attributes()->end
-					);
-				}
-				$regions[(string)$m->attributes()->match] = $reg;
-			}
-		}
-
-		# Create an M3U File
-
+		$id = $_d['q'][1];
 		$ret = "#EXTM3U\r\n";
-		if (is_dir($p))
+
+		# Iterate all the paths we will be playing and add them to the m3u.
+		foreach ($_d['movie_path.ds']->Get(array('mov_id' => $id)) as $item)
 		{
-			foreach (glob($p.'/*.*') as $ix => $xp)
-				foreach ($trans as $t)
-				{
-					$xf = basename($xp);
-					$ret .= $this->AddM3U($ix, $np.'/'.$xf,
-						@$regions[$xf]);
-				}
+			$p = $item['mp_path'];
+
+			if (is_file($p)) $d = dirname($p);
+			else $d = $p;
+			$f = basename($p);
+
+			# Translate a path to a faster source
+
+			$np = ModPlayer::GetTrans($p);
+
+			# Locate an use any regioning data
+
+			$regions = ModPlayer::GetRegions($d);
+
+			# Create an M3U File
+
+			if (is_dir($p))
+			{
+				foreach (glob($p.'/*.*') as $ix => $xp)
+					foreach ($trans as $t)
+					{
+						$xf = basename($xp);
+						$ret .= $this->AddM3U($ix, $np.'/'.$xf,
+							@$regions[$xf]);
+					}
+			}
+			else $ret .= $this->AddM3U(1, realpath($np.'/'.$f), @$regions[$f]);
 		}
-		else $ret .= $this->AddM3U(1, $np, @$regions[$f]);
 
 		Server::SendDownloadStart(File::GetFile(basename($p)).'.m3u');
+		#die('<pre>'.$ret.'</pre>');
 		die($ret);
 	}
 
@@ -108,6 +97,7 @@ class ModPlayer extends Module
 	{
 		$ret['head'] = '<script type="text/javascript"
 			src="{{app_abs}}/player/js"></script>';
+		$ret['default'] = '<div id="player-dialog"></div>';
 		return $ret;
 	}
 
@@ -129,7 +119,7 @@ class ModPlayer extends Module
 
 	function cb_buttons_cover($t)
 	{
-		return ' <a href="player?path={{url}}" class="a-play"><img
+		return ' <a href="{{mov_id}}" class="a-play"><img
 			src="modules/player/img/play.png" alt="Play" /></a> ';
 	}
 
@@ -152,13 +142,36 @@ class ModPlayer extends Module
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
 		$pi = pathinfo($path);
-		$p = dirname($path).'/'.rawurlencode($pi['basename']);
+		$p = realpath(dirname($path).'/'.$pi['basename']);
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
 {$p}
 
 
 EOF;
+	}
+
+	static function GetRegions($p)
+	{
+		$regions = array();
+
+		if (file_exists($p.'/.regions.xml'))
+		{
+			$sx = simplexml_load_file($p.'/.regions.xml');
+			foreach ($sx->media as $m)
+			{
+				foreach ($m->region as $r)
+				{
+					$reg[(string)$r->attributes()->title] = array(
+						(int)$r->attributes()->start,
+						(int)$r->attributes()->end
+					);
+				}
+				$regions[(string)$m->attributes()->match] = $reg;
+			}
+		}
+
+		return $regions;
 	}
 
 	static function GetTrans($p)

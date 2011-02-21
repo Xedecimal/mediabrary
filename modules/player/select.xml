@@ -1,4 +1,4 @@
 <div>
-<a href="{{tpath}}" id="a-vlc">VLC</a>
-<a href="{{app_abs}}/player?path={{path}}" id="a-m3u">M3U</a>
+<a href="{{id}}" id="a-vlc">VLC</a>
+<a href="{{app_abs}}/player/{{id}}" id="a-m3u">M3U</a>
 </div>
