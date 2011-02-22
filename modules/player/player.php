@@ -57,7 +57,8 @@ class ModPlayer extends Module
 		$ret = "#EXTM3U\r\n";
 
 		# Iterate all the paths we will be playing and add them to the m3u.
-		foreach ($_d['movie_path.ds']->Get(array('mov_id' => $id)) as $item)
+		$q['match']['mp_movie'] = $id;
+		foreach ($items = $_d['movie_path.ds']->Get($q) as $item)
 		{
 			$p = $item['mp_path'];
 
@@ -85,7 +86,7 @@ class ModPlayer extends Module
 							@$regions[$xf]);
 					}
 			}
-			else $ret .= $this->AddM3U(1, realpath($np.'/'.$f), @$regions[$f]);
+			else $ret .= $this->AddM3U(1, $np.'/'.$f, @$regions[$f]);
 		}
 
 		Server::SendDownloadStart(File::GetFile(basename($p)).'.m3u');
@@ -142,7 +143,7 @@ class ModPlayer extends Module
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
 		$pi = pathinfo($path);
-		$p = realpath(dirname($path).'/'.$pi['basename']);
+		$p = dirname($path).'/'.$pi['basename'];
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
 {$p}
