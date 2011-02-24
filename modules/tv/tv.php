@@ -17,7 +17,12 @@ class ModTVSeries extends MediaLibrary
 
 		$this->_class = 'tv';
 
-		$this->_fs_scrapes = array(
+		$this->CheckActive('tv');
+	}
+
+	static function GetFSPregs()
+	{
+		return array(
 			'#/([^/]+)/([^/]+)$#' => array(
 				1 => 'med_path',
 				2 => 'med_title'
