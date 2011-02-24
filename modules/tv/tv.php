@@ -28,8 +28,6 @@ class ModTVSeries extends MediaLibrary
 				2 => 'med_title'
 			)
 		);
-
-		$this->CheckActive('tv');
 	}
 
 	function Prepare()
@@ -128,12 +126,13 @@ class ModTVSeries extends MediaLibrary
 
 			if (is_array(@$dirs)) asort($dirs);
 
+			$ep_pregs = ModTVSeries::GetFSPregs();
 			if (!empty($dirs))
 			foreach ($dirs as $f)
 			{
-				$this->_items[$f] = MediaLibrary::ScrapeFS($f,
-					ModTVEpisode::GetFSPregs());
-				$this->_items[$f] += $this->GetMedia('tv', $this->_items[$f], $this->_missing_image);
+				$this->_items[$f] = MediaLibrary::ScrapeFS($f, $ep_pregs);
+				$this->_items[$f] += $this->GetMedia('tv', $this->_items[$f],
+					$this->_missing_image);
 			}
 
 			# Root directories are not included.
