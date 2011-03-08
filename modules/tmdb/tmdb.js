@@ -16,11 +16,9 @@ $(function () {
 		path = $(this).attr('href');
 		$('div[title="'+path+'"]').css('background-image', 'url("modules/movie/img/loading.jpg")');
 		$.getJSON('tmdb/scrape', {target: path, tmdb_id: m_id}, function (data) {
-			if (data.error)
-				var img = 'modules/movie/img/missing';
-			else
-				var img = data.med_thumb;
-			$('div[title="'+data.mov_path+'"]').css('background-image', 'url("'+img+'")');
+			if (data.error) var img = 'modules/movie/img/missing';
+			else var img = data.med_thumb;
+			$('div[title="'+data.mp_path+'"]').css('background-image', 'url("'+img+'")');
 		});
 		$('#dialog-movie').dialog('close');
 		return false;

@@ -28,9 +28,6 @@ class ModTMDB extends Module
 
 		if (@$_d['q'][1] == 'find')
 		{
-			$d = $_d['movie.ds']->GetOne(array('match' => array(
-				'mp_path' => Server::GetVar('path'))));
-
 			$title = Server::GetVar('title');
 			$path = Server::GetVar('path');
 			if (Server::GetVar('manual', 0) == 0 && preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
@@ -40,7 +37,8 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
-			$movie = ModMovie::GetMovie(Server::GetVar('target'));
+			$p = Server::GetVar('target');
+			$movie = ModMovie::GetMovie($p);
 
 			if (empty($movie['mov_title']))
 				$movie['mov_title'] = $movie['fs_title'];
@@ -91,6 +89,7 @@ class ModTMDB extends Module
 			# Run all module callbacks
 			U::RunCallbacks($_d['tmdb.cb.postscrape'], $movie);
 			if (Server::GetVar('fast') == 1) die('Fixed!');
+			$movie['mp_path'] = $p;
 			die(json_encode($movie + $media));
 		}
 		else if (@$_d['q'][1] == 'remove')
@@ -367,8 +366,8 @@ class ModTMDB extends Module
 			if (!empty($data))
 			{
 				# Clean up existing covers
-				$thm = basename($dst_pinfo['filename'], $dst_pinfo['extension']);
-				unlink('img/meta/movie/thm_'.$thm);
+				$thm = 'img/meta/movie/thm_'.basename($dst_pinfo['filename']);
+				if (file_exists($thm)) unlink($thm);
 
 				# Place new cover
 				$src_pinfo = pathinfo($url);
