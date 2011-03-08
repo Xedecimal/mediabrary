@@ -5,7 +5,7 @@ $(function () {
 	$('.a-play').live('click', function () {
 
 		// Present options for playing this file.
-		$('#player-dialog').load('player/select/'+$(this).attr('href')).dialog();
+		$('#player-dialog').load('player/select?path='+$(this).attr('href')).dialog();
 		return false;
 	});
 

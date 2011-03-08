@@ -21,10 +21,10 @@ class ModPlayer extends Module
 		if (@$_d['q'][1] == 'select')
 		{
 			$t = new Template($_d);
-			$q['match']['mov_id'] = $_d['q'][2];
-			$m = $_d['movie.ds']->GetOne($q);
-			$m['trans'] = ModPlayer::GetTrans($m['mp_path']);
-			$m['trans'] .= '/'.basename($m['mp_path']);
+			$m['path'] = rawurlencode($p = Server::GetVar('path'));
+			$m['trans'] = ModPlayer::GetTrans($p);
+			if (is_file($p))
+				$m['trans'] .= '/'.basename($p);
 			$t->Set($m);
 			die($t->ParseFile(Module::L('player/select.xml')));
 		}
@@ -57,15 +57,16 @@ class ModPlayer extends Module
 
 		# Here down will download an M3U file.
 
-		$id = $_d['q'][1];
+		$rp = Server::GetVar('path');
+
 		$ret = "#EXTM3U\r\n";
 
 		# Iterate all the paths we will be playing and add them to the m3u.
-		$q['match']['mp_movie'] = $id;
-		foreach ($items = $_d['movie_path.ds']->Get($q) as $item)
+		if (is_dir($rp))
+			$files = glob($rp.'/*');
+		else $files[] = $rp;
+		foreach ($files as $p)
 		{
-			$p = $item['mp_path'];
-
 			if (is_file($p)) $d = dirname($p);
 			else $d = $p;
 			$f = basename($p);
@@ -118,13 +119,13 @@ class ModPlayer extends Module
 		$p = !empty($t->vars['med_path']) ? $t->vars['med_path'] : $t->vars['fs_path'];
 
 		$icon = Module::P('player/img/play.png');
-		return '<a href="player?path='.urlencode($p).'"><img src="'.$icon.'"
-			alt="Play Series" /></a>';
+		return '<a class="a-play" href="'.urlencode($p).'">
+			<img src="'.$icon.'" alt="Play Series" /></a>';
 	}
 
 	function cb_buttons_cover($t)
 	{
-		return ' <a href="{{mov_id}}" class="a-play"><img
+		return ' <a href="{{url}}" class="a-play"><img
 			src="modules/player/img/play.png" alt="Play" /></a> ';
 	}
 
