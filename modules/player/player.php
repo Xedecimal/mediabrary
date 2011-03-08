@@ -21,7 +21,11 @@ class ModPlayer extends Module
 		if (@$_d['q'][1] == 'select')
 		{
 			$t = new Template($_d);
-			$t->Set('id', $_d['q'][2]);
+			$q['match']['mov_id'] = $_d['q'][2];
+			$m = $_d['movie.ds']->GetOne($q);
+			$m['trans'] = ModPlayer::GetTrans($m['mp_path']);
+			$m['trans'] .= '/'.basename($m['mp_path']);
+			$t->Set($m);
 			die($t->ParseFile(Module::L('player/select.xml')));
 		}
 
@@ -143,7 +147,7 @@ class ModPlayer extends Module
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
 		$pi = pathinfo($path);
-		$p = dirname($path).'/'.$pi['basename'];
+		$p = dirname($path).'/'.rawurlencode($pi['basename']);
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
 {$p}
@@ -185,9 +189,12 @@ EOF;
 		$trans = array($p);
 		foreach ($_d['config']['player']['trans'] as $t)
 		{
-			$c = $t['client'];
-			if (preg_match($c, $_SERVER['REMOTE_ADDR']))
-				return str_replace($t['source'], $t['target'], $d);
+			if (isset($t['client']))
+				if (preg_match($t['client'], $_SERVER['REMOTE_ADDR']))
+					return str_replace($t['source'], $t['target'], $d);
+			if (isset($t['agent']))
+				if (preg_match($t['agent'], $_SERVER['HTTP_USER_AGENT']))
+					return str_replace($t['source'], $t['target'], $d);
 		}
 	}
 }

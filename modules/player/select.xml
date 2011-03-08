@@ -1,4 +1,7 @@
 <div>
-<a href="{{id}}" id="a-vlc">VLC</a>
-<a href="{{app_abs}}/player/{{id}}" id="a-m3u">M3U</a>
+<ul>
+	<li><a href="{{id}}" id="a-vlc">VLC</a></li>
+	<li><a href="{{app_abs}}/player/{{mov_id}}" id="a-m3u">M3U</a></li>
+	<li><a href="{{trans}}">Direct</a></li>
+</ul>
 </div>
