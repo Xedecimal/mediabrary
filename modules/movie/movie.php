@@ -168,6 +168,10 @@ class ModMovie extends MediaLibrary
 
 		$ret = array();
 
+		# This will be used later to hunt for things that a file doesn't exist
+		# for.
+		$filelist = array();
+
 		# Collect known filesystem data
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
@@ -175,11 +179,9 @@ class ModMovie extends MediaLibrary
 		{
 			if (is_dir($f)) continue;
 			$this->_files[$f] = ModMovie::GetMovie($f);
+			$ext = File::ext($f);
+			$filelist[] = basename($f, '.'.$ext);
 		}
-
-		# This will be used later to hunt for things that a file doesn't exist
-		# for.
-		$filelist = array_keys($this->_files);
 
 		# Collect database information
 		$this->_ds = array();
@@ -358,7 +360,7 @@ EOD;
 
 		$p = $md['mp_path'];
 		$ext = File::ext($p);
-		$next = basename($p, $ext);
+		$next = basename($p, '.'.$ext);
 		if (empty($file['fs_part']) || $file['fs_part'] < 2)
 		{
 			# Look for cover or backdrop.
@@ -389,6 +391,8 @@ EOD;
 	 */
 	function CheckOrphanMedia($filelist)
 	{
+		global $_d;
+
 		$ret = array();
 
 		foreach (glob('img/meta/movie/*') as $p)
@@ -400,24 +404,18 @@ EOD;
 			{
 				$found = false;
 
-				foreach ($filelist as $if)
-				if (preg_match('/'.preg_quote($m[2]).'\.(.*)$/', $if))
-				{
-					$found = true;
-					break;
-				}
+				if (array_search($m[2], $filelist))
+					continue;
 
-				if ($found) continue;
-
-				if (!unlink($p))
-					$ret['media'][] = "Could not unlink: $p";
-				else $ret['media'][] = "Removed orphan cover $p";
+				#if (!unlink($p))
+					$ret['Media'][] = "Could not unlink: $p";
+				#else $ret['Media'][] = "Removed orphan cover $p";
 			}
 			else
 			{
-				if (!unlink($p))
-					$ret['media'][] = "Could not unlink: $p";
-				else $ret['media'][] = "Removed irrelevant cover: {$p}";
+				#if (!unlink($p))
+					$ret['Media'][] = "Could not unlink: $p";
+				#else $ret['Media'][] = "Removed irrelevant cover: {$p}";
 			}
 		}
 		return $ret;
