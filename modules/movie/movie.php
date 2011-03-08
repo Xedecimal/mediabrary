@@ -129,7 +129,7 @@ class ModMovie extends MediaLibrary
 
 			# Apply Database Transformations
 
-			$_d['movie_path.ds']->Update(array('mp_path' => $src),
+			@$_d['movie_path.ds']->Update(array('mp_path' => $src),
 				array('mp_path' => $dst));
 
 			die('Fixed');
