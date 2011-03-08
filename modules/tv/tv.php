@@ -460,7 +460,14 @@ class ModTVEpisode extends MediaLibrary
 			'#/([^/]+)/[^/]+(\d+)x(\d+).*#' => array(
 				1 => 'med_series',
 				2 => 'med_season',
-				3 => 'med_episode')
+				3 => 'med_episode'),
+			# path/{series}/{series} - {episode} - {title}.ext
+			'#/([^/]+)/[^-]+\s*-\s*(\d+)\s*-\s*(.*)\.([^.]+)$#' => array(
+				1 => 'med_series',
+				2 => 'med_episode',
+				3 => 'med_title',
+				4 => 'med_extension'
+			)
 		);
 	}
 
@@ -494,7 +501,10 @@ class ModTVEpisode extends MediaLibrary
 			}
 			else
 			{
-				$snf = number_format($i['med_season']);
+
+				$snf = isset($i['med_season'])
+					? number_format($i['med_season'])
+					: 1;
 				$enf = number_format($i['med_episode']);
 				$ret[$snf][$enf] = $i;
 			}
