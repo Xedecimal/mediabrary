@@ -232,7 +232,7 @@ class ModMovie extends MediaLibrary
 			}
 
 			# If we can, mark this movie clean to skip further checks.
-			if (empty($rep) && isset($md) && $file['fs_part'] < 2)
+			if (empty($rep) && isset($md) && @$file['fs_part'] < 2)
 			{
 				$_d['movie.ds']->Update(
 					array('mov_id' => $md['mov_id']),
@@ -546,8 +546,7 @@ EOD;
 		if (!empty($ret['fs_part']))
 		{
 			$qg = File::QuoteGlob($ret['fs_path']);
-			$search = preg_replace('/CD\d+/i', '[Cc][Dd]*',
-				$qg);
+			$search = preg_replace('/CD\d+/i', '[Cc][Dd]*', $qg);
 			$files = glob($search);
 			$ret['paths'] = $files;
 		}
