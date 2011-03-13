@@ -112,11 +112,10 @@ class MediaLibrary extends Module
 		$reps = array(
 			'/(.*), The/' => 'The \1',
 			'#\[[^\]]+\]#' => '',
-			'#([.]{1} |\.|-|_)#' => ' ',
+			'#([.]{1} |\.|-|_|brrip)#i' => ' ',
 			'#\([^)]*\)#' => '',
 			"#cd\d+#i" => '');
 
-		# Fix transposed ", The".
 		return preg_replace(array_keys($reps), array_values($reps), $title);
 	}
 

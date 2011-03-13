@@ -28,7 +28,7 @@ class ModTMDB extends Module
 
 		if (@$_d['q'][1] == 'find')
 		{
-			$title = Server::GetVar('title');
+			$title = MediaLibrary::SearchTitle(Server::GetVar('title'));
 			$path = Server::GetVar('path');
 			if (Server::GetVar('manual', 0) == 0 && preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
 				$title .= ' '.$m[1];
@@ -284,7 +284,6 @@ class ModTMDB extends Module
 	{
 		$vp = new VarParser();
 		$sx_movies = ModTMDB::FindXML($args['title']);
-		#usort($sx_movies, array('ModTMDB', 'cmp_title'));
 
 		$ret = null;
 		if (!empty($sx_movies))
