@@ -16,7 +16,8 @@ class ModMovie extends MediaLibrary
 			'LEFT JOIN'));
 
 		$this->_class = 'movie';
-		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
+		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
+			'/modules/movie/img/missing.jpg';
 	}
 
 	function Prepare()

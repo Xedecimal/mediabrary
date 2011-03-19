@@ -3,12 +3,8 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
-# Dumping database structure for mediabrary
-CREATE DATABASE IF NOT EXISTS `mediabrary` /*!40100 DEFAULT CHARACTER SET latin1 */;
-USE `mediabrary`;
-
-
 # Dumping structure for table mediabrary.codec
+DROP TABLE IF EXISTS `codec`;
 CREATE TABLE IF NOT EXISTS `codec` (
   `cod_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `cod_path` varchar(255) NOT NULL,
@@ -22,21 +18,21 @@ CREATE TABLE IF NOT EXISTS `codec` (
 
 
 # Dumping structure for table mediabrary.movie
+DROP TABLE IF EXISTS `movie`;
 CREATE TABLE IF NOT EXISTS `movie` (
   `mov_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `mov_path` varchar(255) NOT NULL,
   `mov_clean` tinyint(1) unsigned NOT NULL,
   `mov_title` varchar(255) NOT NULL,
   `mov_date` date NOT NULL,
   `mov_tmdbid` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`mov_id`),
-  UNIQUE KEY `mov_path` (`mov_path`)
+  PRIMARY KEY (`mov_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 # Data exporting was unselected.
 
 
 # Dumping structure for table mediabrary.movie_category
+DROP TABLE IF EXISTS `movie_category`;
 CREATE TABLE IF NOT EXISTS `movie_category` (
   `cat_id` int(10) NOT NULL AUTO_INCREMENT,
   `cat_movie` int(10) unsigned NOT NULL,
@@ -50,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `movie_category` (
 
 
 # Dumping structure for table mediabrary.movie_date
+DROP TABLE IF EXISTS `movie_date`;
 CREATE TABLE IF NOT EXISTS `movie_date` (
   `md_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `md_movie` int(10) unsigned NOT NULL,
@@ -64,6 +61,7 @@ CREATE TABLE IF NOT EXISTS `movie_date` (
 
 
 # Dumping structure for table mediabrary.movie_detail
+DROP TABLE IF EXISTS `movie_detail`;
 CREATE TABLE IF NOT EXISTS `movie_detail` (
   `md_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `md_movie` int(10) unsigned NOT NULL DEFAULT '0',
@@ -78,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `movie_detail` (
 
 
 # Dumping structure for table mediabrary.movie_float
+DROP TABLE IF EXISTS `movie_float`;
 CREATE TABLE IF NOT EXISTS `movie_float` (
   `md_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `md_movie` int(10) unsigned NOT NULL,
@@ -91,7 +90,23 @@ CREATE TABLE IF NOT EXISTS `movie_float` (
 # Data exporting was unselected.
 
 
+# Dumping structure for table mediabrary.movie_path
+DROP TABLE IF EXISTS `movie_path`;
+CREATE TABLE IF NOT EXISTS `movie_path` (
+  `mp_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `mp_movie` int(10) unsigned NOT NULL,
+  `mp_path` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`mp_id`),
+  UNIQUE KEY `mp_path` (`mp_path`),
+  KEY `FK_movie_path_movie` (`mp_movie`),
+  CONSTRAINT `FK_movie_path_movie` FOREIGN KEY (`mp_movie`) REFERENCES `movie` (`mov_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+# Data exporting was unselected.
+
+
 # Dumping structure for table mediabrary.rate
+DROP TABLE IF EXISTS `rate`;
 CREATE TABLE IF NOT EXISTS `rate` (
   `rate_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `rate_for` int(10) unsigned NOT NULL,
