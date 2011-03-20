@@ -69,14 +69,32 @@ player:
   # - client: /192.168.*.*/
   #   source: c:/movies
   #   target: \\sambashare\c\movies
+  #
+  # The following will direct all traffic on 192.168.*.*, that attempts to
+  # access a file located in c:/movies, over to your samba share. Otherwise,
+  # it'll land on the next client match and translate files from c:/movies over
+  # to a webserver
+  # where they may be accessible. Debugging this sytem is done largely in the
+  # m3u files that that player generates when you attempt to play something.
+  #
   # - client /.*/
   #   source: c:/movies
   #   target: http://www.mydomain.com/movies
-  # Above will direct all traffic on 192.168.*.*, that attempts to access a file
-  # located in c:/movies, over to your samba share. Otherwise, it'll land on the
-  # next client match and translate files from c:/movies over to a webserver
-  # where they may be accessible. Debugging this sytem is done largely in the
-  # m3u files that that player generates when you attempt to play something.
+  #
+  # For windows users using VLC, it doesn't muchly like direct path names so you
+  # would set your paths above using absolute with drives, eg.
+  #
+  # movie
+  #  - D:/path/to/movies
+  #
+  # Then down here you would want to append file:/// to the drive so VLC would
+  # then know that we're referencing a file on the local hard drive for fastest
+  # access.
+  #
+  #  - client: /.*/
+  #    source: D:/
+  #    target: file:///D:/
+
   trans:
     - client: /192.168.1.*/
       source: /data/nas
