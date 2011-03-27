@@ -15,10 +15,11 @@ $(function () {
 		m_id = $(this).attr('id');
 		path = $(this).attr('href');
 		$('div[title="'+path+'"]').css('background-image', 'url("modules/movie/img/loading.jpg")');
+		var img;
 		$.getJSON('tmdb/scrape', {target: path, tmdb_id: m_id}, function (data) {
-			if (data.error) var img = 'modules/movie/img/missing';
-			else var img = data.med_thumb;
-			$('div[title="'+data.mp_path+'"]').css('background-image', 'url("'+img+'")');
+			if (data.error) img = 'modules/movie/img/missing';
+			else img = data.med_thumb;
+			$('div[title="'+data.fs_path+'"]').css('background-image', 'url("'+img+'")');
 		});
 		$('#dialog-movie').dialog('close');
 		return false;

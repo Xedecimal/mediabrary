@@ -53,15 +53,15 @@ class ModCategory extends MediaLibrary
 
 		$cats = $_d['cat.ds']->find();
 
-		foreach ($cats as $c)
+		/*foreach ($cats as $c)
 		{
-			$this->_items[] = $c['mov_title'];
+			$this->_items[] = $c['title'];
 			$this->_metadata[$c['mov_title']] = array(
 				'mov_count' => $c['mov_count'],
 				'mov_title' => $c['mov_title'],
 				'med_thumb' => "img/category-{$c['mov_title']}.jpg"
 			);
-		}
+		}*/
 	}
 
 	function Get()
@@ -111,14 +111,14 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
-		if (!empty($this->cats))
+		/*if (!empty($this->cats))
 		foreach ($this->cats as $c)
 		{
-			$_d['cat.ds']->Add(array(
-				'cat_movie' => $item['mov_id'],
-				'cat_name' => $c
+			$_d['cat.ds']->insert(array(
+				'movie' => $item['_id'],
+				'name' => $c
 			), true);
-		}
+		}*/
 	}
 
 	function GetItems()

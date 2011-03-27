@@ -117,7 +117,7 @@ class MediaLibrary extends Module
 			'#\([^)]*\)#' => '',
 			"#cd\d+#i" => '');
 
-		return preg_replace(array_keys($reps), array_values($reps), $title);
+		return trim(preg_replace(array_keys($reps), array_values($reps), $title));
 	}
 
 	function Check() { return array(); }

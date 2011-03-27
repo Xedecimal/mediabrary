@@ -138,34 +138,20 @@ EOF;
 			$v = trim($v);
 			if (empty($v)) continue;
 
-			if (is_numeric($v)) $this->rows['float'][$n] = $v;
+			if (is_numeric($v)) $this->save[$n] = (float)$v;
 			else if (preg_match('/\d{4}-\d{2}-\d{2}/', $v))
-				$this->rows['date'][$n] = $v;
-			else $this->rows['detail'][$n] = $v;
+				$this->save[$n] = new DateTime($v);
+			else $this->rows[$n] = $v;
 		}
 
-		$this->rows['date']['obtained'] =
+		$this->save['obtained'] =
 			Database::TimestampToMySql(filemtime($item['fs_path']));
 	}
 
 	function cb_tmdb_postscrape($item)
 	{
 		global $_d;
-
-		if (!empty($this->rows))
-		foreach ($this->rows as $table => $values)
-		{
-			foreach ($values as $n => $v)
-			{
-				$a = array(
-					'md_movie' => $item['mov_id'],
-					'md_name' => $n,
-					'md_value' => $v
-				);
-				$_d['movie_'.$table.'.ds']->Add($a, true);
-			}
-		}
-
+		$item['details'] = $this->save;
 		return $item;
 	}
 }
