@@ -14,8 +14,13 @@ class ModScrapeTVDB
 		$sid = ModScrapeTVDB::GetSID($path);
 		$key = ModScrapeTVDB::_tvdb_key;
 
+		$ret = '';
 		$dst = $path.'/.info.zip';
-		file_put_contents($dst, file_get_contents("http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip"));
+		$src = "http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip";
+		if (!@file_put_contents($dst, file_get_contents($src)))
+		{
+			$ret .= 'Unable to write tvdb metadata.';
+		}
 
 		$za = new ZipArchive;
 		$za->open($dst);
@@ -26,10 +31,11 @@ class ModScrapeTVDB
 		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
 		$pi = pathinfo($ban);
 		$series = basename($path);
+		File::MakeFullDir('img/meta/tv');
 		file_put_contents("img/meta/tv/thm_$series",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
-		return "Grabbed";
+		return $ret."Grabbed";
 	}
 
 	static function GetSID($path)

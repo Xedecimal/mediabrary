@@ -90,7 +90,7 @@ class MediaLibrary extends Module
 		$ret = preg_replace(array_keys($preps), array_values($preps), $title);
 
 		// Literal cleanups.
-		$reps = array('/' => ' ', ': ' => ' - ', ':' => '-', '?' => '');
+		$reps = array('/' => ' ', ': ' => ' - ', ':' => '-', '?' => '_', '*' => '_', '"' => "'");
 
 		$ret = str_replace(array_keys($reps), array_values($reps), $ret);
 

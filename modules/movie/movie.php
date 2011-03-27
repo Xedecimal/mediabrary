@@ -178,9 +178,9 @@ class ModMovie extends MediaLibrary
 		# Collect known filesystem data
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach(glob($p.'/*') as $f)
+		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $fsi)
 		{
-			if (is_dir($f)) continue;
+			$f = $fsi->GetPathname();
 			$this->_files[$f] = ModMovie::GetMovie($f);
 			$ext = File::ext($f);
 			$filelist[] = basename($f, '.'.$ext);
@@ -367,17 +367,17 @@ EOD;
 			{
 				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mp_path']}
-- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['fs_path']}
+- <a href="http://www.themoviedb.org/movie/{$md['tmdbid']}"
 target="_blank">Reference</a>
 EOD;
 			}
 
 			if (!file_exists("img/meta/movie/bd_$next"))
 			{
-				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
+				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['mp_path']}
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
 EOD;
 			}
 		}
@@ -406,15 +406,15 @@ EOD;
 				if (array_search($m[2], $filelist))
 					continue;
 
-				#if (!unlink($p))
+				/*if (!unlink($p))
 					$ret['Media'][] = "Could not unlink: $p";
-				#else $ret['Media'][] = "Removed orphan cover $p";
+				else*/ $ret['Media'][] = "Removed orphan cover $p";
 			}
 			else
 			{
-				#if (!unlink($p))
+				/*if (!unlink($p))
 					$ret['Media'][] = "Could not unlink: $p";
-				#else $ret['Media'][] = "Removed irrelevant cover: {$p}";
+				else*/ $ret['Media'][] = "Removed irrelevant cover: {$p}";
 			}
 		}
 		return $ret;

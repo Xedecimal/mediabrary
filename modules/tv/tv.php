@@ -184,19 +184,23 @@ class ModTVSeries extends MediaLibrary
 
 		if (!empty($_d['config']['paths']['tv']))
 		foreach ($_d['config']['paths']['tv'] as $p)
-		foreach (glob($p.'/*') as $series)
+		foreach (new FilesystemIterator($p,
+		FilesystemIterator::SKIP_DOTS) as $fser)
 		{
+			$series = $fser->GetPathname();
 			foreach (ModTVSeries::$scrapers as $s)
 				$eps = call_user_func(array($s, 'GetInfo'), $series);
 
-			foreach (glob($series.'/*') as $episode)
+			foreach (new FilesystemIterator($series,
+			FilesystemIterator::SKIP_DOTS) as $fep)
 			{
-				if (is_dir($episode)) continue;
+				if (substr($fep->GetFilename(), 0, 1) == '.') continue;
+				$episode = str_replace('\\', '/', $fep->GetPathname());
 
 				$info = MediaLibrary::ScrapeFS($episode, $pregs);
 				if (empty($info['med_season']))
 				{
-					U::VarInfo("Cannot recognize: $episode");
+					var_dump("Cannot recognize: $episode");
 					continue;
 				}
 
@@ -213,11 +217,13 @@ class ModTVSeries extends MediaLibrary
 				# <series> / <series> - S<season>E<episode> - <title>.avi
 				if (!preg_match("@([^/]+)/({$eps['series']}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
 				{
+					$ext = File::ext($episode);
+					$dir = dirname($episode);
 					$info['med_season'] = sprintf('%02d', $info['med_season']);
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
 					$fname = "{$eps['series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
-					$url = Module::L('tv/rename?src='.urlencode($episode).'&dst='.urlencode(dirname($episode).'/'.$fname.'.'.File::ext($episode)));
-					$ret['File Name Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$fname\"";
+					$url = Module::L('tv/rename?src='.urlencode($episode).'&dst='.urlencode("$dir/$fname.$ext"));
+					$ret['File Name Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
 				}
 			}
 		}
@@ -475,16 +481,20 @@ class ModTVEpisode extends MediaLibrary
 		$tvi = new ModTVEpisode;
 
 		$ret = array();
-		foreach (glob($series.'/*') as $f)
+		foreach (new FilesystemIterator($series,
+		FilesystemIterator::SKIP_DOTS) as $f)
 		{
-			if (is_dir($f)) continue;
-			$i = MediaLibrary::ScrapeFS($f, ModTVEpisode::GetFSPregs());
+			if (substr($f->GetFilename(), 0, 1) == '.') continue;
+
+			$p = $f->GetPathname();
+			$i = MediaLibrary::ScrapeFS($p, ModTVEpisode::GetFSPregs());
 			#$i = $tvi->ScrapeFS($f);
 
 			if (!isset($i['med_episode']))
 			{
 				U::VarInfo('Missing episode on this...');
 				U::VarInfo($i);
+				continue;
 			}
 			// Multi-episode file
 			if (preg_match('/([0-9]+)-([0-9]+)/', $i['med_episode'], $m))

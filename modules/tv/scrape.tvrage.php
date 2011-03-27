@@ -29,7 +29,7 @@ class ModScrapeTVRage
 			$url = ModScrapeTVRage::_tvrage_find.rawurlencode($realname);
 			$sx = simplexml_load_string(file_get_contents($url));
 			$iurl = ModScrapeTVRage::_tvrage_info.rawurlencode($sx->show->showid);
-			file_put_contents($sc, file_get_contents($iurl));
+			@file_put_contents($sc, file_get_contents($iurl));
 		}
 
 		# Process data
@@ -52,7 +52,7 @@ class ModScrapeTVRage
 		{
 			$url = ModScrapeTVRage::_tvrage_list.$sid;
 			$out = file_get_contents($url);
-			file_put_contents($infoloc, $out);
+			@file_put_contents($infoloc, $out);
 		}
 
 		return simplexml_load_string(file_get_contents($infoloc));
