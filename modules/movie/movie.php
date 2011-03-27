@@ -9,11 +9,6 @@ class ModMovie extends MediaLibrary
 		global $_d;
 
 		$_d['movie.source'] = 'file';
-		$_d['movie.ds'] = new DataSet($_d['db'], 'movie', 'mov_id');
-		$mpds = $_d['movie_path.ds'] = new DataSet($_d['db'],
-			'movie_path', 'mp_id');
-		$_d['movie.ds']->AddJoin(new Join($mpds, 'mp_movie = mov_id',
-			'LEFT JOIN'));
 
 		$this->_class = 'movie';
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
@@ -76,12 +71,12 @@ class ModMovie extends MediaLibrary
 		if (@$_d['q'][1] == 'detail')
 		{
 			$t = new Template();
-			$item = $this->ScrapeFS(Server::GetVar('path'),
-				ModMovie::GetFSPregs());
-			$query = $_d['movie.cb.query'];
-			$query['match'] = array('mp_path' => $item['fs_path']);
 
-			$item = array_merge($item, $_d['movie.ds']->GetOne($query));
+			$id = $_d['q'][2];
+			$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
+			$item += $this->ScrapeFS(Server::GetVar('path'),
+				ModMovie::GetFSPregs());
+
 			if (!empty($_d['movie.cb.detail']))
 				foreach ($_d['movie.cb.detail'] as $cb)
 					$item = call_user_func($cb, $item);
@@ -434,9 +429,10 @@ EOD;
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS) as $f)
 		{
-			$mov = ModMovie::GetMovie($f);
+			$path = str_replace('\\', '/', $f->GetPathname());
+			$mov = ModMovie::GetMovie($path);
 			if (@$mov['fs_part'] > 1) continue;
-			$ret[$f] = $mov;
+			$ret[$path] = $mov;
 		}
 
 		return $ret;
@@ -462,18 +458,10 @@ EOD;
 		$query = array();
 		$ret = array();
 
-		foreach ($_d['movie.ds']->find($query) as $i)
+		foreach ($_d['entry.ds']->find($query) as $i)
 		{
-			$i['url'] = urlencode($i['mp_path']);
-			// Emulate a file system if we're not indexing it.
-			if (!isset($ret[$i['mp_path']]))
-			{
-				$i['fs_path'] = $i['mp_path'];
-				$i['fs_filename'] = basename($i['mp_path']);
-				$i['fs_title'] = $i['mov_title'];
-				$ret[$i['mp_path']] = $i;
-			}
-			else $ret[$i['mp_path']] += $i;
+			$i['url'] = urlencode($i['paths'][0]);
+			$ret[$i['paths'][0]] = $i;
 		}
 
 		return $ret;

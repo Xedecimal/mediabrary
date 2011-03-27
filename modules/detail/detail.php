@@ -5,10 +5,6 @@ class ModDetail extends Module
 	function __construct()
 	{
 		global $_d;
-
-		$_d['movie_detail.ds'] = new DataSet($_d['db'], 'movie_detail', 'md_id');
-		$_d['movie_date.ds'] = new DataSet($_d['db'], 'movie_date', 'md_id');
-		$_d['movie_float.ds'] = new DataSet($_d['db'], 'movie_float', 'md_id');
 	}
 
 	function Link()
@@ -40,8 +36,6 @@ class ModDetail extends Module
 			
 			$_d['movie.skipfs'] = true;
 		}
-		else $_d['movie.cb.query']['joins']['date'] =
-			new Join($_d['movie_date.ds'], 'md_movie = mov_id', 'LEFT JOIN');
 
 		$_d['movie.cb.check']['detail'] = array(&$this, 'cb_movie_check');
 		$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
@@ -60,10 +54,9 @@ class ModDetail extends Module
 	{
 		global $_d;
 
-		$q['columns']['cert'] = 'md_value';
+		// TODO: Bring me back to life!
+		/*$q['columns']['cert'] = 'md_value';
 		$q['columns']['movies'] = Database::SqlCount('mov_id');
-		$q['joins']['movie'] = new Join($_d['movie.ds'], 'mov_id = md_movie',
-			'LEFT JOIN');
 		$q['match']['md_name'] = 'certification';
 		$q['group'] = 'md_value';
 		$certs = $_d['movie_detail.ds']->Get($q);
@@ -83,7 +76,7 @@ class ModDetail extends Module
 		$r['head'] = '<script type="text/javascript" src="'.$url.'"></script>';
 		$r['filters'] = '<div class="filter">'.$out.'</div>';
 
-		return $r;
+		return $r;*/
 	}
 
 	function cb_movie_check($movie)

@@ -13,8 +13,6 @@ class ModTVSeries extends MediaLibrary
 
 		global $_d;
 
-		$_d['tv.ds'] = new DataSet($_d['db'], 'tv');
-
 		$this->_class = 'tv';
 
 		$this->CheckActive('tv');

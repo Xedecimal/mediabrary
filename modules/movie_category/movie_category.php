@@ -7,7 +7,9 @@ class ModCategory extends MediaLibrary
 	function __construct()
 	{
 		global $_d;
-		$_d['cat.ds'] = new DataSet($_d['db'], 'movie_category', 'cat_id');
+
+		$_d['cat.ds'] = $_d['db']->category;
+
 		$this->_template = Module::L('movie_category/t_category.xml');
 	}
 
@@ -16,8 +18,6 @@ class ModCategory extends MediaLibrary
 		global $_d;
 
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
-		$_d['movie.cb.query']['joins']['category'] = new Join($_d['cat.ds'],
-			'cat_movie = mov_id', 'LEFT JOIN');
 		$_d['tmdb.cb.scrape']['category'] = array(&$this, 'cb_tmdb_scrape');
 		$_d['tmdb.cb.postscrape']['category'] = array(&$this, 'cb_tmdb_postscrape');
 
@@ -47,12 +47,11 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
-		$joins = array(new Join($_d['movie.ds'], 'mov_id = cat_movie'));
+		//$joins = array(new Join($_d['movie.ds'], 'mov_id = cat_movie'));
 		$cols = array('mov_title' => Database::SqlUnquote('DISTINCT cat_name'),
 			'mov_count' => Database::SqlUnquote('COUNT(mov_id)'));
 
-		$cats = $_d['cat.ds']->Get(array('columns' => $cols, 'joins' => $joins,
-			'group' => 'cat_name'));
+		$cats = $_d['cat.ds']->find();
 
 		foreach ($cats as $c)
 		{
@@ -140,7 +139,7 @@ class ModCategory extends MediaLibrary
 			'cat_count' => Database::SqlUnquote('COUNT(mov_id)'));
 		$query['group'] = 'cat_name';
 
-		$cats = $_d['movie.ds']->Get($query);
+		#$cats = $_d['entry.ds']->find(array(), array('details.category' => 1));
 
 		$cats[] = array('cat_name' => 'All', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);

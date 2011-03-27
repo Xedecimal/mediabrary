@@ -8,8 +8,6 @@ class MediaInfo extends Module
 	{
 		global $_d;
 
-		$_d['medinfo.ds'] = new Dataset($_d['db'], 'codec', 'cod_id');
-
 		$this->cols = array(
 			'path' => array('short' => 'Path',
 				'title' => 'Physical File Location'),
