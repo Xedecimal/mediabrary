@@ -38,6 +38,10 @@ function need_install()
 
 @$_d['db']->Open($_d['config']['db']);
 
+$mongo = new Mongo;
+$_d['db'] = $mongo->mediabrary;
+$_d['entry.ds'] = $_d['db']->entry;
+
 require_once('xedlib/modules/nav.php');
 
 class ModMain extends Module
