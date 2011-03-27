@@ -54,16 +54,27 @@ class ModDetail extends Module
 	{
 		global $_d;
 
-		// TODO: Bring me back to life!
-		/*$q['columns']['cert'] = 'md_value';
-		$q['columns']['movies'] = Database::SqlCount('mov_id');
-		$q['match']['md_name'] = 'certification';
-		$q['group'] = 'md_value';
-		$certs = $_d['movie_detail.ds']->Get($q);
+		$m = new MongoCode('function() {
+	emit(this.details.certification, { count: 1 });
+};');
 
-		foreach ($certs as $c) $cloud[$c['cert']] = $c['movies'];
-		$cloud['None'] = 0;
-		$cloud['Uncertified'] = 0;
+		$r = new MongoCode('function(key, values) {
+	var total = 0
+	for (var i = 0; i < values.length; i++)
+		total += values[i].count;
+	return { count: total };
+};');
+
+		$_d['db']->command(array('mapreduce' => 'entry',
+			'map' => $m, 'reduce' => $r, 'out' => 'mr_out'));
+
+		$res = $_d['db']->mr_out->find();
+		while ($res->hasNext())
+		{
+			$r = $res->getNext();
+			$n = empty($r['_id']) ? 'Uncertified' : $r['_id'];
+			$cloud[$n] = $r['value']['count'];
+		}
 
 		$cloud = Math::RespectiveSize($cloud);
 
@@ -73,10 +84,10 @@ class ModDetail extends Module
 				style="font-size: '.$s.'px;">'.$c.'</a> ';
 
 		$url = Module::P('detail/detail.js');
-		$r['head'] = '<script type="text/javascript" src="'.$url.'"></script>';
-		$r['filters'] = '<div class="filter">'.$out.'</div>';
+		$ret['head'] = '<script type="text/javascript" src="'.$url.'"></script>';
+		$ret['filters'] = '<div class="filter">'.$out.'</div>';
 
-		return $r;*/
+		return $ret;
 	}
 
 	function cb_movie_check($movie)
