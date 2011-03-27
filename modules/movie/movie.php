@@ -432,9 +432,8 @@ EOD;
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach (glob($p.'/*') as $f)
+		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS) as $f)
 		{
-			if (is_dir($f)) continue;
 			$mov = ModMovie::GetMovie($f);
 			if (@$mov['fs_part'] > 1) continue;
 			$ret[$f] = $mov;
@@ -460,12 +459,10 @@ EOD;
 		if (!empty($_d['movie.cb.lqc']))
 			$query = U::RunCallbacks($_d['movie.cb.lqc'], $query);
 
-		$query['group'] = 'mov_id';
+		$query = array();
 		$ret = array();
 
-		$movies = $_d['movie.ds']->Get($query);
-		if (!empty($movies))
-		foreach ($movies as $i)
+		foreach ($_d['movie.ds']->find($query) as $i)
 		{
 			$i['url'] = urlencode($i['mp_path']);
 			// Emulate a file system if we're not indexing it.
