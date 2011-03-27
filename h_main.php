@@ -27,6 +27,8 @@ if (!file_exists('config/config.yml'))
 $_d['config'] = spyc_load_file('config/config.yml');
 $_d['db'] = new Database();
 
+$_d['module.disable']['MediaInfo'] = 1;
+
 /** Unknown Database */
 $_d['db']->Handlers[1049] = 'need_install';
 

@@ -8,6 +8,8 @@ class MediaInfo extends Module
 	{
 		global $_d;
 
+		$_d['medinfo.ds'] = $_d['db']->medinfo;
+
 		$this->cols = array(
 			'path' => array('short' => 'Path',
 				'title' => 'Physical File Location'),
@@ -82,9 +84,6 @@ class MediaInfo extends Module
 	function Link()
 	{
 		global $_d;
-
-		# TODO: Bad place to process media info, do it elsewhere to speed things up.
-		#$_d['movie.cb.detail'][] = array($this, 'movie_cb_detail');
 
 		if (empty($_d['q'][0]))
 			$_d['nav.links']['Video and Audio Statistics'] = 'mediainfo';
@@ -200,7 +199,7 @@ EOF;
 		$q['match']['cod_name'] = 'mtime';
 		$q['columns']['value'] = 'cod_value';
 		$q['columns']['path'] = 'cod_path';
-		foreach ($_d['medinfo.ds']->Get($q) as $r)
+		foreach ($_d['medinfo.ds']->find($q['match'], $q['columns']) as $r)
 			$dbtimes[$r['path']] = $r['value'];
 
 		if (!empty($mtimes))

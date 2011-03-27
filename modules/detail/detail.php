@@ -152,6 +152,10 @@ EOF;
 			else $this->save[$n] = $v;
 		}
 
+		$this->save['categories'] = array();
+		foreach ($sx->movies->movie->categories->category as $c)
+			$this->save['categories'][] = (string)$c['name'];
+
 		$this->save['obtained'] =
 			Database::TimestampToMySql(filemtime($item['fs_path']));
 	}

@@ -461,7 +461,10 @@ EOD;
 		$query = array();
 		$ret = array();
 
-		foreach ($cur = $_d['entry.ds']->find($query)->limit($_d['movie.cb.query']['limit']) as $i)
+		$cur = $_d['entry.ds']->find($query);
+		if (!empty($_d['movie.cb.query']['limit']))
+			$cur->limit($_d['movie.cb.query']['limit']);
+		foreach ($cur as $i)
 		{
 			$i['url'] = urlencode($i['paths'][0]);
 			$ret[$i['paths'][0]] = $i;

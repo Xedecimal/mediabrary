@@ -43,27 +43,6 @@ class ModCategory extends MediaLibrary
 		}
 	}
 
-	function Prepare()
-	{
-		global $_d;
-
-		//$joins = array(new Join($_d['movie.ds'], 'mov_id = cat_movie'));
-		$cols = array('mov_title' => Database::SqlUnquote('DISTINCT cat_name'),
-			'mov_count' => Database::SqlUnquote('COUNT(mov_id)'));
-
-		$cats = $_d['cat.ds']->find();
-
-		/*foreach ($cats as $c)
-		{
-			$this->_items[] = $c['title'];
-			$this->_metadata[$c['mov_title']] = array(
-				'mov_count' => $c['mov_count'],
-				'mov_title' => $c['mov_title'],
-				'med_thumb' => "img/category-{$c['mov_title']}.jpg"
-			);
-		}*/
-	}
-
 	function Get()
 	{
 		global $_d;
@@ -110,16 +89,7 @@ class ModCategory extends MediaLibrary
 	function cb_tmdb_postscrape($item)
 	{
 		global $_d;
-
 		return $item;
-		/*if (!empty($this->cats))
-		foreach ($this->cats as $c)
-		{
-			$_d['cat.ds']->insert(array(
-				'movie' => $item['_id'],
-				'name' => $c
-			), true);
-		}*/
 	}
 
 	function GetItems()
@@ -141,7 +111,23 @@ class ModCategory extends MediaLibrary
 			'cat_count' => Database::SqlUnquote('COUNT(mov_id)'));
 		$query['group'] = 'cat_name';
 
-		#$cats = $_d['entry.ds']->find(array(), array('details.category' => 1));
+		$m = new MongoCode('function() {
+	this.details.categories.forEach(function (c) { emit(c, { count: 1}); });
+};');
+
+		$r = new MongoCode('function(key, values) {
+	var total = 0
+	for (var i = 0; i < values.length; i++)
+		total += values[i].count;
+	return { count: total };
+};');
+
+		$_d['db']->command(array('mapreduce' => 'entry',
+			'map' => $m, 'reduce' => $r, 'out' => 'mr_out'));
+
+		foreach ($_d['db']->mr_out->find() as $c)
+			$cats[] = array('cat_name' => $c['_id'],
+				'cat_count' => $c['value']['count']);
 
 		$cats[] = array('cat_name' => 'All', 'cat_count' => 0);
 		$cats[] = array('cat_name' => 'Unscraped', 'cat_count' => 0);
@@ -158,7 +144,7 @@ class ModCategory extends MediaLibrary
 			else $cats[$ix]['cat_class'] = 'category';
 			$trel[$c['cat_name']] = $c['cat_count'];
 		}
-		$sizes = Math::RespectiveSize($trel, 12, 24);
+		$sizes = Math::RespectiveSize($trel);
 
 		$vp = new VarParser();
 		foreach ($cats as $c)
