@@ -84,18 +84,14 @@ class ModDetail extends Module
 		global $_d;
 
 		$ret = array();
-		$q['match']['md_movie'] = $movie['mov_id'];
-		$q['match']['md_name'] = 'certification';
-		$q['match']['md_value'] = Database::SqlUnquote(' IS NOT NULL');
-		$rows = $_d['movie_detail.ds']->Get($q);
-		if (empty($rows))
+		if (empty($movie['details']['certification']))
 		{
-			$uep = urlencode($movie['mp_path']);
+			$uep = urlencode($movie['fs_path']);
 			$url = "{{app_abs}}/movie/scrape?target={$uep}&fast=1";
 			$ret['Details'][] = <<<EOD
 <a class="a-fix" href="{$url}">Scrape</a> No certification for
-{$movie['mov_title']}
-- <a href="http://www.themoviedb.org/movie/{$movie['mov_tmdbid']}" target="_blank">Reference</a>
+{$movie['title']}
+- <a href="http://www.themoviedb.org/movie/{$movie['tmdbid']}" target="_blank">Reference</a>
 EOD;
 		}
 		return $ret;
@@ -132,6 +128,7 @@ EOF;
 
 	function cb_tmdb_scrape($item, $xml)
 	{
+		file_put_contents('scrape.txt', $xml);
 		$sx = simplexml_load_string($xml);
 		foreach ($sx->movies->movie[0] as $n => $v)
 		{
@@ -141,7 +138,7 @@ EOF;
 			if (is_numeric($v)) $this->save[$n] = (float)$v;
 			else if (preg_match('/\d{4}-\d{2}-\d{2}/', $v))
 				$this->save[$n] = new MongoDate(strtotime($v));
-			else $this->rows[$n] = $v;
+			else $this->save[$n] = $v;
 		}
 
 		$this->save['obtained'] =

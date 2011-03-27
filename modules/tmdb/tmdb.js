@@ -26,17 +26,17 @@ $(function () {
 	});
 
 	$('#tmdb-aCovers').live('click', function () {
-		$('#movie-details').load('tmdb/covers', {path: $(this).attr('href')});
+		$('#movie-details').load('tmdb/covers/'+$(this).attr('href'));
 		return false;
 	});
 
 	$('.tmdb-aCover').live('click', function () {
-		path = $(this).attr('href');
+		id = $(this).attr('href');
 		img = $(this).find('img').attr('src');
-		$.get('movie/cover', {path: path, img: img}, function (data) {
-			$('div[title="'+data.fs_path+'"]').css('opacity', 1);
+		$.get('movie/cover/'+id, {image: img}, function (data) {
+			$('div[title="'+data.fs_path+'"]').css(
+				'background-image', 'url("'+img+'")');
 		}, 'json');
-		$('div[title="'+path+'"]').css('background-image', 'url("'+img+'")').css('opacity', 0.25);
 		$('#dialog-movie').dialog('close');
 		return false;
 	});

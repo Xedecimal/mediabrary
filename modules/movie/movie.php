@@ -188,20 +188,19 @@ class ModMovie extends MediaLibrary
 
 		# Collect database information
 		$this->_ds = array();
-		foreach ($_d['movie.ds']->Get() as $dr)
+		foreach ($_d['entry.ds']->find() as $dr)
+		foreach ($dr['paths'] as $p)
 		{
-			$p = $dr['mp_path'];
-
 			# Remove missing items
-			if (empty($dr['mp_path']) || !file_exists($dr['mp_path']))
+			if (empty($p) || !file_exists($p))
 			{
 				$ret['cleanup'][] = "Removed database entry for non-existing '"
 					.$p."'";
-				$_d['movie.ds']->Remove(array('mov_id' => $dr['mov_id']));
+				$_d['movie.ds']->remove(array('_id' => $dr['_id']));
 			}
 
 			# This one is already clean, skip it.
-			if (!empty($dr['mov_clean']))
+			if (!empty($dr['clean']))
 			{
 				unset($this->_files[$p]);
 				continue;
@@ -225,11 +224,9 @@ class ModMovie extends MediaLibrary
 			if (isset($this->_ds[$p]))
 			{
 				$md = $this->_ds[$p];
-				$rep = array_merge_recursive($rep, $this->CheckDates($md));
-				$rep = array_merge_recursive($rep,
-					$this->CheckFilename($file, $md));
-				$rep = array_merge_recursive($rep,
-					$this->CheckMedia($file, $md));
+				$rep = array_merge_recursive($rep, $this->CheckDates($p, $md));
+				$rep = array_merge_recursive($rep, $this->CheckFilename($p, $md));
+				$rep = array_merge_recursive($rep, $this->CheckMedia($p, $md));
 				$rep = array_merge_recursive($rep,
 					U::RunCallbacks($_d['movie.cb.check'], $md));
 			}
@@ -237,9 +234,8 @@ class ModMovie extends MediaLibrary
 			# If we can, mark this movie clean to skip further checks.
 			if (empty($rep) && isset($md) && @$file['fs_part'] < 2)
 			{
-				$_d['movie.ds']->Update(
-					array('mov_id' => $md['mov_id']),
-					array('mov_clean' => 1)
+				$_d['entry.ds']->update(array('_id' => $md['_id']),
+					array('$set' => array('mov_clean' => true))
 				);
 			}
 			else $ret = array_merge_recursive($ret, $rep);
@@ -284,18 +280,21 @@ EOF;
 	 * @param array $file Result of ModMovie::GetMovie
 	 * @param array $dbentry Database entry for this movie.
 	 */
-	function CheckDates($md)
+	function CheckDates($p, $md)
 	{
+		global $_d;
+
 		$ret = array();
 
 		# Date Related
-		$date = $md['mov_date'];
+		$date = $md['date'];
 		$year = substr($date, 0, 4);
 
 		# Missing month and day.
 		if (strlen($date) < 10)
 		{
-			$ret['Scrape'][] = "File {$md['mov_path']} has incorrectly
+			$_d['entry.ds']->remove(array('_id' => $md['_id']));
+			$ret['Scrape'][] = "File {$p} has incorrectly
 				scraped date \"{$year}\"";
 		}
 
@@ -306,31 +305,29 @@ EOF;
 	{
 		$ret = array();
 
-		$p = $md['mp_path'];
-		$ext = File::ext($p);
+		$ext = File::ext($file);
 
 		# Filename related
 		if ($ext != 'avi')
 		{
-			$ret['File Name Compliance'][] = "File {$file['fs_path']} has a
-				bad extension.";
+			$ret['File Name Compliance'][] = "File {$file} has a bad extension.";
 		}
 
 		# Title Related
-		$title = ModMovie::CleanTitleForFile($md['mov_title']);
+		$title = ModMovie::CleanTitleForFile($md['title']);
 
 		# Validate strict naming conventions.
 
-		$next = basename($p, $ext);
-		$date = $md['mov_date'];
+		$next = basename($file, $ext);
+		$date = $md['date'];
 		$year = substr($date, 0, 4);
 
 		# Part files need their CD#
-		if (!empty($file['fs_part']))
+		if (!empty($md['part']))
 		{
 			$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
 				.$file['fs_part'].'\.(\S+)$#';
-			$target = "$title ($year) CD{$file['fs_part']}.$ext";
+			$target = "$title ($year) CD{$md['part']}.$ext";
 		}
 		else
 		{
@@ -338,18 +335,18 @@ EOF;
 			$target = "$title ($year).$ext";
 		}
 
-		if (!preg_match($preg, $md['mp_path']))
+		if (!preg_match($preg, $file))
 		{
-			$urlfix = "movie/fix?path=".urlencode($p);
+			$urlfix = "movie/fix?path=".urlencode($file);
 			# TODO: Do not directly reference tmdb here!
-			$urlunfix = "tmdb/remove?id={$md['mov_id']}";
-			$bn = basename($p);
+			$urlunfix = "tmdb/remove?id={$md['_id']}";
+			$bn = basename($file);
 
 			$ret['File Name Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <A href="{$urlunfix}" class="a-nogo">Unscrape</a>
 File "$bn" should be "$target".
-- <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
+- <a href="http://www.themoviedb.org/movie/{$md['tmdbid']}"
 target="_blank">Reference</a>
 EOD;
 		}
@@ -361,15 +358,14 @@ EOD;
 	{
 		$ret = array();
 
-		$p = $md['mp_path'];
-		$ext = File::ext($p);
-		$next = basename($p, '.'.$ext);
-		if (empty($file['fs_part']) || $file['fs_part'] < 2)
+		$ext = File::ext($file);
+		$next = basename($file, $ext);
+		if (empty($md['part']) || $md['part'] < 2)
 		{
 			# Look for cover or backdrop.
 			if (!file_exists("img/meta/movie/thm_$next"))
 			{
-				$urlunfix = "tmdb/remove?id={$md['mov_id']}";
+				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['mp_path']}
 - <a href="http://www.themoviedb.org/movie/{$md['mov_tmdbid']}"
@@ -450,7 +446,7 @@ EOD;
 		global $_d;
 
 		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
-			$_d['movie.cb.query']['limit'] = array(0, 50);
+			$_d['movie.cb.query']['limit'] = 50;
 		if (empty($_d['movie.cb.query']['match']))
 		{
 			$_d['movie.cb.query']['match']['md_name'] = 'obtained';
@@ -465,7 +461,7 @@ EOD;
 		$query = array();
 		$ret = array();
 
-		foreach ($_d['entry.ds']->find($query) as $i)
+		foreach ($cur = $_d['entry.ds']->find($query)->limit($_d['movie.cb.query']['limit']) as $i)
 		{
 			$i['url'] = urlencode($i['paths'][0]);
 			$ret[$i['paths'][0]] = $i;
