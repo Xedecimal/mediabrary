@@ -46,7 +46,8 @@ class ModMovie extends MediaLibrary
 
 		if (empty($_d['q'][0]))
 		{
-			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
+			$r['head'] = '<link type="text/css" rel="stylesheet"
+				href="modules/movie/css.css" />';
 
 			$total = $size = 0;
 
@@ -62,7 +63,8 @@ class ModMovie extends MediaLibrary
 			$size = File::SizeToString($size);
 			$text = "{$size} of {$total} Movies";
 
-			$r['default'] = '<div class="main-link" id="divMainMovies"><a href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
+			$r['default'] = '<div class="main-link" id="divMainMovies"><a
+				href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
 			return $r;
 		}
 
@@ -72,14 +74,19 @@ class ModMovie extends MediaLibrary
 		{
 			$t = new Template();
 
-			$id = $_d['q'][2];
-			$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-			$item += $this->ScrapeFS(Server::GetVar('path'),
+			$item = $this->ScrapeFS(Server::GetVar('path'),
 				ModMovie::GetFSPregs());
+
+			if (!empty($_d['q'][2]))
+			{
+				$id = $_d['q'][2];
+				$item += $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
+			}
 
 			if (!empty($_d['movie.cb.detail']))
 				foreach ($_d['movie.cb.detail'] as $cb)
 					$item = call_user_func($cb, $item);
+
 			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
 			$item['fs_filename'] = basename(Server::GetVar('path'));
 			$t->Set($item);

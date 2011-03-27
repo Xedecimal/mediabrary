@@ -20,13 +20,10 @@ $(function () {
 	});
 
 	$('.a-movie-item').live('click', function () {
-		$('#dialog-movie').dialog('option', 'title',
-			'Details for '+$(this).attr('href'));
+		$('#dialog-movie').dialog('option', 'title', 'Movie Details');
 
-		$('#dialog-movie').load(app_abs+'/movie/detail/'+$(this).attr('href'),
-			function () {
-				$('#dialog-movie').dialog('open');
-			}
+		$('#dialog-movie').load($(this).attr('href'),
+			function () { $('#dialog-movie').dialog('open'); }
 		);
 
 		return false;

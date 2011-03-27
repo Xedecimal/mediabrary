@@ -8,7 +8,6 @@ class MediaLibrary extends Module
 
 	function Get()
 	{
-		//if (!empty($this->_items)) ksort($this->_items);
 		$t = new Template();
 		$t->ReWrite('item', array($this, 'TagItem'));
 		$t->Set($this->_vars);
@@ -20,6 +19,7 @@ class MediaLibrary extends Module
 		global $_d;
 
 		$vp = new VarParser();
+		$vp->Behavior->Bleed = false;
 		$ret = null;
 		$scraped = false;
 
@@ -29,7 +29,8 @@ class MediaLibrary extends Module
 			foreach (array_keys($i) as $k)
 				if (is_string($i[$k]))
 					$i[$k] = htmlspecialchars($i[$k]);
-			$ret .= $vp->ParseVars($g, $i);
+			$i['reu_path'] = rawurlencode($i['fs_path']);
+			$ret .= $vp->ParseVars($g, $i + $_d);
 		}
 
 		return $ret;

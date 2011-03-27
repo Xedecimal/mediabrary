@@ -4,8 +4,9 @@
 		class="movie-item">
 		<div class="movie-details" style="display: none">
 		<div class="quick-buttons">
-			<a href="{{_id}}" class="a-movie-item"><img
-				src="modules/movie/img/information.png" /></a>
+			<a href="{{app_abs}}/movie/detail/{{_id}}?path={{reu_path}}"
+				class="a-movie-item"><img
+					src="modules/movie/img/information.png" /></a>
 			<callback ds="_d" name="movie.cb.cover" />
 		</div>
 		{{title}}
