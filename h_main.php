@@ -41,7 +41,7 @@ function need_install()
 $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
-$_d['entry.ds']->ensureIndex(array('title' => 1, 'date' => 1), array('unique' => 1, 'safe' => 1, 'dropDups' => 1));
+$_d['entry.ds']->ensureIndex(array('title' => 1, 'date' => 1), array('unique' => true, 'safe' => true, 'dropDups' => true));
 
 require_once('xedlib/modules/nav.php');
 

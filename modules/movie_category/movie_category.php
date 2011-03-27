@@ -111,6 +111,7 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
+		return $item;
 		/*if (!empty($this->cats))
 		foreach ($this->cats as $c)
 		{

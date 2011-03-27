@@ -140,7 +140,7 @@ EOF;
 
 			if (is_numeric($v)) $this->save[$n] = (float)$v;
 			else if (preg_match('/\d{4}-\d{2}-\d{2}/', $v))
-				$this->save[$n] = new DateTime($v);
+				$this->save[$n] = new MongoDate(strtotime($v));
 			else $this->rows[$n] = $v;
 		}
 

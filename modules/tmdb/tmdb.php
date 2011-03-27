@@ -64,13 +64,14 @@ class ModTMDB extends Module
 			if (empty($movie)) die(json_encode(array('error' => 'Not found',
 				'mov_path' => Server::GetVar('target'))));
 
+			# Run all module callbacks
+			$movie = U::RunCallbacks($_d['tmdb.cb.postscrape'], $movie);
+
 			# Update the database
 			$res = $_d['db']->command(array('findAndModify' => 'entry',
 				'query' => array('title' => $movie['title'], 'date' => $movie['date']),
 				'update' => $movie, 'new' => 1, 'upsert' => 1, 'safe' => 1));
 
-			# Run all module callbacks
-			U::RunCallbacks($_d['tmdb.cb.postscrape'], $movie);
 			if (Server::GetVar('fast') == 1) die('Fixed!');
 			die(json_encode($movie + $media));
 		}
