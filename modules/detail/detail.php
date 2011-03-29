@@ -76,6 +76,8 @@ class ModDetail extends Module
 			$cloud[$n] = $r['value']['count'];
 		}
 
+		if (empty($cloud)) return;
+
 		$cloud = Math::RespectiveSize($cloud);
 
 		$out = '';
