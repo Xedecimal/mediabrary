@@ -266,7 +266,7 @@ class ModMovie extends MediaLibrary
 			$uep = urlencode($p);
 
 			$ret['Scrape'][] = <<<EOF
-<a href="movie/scrape?target=$uep&fast=1"
+<a href="movie/scrape?target=$uep&amp;fast=1"
 	class="a-fix">Fix</a> File {$p} needs to be scraped
 EOF;
 		}
@@ -401,20 +401,17 @@ EOD;
 			# Proper named thumbnail or backdrop.
 			if (preg_match('/(thm_|bd_)(.*)/', $f, $m))
 			{
-				$found = false;
+				if (array_search($m[2], $filelist) !== false) continue;
 
-				if (array_search($m[2], $filelist))
-					continue;
-
-				/*if (!unlink($p))
+				if (!unlink($p))
 					$ret['Media'][] = "Could not unlink: $p";
-				else*/ $ret['Media'][] = "Removed orphan cover $p";
+				else $ret['Media'][] = "Removed orphan cover $p";
 			}
 			else
 			{
-				/*if (!unlink($p))
+				if (!unlink($p))
 					$ret['Media'][] = "Could not unlink: $p";
-				else*/ $ret['Media'][] = "Removed irrelevant cover: {$p}";
+				else $ret['Media'][] = "Removed irrelevant cover: {$p}";
 			}
 		}
 		return $ret;

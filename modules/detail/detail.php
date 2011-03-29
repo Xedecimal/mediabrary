@@ -98,7 +98,7 @@ class ModDetail extends Module
 		if (empty($movie['details']['certification']))
 		{
 			$uep = urlencode($movie['fs_path']);
-			$url = "{{app_abs}}/movie/scrape?target={$uep}&fast=1";
+			$url = "{{app_abs}}/movie/scrape?target={$uep}&amp;fast=1";
 			$ret['Details'][] = <<<EOD
 <a class="a-fix" href="{$url}">Scrape</a> No certification for
 {$movie['title']}
