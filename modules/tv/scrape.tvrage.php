@@ -63,7 +63,7 @@ class ModScrapeTVRage
 		$ret = array();
 
 		$sx = ModScrapeTVRage::GetXML($series);
-		$ret['series'] = trim((string)$sx->name);
+		$ret['series'] = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', trim((string)$sx->name));
 		foreach ($sx->xpath('//Season') as $s)
 		{
 			$sn = (int)$s->attributes()->no;
@@ -74,7 +74,7 @@ class ModScrapeTVRage
 					$eout['aired'] = null;
 				else
 					$eout['aired'] = Database::MyDateTimestamp($ep->airdate);
-				$eout['title'] = (string)$ep->title;
+				$eout['title'] = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', (string)$ep->title);
 				$eout['links']['TVRage'] = (string)$ep->link;
 				$en = (int)$ep->seasonnum;
 				$ret['eps'][$sn][$en] = $eout;

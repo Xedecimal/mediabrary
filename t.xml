@@ -1,6 +1,6 @@
 <html doctype="trans">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <title>Mediabrary</title>
 <script type="text/javascript">
 var app_abs = '{{app_abs}}';
