@@ -322,7 +322,7 @@ class ModTMDB extends Module
 		# Scrape some general information
 
 		$movie['tmdbid'] = $id;
-		$movie['title'] = MediaLibrary::CleanString((string)$sx->movies->movie->name);
+		$movie['title'] = (string)$sx->movies->movie->name;
 		$movie['date'] = trim((string)$sx->movies->movie->released);
 
 		$dst_pinfo = pathinfo($movie['fs_path']);

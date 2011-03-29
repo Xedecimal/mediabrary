@@ -122,7 +122,7 @@ class MediaLibrary extends Module
 
 	static function CleanString($str)
 	{
-		return trim(iconv('ISO-8859-1', 'UTF-8//TRANSLIT', $str));
+		return trim($str);
 	}
 
 	function Check() { return array(); }

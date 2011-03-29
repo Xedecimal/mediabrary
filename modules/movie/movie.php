@@ -182,7 +182,7 @@ class ModMovie extends MediaLibrary
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $fsi)
 		{
-			$f = $fsi->GetPathname();
+			$f = str_replace('\\', '/', $fsi->GetPathname());
 			$this->_files[$f] = ModMovie::GetMovie($f);
 			$ext = File::ext($f);
 			$filelist[] = basename($f, '.'.$ext);
