@@ -33,4 +33,9 @@ function xpath_value($s, $xpath)
 function bin_safe_store($dat) { return base64_encode($dat); }
 function bin_safe_load($dat) { return base64_decode($dat); }
 
+function t($str)
+{
+	return $GLOBALS['_d']['i18n'][$str];
+}
+
 ?>

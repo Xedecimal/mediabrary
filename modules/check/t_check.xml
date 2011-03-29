@@ -3,7 +3,7 @@
 <style type="text/css">@import url('modules/check/css.css')</style>
 <group>
 <div class="group">
-<a href="{{id}}" class="a-fixall">[Fix All]</a>
+<a href="{{id}}" class="a-fixall">[{{_d.i18n.Fix_All}}]</a>
 	<a href="{{id}}" title="{{title}}" class="aCheckCat">+ {{title}}</a> ({{count}})
 <div id="grp-{{id}}" style="display: none">
 {{msgs}}

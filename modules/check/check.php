@@ -9,7 +9,7 @@ class ModCheck extends Module
 		global $_d;
 
 		if (empty($_d['q'][0]))
-			$_d['nav.links']['Check Your Library'] = 'check';
+			$_d['nav.links'][t('check_your_library')] = 'check';
 	}
 
 	function Get()
