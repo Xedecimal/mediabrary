@@ -26,8 +26,8 @@ class ModMovie extends MediaLibrary
 		$this->_items = $this->CollectDS();
 
 		if (!empty($_d['movie.cb.filter']))
-			$this->_items = U::RunCallbacks($_d['movie.cb.filter'], $this->_items,
-				$this->_files);
+			$this->_items = U::RunCallbacks($_d['movie.cb.filter'],
+				$this->_items, $this->_files);
 
 		if (!empty($_d['movie.cb.fsquery']['limit']))
 		{
@@ -344,11 +344,12 @@ EOF;
 			$urlunfix = "tmdb/remove?id={$md['_id']}";
 			$bn = basename($file);
 
+			$tmdbid = @$md['tmdbid'];
 			$ret['File Name Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <A href="{$urlunfix}" class="a-nogo">Unscrape</a>
 File "$bn" should be "$target".
-- <a href="http://www.themoviedb.org/movie/{$md['tmdbid']}"
+- <a href="http://www.themoviedb.org/movie/{$tmdbid}"
 target="_blank">Reference</a>
 EOD;
 		}
@@ -361,7 +362,7 @@ EOD;
 		$ret = array();
 
 		$ext = File::ext($file);
-		$next = basename($file, $ext);
+		$next = basename($file, '.'.$ext);
 		if (empty($md['part']) || $md['part'] < 2)
 		{
 			# Look for cover or backdrop.
@@ -447,10 +448,7 @@ EOD;
 		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = 50;
 		if (empty($_d['movie.cb.query']['match']))
-		{
-			$_d['movie.cb.query']['match']['md_name'] = 'obtained';
-			$_d['movie.cb.query']['order'] = 'md_value DESC';
-		}
+			$_d['movie.cb.query']['order'] = array('details.obtained', 1);
 
 		$query = $_d['movie.cb.query'];
 
@@ -460,7 +458,8 @@ EOD;
 		$query = array();
 		$ret = array();
 
-		$cur = $_d['entry.ds']->find($_d['movie.cb.query']['match']);
+		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
+		$cur = $_d['entry.ds']->find($m);
 		if (!empty($_d['movie.cb.query']['limit']))
 			$cur->limit($_d['movie.cb.query']['limit']);
 		foreach ($cur as $i)

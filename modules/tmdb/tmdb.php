@@ -41,7 +41,7 @@ class ModTMDB extends Module
 			$movie = ModMovie::GetMovie($p);
 
 			if (empty($movie['title'])) $movie['title'] = $movie['fs_title'];
-			if (empty($movie['date'])) $movie['date'] = $movie['fs_date'];
+			if (empty($movie['date'])) $movie['date'] = @$movie['fs_date'];
 
 			# Fast scrape doesn't come with tmdbid.
 			if (Server::GetVar('fast') == 1)
@@ -335,43 +335,54 @@ class ModTMDB extends Module
 		if (!empty($media['med_thumb']) && !empty($media['med_bd']))
 			return $movie;
 
-		# Collect covers
-		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
-		$urls = xpath_attrs($sx, $xp_thumb, 'url');
-
 		# Prepare our meta folder for movies.
 		if (!file_exists('img/meta/movie')) File::MakeFullDir('img/meta/movie');
 
-		# Covers are available to grab
-		if (!empty($urls))
+		# Cover
+		$thm = 'img/meta/movie/thm_'.basename($dst_pinfo['filename']);
+
+		# Cover does not exist.
+		if (!file_exists($thm))
 		{
-			$url = (string)$urls[0];
-			$data = @file_get_contents($url, 0, $ctx_timeout);
+			$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
+			$urls = xpath_attrs($sx, $xp_thumb, 'url');
 
-			if (!empty($data))
+			# Covers are available to grab
+			if (!empty($urls))
 			{
-				# Clean up existing covers
-				$thm = 'img/meta/movie/thm_'.basename($dst_pinfo['filename']);
-				if (file_exists($thm)) unlink($thm);
+				$url = (string)$urls[0];
+				$data = @file_get_contents($url, 0, $ctx_timeout);
 
-				# Place new cover
-				$src_pinfo = pathinfo($url);
-				$movie['med_thumb'] = "img/meta/movie/thm_".
-					$dst_pinfo['filename'];
+				if (!empty($data))
+				{
+					# Place new cover
+					$src_pinfo = pathinfo($url);
+					$movie['med_thumb'] = "img/meta/movie/thm_".$dst_pinfo['filename'];
 
-				if (!file_put_contents($movie['med_thumb'], $data))
-					trigger_error("Cannot write the cover image.", ERR_FATAL);
+					if (!file_put_contents($movie['med_thumb'], $data))
+						trigger_error("Cannot write the cover image.", ERR_FATAL);
+				}
 			}
+		}
 
-			# Scrape a large backdrop
+		# Backdrop
+		$bd = 'img/meta/movie/bd_'.basename($dst_pinfo['filename']);
+
+		# Backdrop does not exist.
+		if (!file_exists($bd))
+		{
 			$xp_back = '//movies/movie/images/image[@type="backdrop"][@size="poster"]';
-			$url = xpath_attr($sx, $xp_back, 'url');
-			if (!empty($url))
+			$urls = xpath_attr($sx, $xp_back, 'url');
+			if (!empty($urls))
 			{
-				$src_pinfo = pathinfo($url);
+				$url = (string)$urls[0];
 				$data = @file_get_contents($url, 0, $ctx_timeout);
 				if (!empty($data))
+				{
+					# Place new backdrop
+					$src_pinfo = pathinfo($url);
 					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}", $data);
+				}
 			}
 		}
 

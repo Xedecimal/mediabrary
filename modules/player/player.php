@@ -125,7 +125,7 @@ class ModPlayer extends Module
 
 	function cb_buttons_cover($t)
 	{
-		return ' <a href="{{url}}" class="a-play"><img
+		return ' <a href="{{reu_path}}" class="a-play"><img
 			src="modules/player/img/play.png" alt="Play" /></a> ';
 	}
 

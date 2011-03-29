@@ -101,11 +101,13 @@ class ModDetail extends Module
 		{
 			$uep = urlencode($movie['fs_path']);
 			$url = "{{app_abs}}/movie/scrape?target={$uep}&amp;fast=1";
+			$tmdbid = @$movie['tmdbid'];
+			$imdbid = @$movie['details']['imdb_id'];
 			$ret['Details'][] = <<<EOD
-<a class="a-fix" href="{$url}">Scrape</a> No certification for
+<a href="{$url}">Scrape</a> No certification for
 {$movie['title']}
-- <a href="http://www.themoviedb.org/movie/{$movie['tmdbid']}" target="_blank">TMDB</a>
-- <a href="http://www.imdb.com/title/{$movie['details']['imdb_id']}" target="_blank">IMDB</a>
+- <a href="http://www.themoviedb.org/movie/{$tmdbid}" target="_blank">TMDB</a>
+- <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
 		}
 		return $ret;
@@ -144,6 +146,7 @@ EOF;
 	{
 		file_put_contents('scrape.txt', $xml);
 		$sx = simplexml_load_string($xml);
+		$this->save = array();
 		foreach ($sx->movies->movie[0] as $n => $v)
 		{
 			$v = trim($v);
@@ -166,7 +169,7 @@ EOF;
 	function cb_tmdb_postscrape($item)
 	{
 		global $_d;
-		$item['details'] = $this->save;
+		if (!empty($this->save)) $item['details'] = $this->save;
 		return $item;
 	}
 }
