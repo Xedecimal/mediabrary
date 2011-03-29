@@ -102,7 +102,8 @@ class ModDetail extends Module
 			$ret['Details'][] = <<<EOD
 <a class="a-fix" href="{$url}">Scrape</a> No certification for
 {$movie['title']}
-- <a href="http://www.themoviedb.org/movie/{$movie['tmdbid']}" target="_blank">Reference</a>
+- <a href="http://www.themoviedb.org/movie/{$movie['tmdbid']}" target="_blank">TMDB</a>
+- <a href="http://www.imdb.com/title/{$movie['details']['imdb_id']}" target="_blank">IMDB</a>
 EOD;
 		}
 		return $ret;
