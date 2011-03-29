@@ -11,6 +11,7 @@ class ModMovie extends MediaLibrary
 		$_d['movie.source'] = 'file';
 
 		$this->_class = 'movie';
+		$this->_thumb_path = 'img/meta/movie';
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/movie/img/missing.jpg';
 	}
@@ -448,7 +449,7 @@ EOD;
 		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = 50;
 		if (empty($_d['movie.cb.query']['match']))
-			$_d['movie.cb.query']['order'] = array('details.obtained', 1);
+			$_d['movie.cb.query']['order'] = array('details.obtained' => -1);
 
 		$query = $_d['movie.cb.query'];
 
@@ -462,6 +463,7 @@ EOD;
 		$cur = $_d['entry.ds']->find($m);
 		if (!empty($_d['movie.cb.query']['limit']))
 			$cur->limit($_d['movie.cb.query']['limit']);
+		$cur->sort($_d['movie.cb.query']['order']);
 		foreach ($cur as $i)
 		{
 			$i['url'] = urlencode($i['paths'][0]);

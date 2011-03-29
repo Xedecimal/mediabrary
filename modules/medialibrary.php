@@ -30,6 +30,7 @@ class MediaLibrary extends Module
 				if (is_string($i[$k]))
 					$i[$k] = htmlspecialchars($i[$k]);
 			$i['reu_path'] = rawurlencode($i['fs_path']);
+			$i['med_thumb'] = str_replace("'", "\\'", $this->_thumb_path.'/thm_'.File::GetFile($i['fs_filename']));
 			$ret .= $vp->ParseVars($g, $i + $_d);
 		}
 
