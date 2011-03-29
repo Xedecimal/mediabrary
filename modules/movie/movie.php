@@ -458,7 +458,7 @@ EOD;
 		$query = array();
 		$ret = array();
 
-		$cur = $_d['entry.ds']->find($query);
+		$cur = $_d['entry.ds']->find($_d['movie.cb.query']['match']);
 		if (!empty($_d['movie.cb.query']['limit']))
 			$cur->limit($_d['movie.cb.query']['limit']);
 		foreach ($cur as $i)
