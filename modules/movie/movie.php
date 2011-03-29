@@ -54,11 +54,11 @@ class ModMovie extends MediaLibrary
 			if (!empty($_d['config']['paths']['movie']))
 			foreach ($_d['config']['paths']['movie'] as $p)
 			{
-				foreach (glob($p.'/*') as $f)
-				{
-					$size += filesize($f);
-					$total++;
-				}
+				//foreach (glob($p.'/*') as $f)
+				//{
+				//	$size += filesize($f);
+				//	$total++;
+				//}
 			}
 			$size = File::SizeToString($size);
 			$text = "{$size} of {$total} Movies";

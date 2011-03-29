@@ -72,12 +72,12 @@ class ModTVSeries extends MediaLibrary
 			{
 				$series = count(glob("$p/*", GLOB_ONLYDIR));
 
-				$total = $size = 0;
-				foreach (File::Comb($p, '#downloads#i', SCAN_FILES) as $f)
-				{
-					$size += filesize($f);
-					$total++;
-				}
+				//$total = $size = 0;
+				//foreach (File::Comb($p, '#downloads#i', SCAN_FILES) as $f)
+				//{
+				//	$size += filesize($f);
+				//	$total++;
+				//}
 			}
 			$size = File::SizeToString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
