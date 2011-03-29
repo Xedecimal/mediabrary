@@ -120,6 +120,11 @@ class MediaLibrary extends Module
 		return trim(preg_replace(array_keys($reps), array_values($reps), $title));
 	}
 
+	static function CleanString($str)
+	{
+		return trim(iconv('ISO-8859-1', 'UTF-8//TRANSLIT', $str));
+	}
+
 	function Check() { return array(); }
 }
 

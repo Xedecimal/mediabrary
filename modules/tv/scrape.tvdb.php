@@ -97,7 +97,7 @@ class ModScrapeTVDB
 			$en = (int)$ep->EpisodeNumber;
 			$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
 			if (empty($ret['eps'][$sn][$en]['title']))
-				$ret['eps'][$sn][$en]['title'] = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', (string)$ep->EpisodeName);
+				$ret['eps'][$sn][$en]['title'] = MediaLibrary::CleanString((string)$ep->EpisodeName);
 			$eid = (string)$ep->id;
 			$snid = (string)$ep->seasonid;
 			$srid = (string)$ep->seriesid;

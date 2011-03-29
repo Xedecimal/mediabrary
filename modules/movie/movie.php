@@ -100,40 +100,42 @@ class ModMovie extends MediaLibrary
 			$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
-			# Collect filesystem information on this path.
-			$meta = $this->ScrapeFS($src, ModMovie::GetFSPregs());
+			# Collect information on this path.
+			$item = $_d['entry.ds']->findOne(array('paths' => $src));
 
-			# Append database information on this path.
-			$q['match']['mp_path'] = $src;
-			$dr = $_d['movie.ds']->GetOne($q);
-			if (!empty($dr)) $meta = array_merge($meta, $dr);
+			foreach ($item['paths'] as &$p)
+			{
+				# Figure out what the file should be named.
+				$ftitle = $this->CleanTitleForFile($item['title']);
+				$fyear = substr($item['date'], 0, 4);
 
-			# Figure out what the file should be named.
-			$ftitle = $this->CleanTitleForFile($meta['mov_title']);
-			$fyear = substr($meta['mov_date'], 0, 4);
+				$dstf = "{$m[1]}{$ftitle} ({$fyear})";
+				if (!empty($item['fs_part']))
+					$dstf .= " CD{$item['fs_part']}";
+				$dstf .= '.'.strtolower($m[3]);
 
-			if (!empty($meta['fs_part']))
-				$dstf = "{$m[1]}{$ftitle} ({$fyear}) CD{$meta['fs_part']}";
-			else $dstf = "{$m[1]}{$ftitle} ({$fyear})";
-			$dst = "$dstf.".strtolower($m[3]);
+				# Apply File Transformations
+				$p = $dstf;
+				rename($src, $dstf);
+				@touch($dstf);
+			}
 
-			# Apply File Transformations
-
-			rename($src, $dst);
-			@touch($dst);
+			$item['fs_path'] = $item['paths'][0];
+			$item['fs_filename'] = basename($item['fs_path']);
 
 			# Rename covers and backdrops as well.
 			
 			$md = 'img/meta/movie';
 			$cover = "$md/thm_".File::GetFile($m[2]);
 			$backd = "$md/bd_".File::GetFile($m[2]);
+
 			if (file_exists($cover)) rename($cover, "$md/thm_{$ftitle} ({$fyear})");
 			if (file_exists($backd)) rename($backd, "$md/bd_{$ftitle} ({$fyear})");
 
 			# Apply Database Transformations
 
-			@$_d['movie_path.ds']->Update(array('mp_path' => $src),
-				array('mp_path' => $dst));
+			$_d['entry.ds']->update(array('_id' => $item['_id']),
+				$item);
 
 			die('Fixed');
 		}
@@ -196,7 +198,7 @@ class ModMovie extends MediaLibrary
 			{
 				$ret['cleanup'][] = "Removed database entry for non-existing '"
 					.$p."'";
-				$_d['movie.ds']->remove(array('_id' => $dr['_id']));
+				$_d['entry.ds']->remove(array('_id' => $dr['_id']));
 			}
 
 			# This one is already clean, skip it.

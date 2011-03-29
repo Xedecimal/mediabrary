@@ -77,7 +77,8 @@ class ModTMDB extends Module
 		}
 		else if (@$_d['q'][1] == 'remove')
 		{
-			$_d['movie.ds']->Remove(array('_id' => Server::GetVar('id')));
+			$_d['entry.ds']->remove(array('_id' => new MongoID(Server::GetVar('id'))));
+			die();
 		}
 		else if (@$_d['q'][1] == 'covers')
 		{
@@ -321,7 +322,7 @@ class ModTMDB extends Module
 		# Scrape some general information
 
 		$movie['tmdbid'] = $id;
-		$movie['title'] = trim((string)$sx->movies->movie->name);
+		$movie['title'] = MediaLibrary::CleanString((string)$sx->movies->movie->name);
 		$movie['date'] = trim((string)$sx->movies->movie->released);
 
 		$dst_pinfo = pathinfo($movie['fs_path']);
