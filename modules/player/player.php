@@ -23,8 +23,7 @@ class ModPlayer extends Module
 			$t = new Template($_d);
 			$m['path'] = rawurlencode($p = Server::GetVar('path'));
 			$m['trans'] = ModPlayer::GetTrans($p);
-			if (is_file($p))
-				$m['trans'] .= '/'.basename($p);
+			if (is_file($p)) $m['trans'] .= '/'.basename($p);
 			$t->Set($m);
 			die($t->ParseFile(Module::L('player/select.xml')));
 		}
@@ -41,18 +40,6 @@ class ModPlayer extends Module
 			$t = new Template($_d);
 			$t->use_getvar = true;
 			die($t->ParseFile(Module::L('player/player.js')));
-		}
-		if (@$_d['q'][1] == 'try_play')
-		{
-			$p = Server::GetVar('path');
-			$f = basename($p);
-			$trans = ModPlayer::GetTrans($p)."/$f";
-			$url = 'http://'.$_SERVER['REMOTE_ADDR'].':8080/requests/status.xml'
-				.'?command=in_play&input='.rawurlencode($trans);
-			$xml = @file_get_contents($url);
-			if (!empty($xml)) $res = 'success';
-			else $res = 'failure';
-			die($res);
 		}
 
 		# Here down will download an M3U file.
