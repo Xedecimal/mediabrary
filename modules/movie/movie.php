@@ -463,7 +463,8 @@ EOD;
 		$cur = $_d['entry.ds']->find($m);
 		if (!empty($_d['movie.cb.query']['limit']))
 			$cur->limit($_d['movie.cb.query']['limit']);
-		$cur->sort($_d['movie.cb.query']['order']);
+		if (!empty($_d['movie.cb.query']['order']))
+			$cur->sort($_d['movie.cb.query']['order']);
 		foreach ($cur as $i)
 		{
 			$i['url'] = urlencode($i['paths'][0]);
