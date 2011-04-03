@@ -31,8 +31,8 @@ class ModScrapeTVDB
 		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
 		$pi = pathinfo($ban);
 		$series = basename($path);
-		File::MakeFullDir('img/meta/tv');
-		file_put_contents("img/meta/tv/thm_$series",
+		File::MakeFullDir($_d['config']['paths']['tv-meta']);
+		file_put_contents($_d['config']['paths']['tv-meta']."/thm_$series",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
 		return $ret."Grabbed";

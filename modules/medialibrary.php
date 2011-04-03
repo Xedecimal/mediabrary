@@ -30,7 +30,7 @@ class MediaLibrary extends Module
 				if (is_string($i[$k]))
 					$i[$k] = htmlspecialchars($i[$k]);
 			$i['reu_path'] = rawurlencode($i['fs_path']);
-			$i['med_thumb'] = htmlspecialchars($this->_thumb_path.
+			$i['med_thumb'] = str_replace("'", "\\'", $this->_thumb_path.
 				'/thm_'.File::GetFile($i['fs_filename']));
 			$ret .= $vp->ParseVars($g, $i + $_d);
 		}
@@ -61,7 +61,7 @@ class MediaLibrary extends Module
 		return $ret;
 	}
 
-	static function GetMedia($type, $item, $default_thumb)
+	static function GetMedia($parent_dir, $item, $default_thumb)
 	{
 		global $_d;
 
@@ -73,13 +73,13 @@ class MediaLibrary extends Module
 			$fname = basename($pinfo['basename'], '.'.$pinfo['extension']);
 		else $fname = $pinfo['basename'];
 
-		$cover = "img/meta/{$type}/thm_{$fname}";
+		$cover = $parent_dir."/thm_{$fname}";
 
 		if (file_exists($cover)) $ret['med_thumb'] = str_replace("'", "%27",
 			'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/'.$cover);
 		else $ret['med_thumb'] = $default_thumb;
 
-		$images = glob("img/meta/{$type}/bd_{$fname}.*");
+		$images = glob($parent_dir."/bd_{$fname}.*");
 		if (!empty($images)) $ret['med_bd'] = HM::URL($images[0]);
 
 		return $ret;

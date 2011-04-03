@@ -11,7 +11,7 @@ class ModMovie extends MediaLibrary
 		$_d['movie.source'] = 'file';
 
 		$this->_class = 'movie';
-		$this->_thumb_path = 'img/meta/movie';
+		$this->_thumb_path = $_d['config']['paths']['movie-meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/movie/img/missing.jpg';
 
@@ -108,7 +108,7 @@ class ModMovie extends MediaLibrary
 
 			# Rename covers and backdrops as well.
 			
-			$md = 'img/meta/movie';
+			$md = $_d['config']['paths']['movie-meta'];
 			$cover = "$md/thm_".File::GetFile($m[2]);
 			$backd = "$md/bd_".File::GetFile($m[2]);
 
@@ -353,14 +353,17 @@ EOD;
 
 	function CheckMedia($file, $md)
 	{
+		global $_d;
+
 		$ret = array();
 
 		$ext = File::ext($file);
 		$next = basename($file, '.'.$ext);
+		$mp = $_d['config']['paths']['movie-meta'];
 		if (empty($md['part']) || $md['part'] < 2)
 		{
 			# Look for cover or backdrop.
-			if (!file_exists("img/meta/movie/thm_$next"))
+			if (!file_exists("$mp/thm_$next"))
 			{
 				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
@@ -370,7 +373,7 @@ target="_blank">Reference</a>
 EOD;
 			}
 
-			if (!file_exists("img/meta/movie/bd_$next"))
+			if (!file_exists("$mp/bd_$next"))
 			{
 				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
@@ -391,7 +394,8 @@ EOD;
 
 		$ret = array();
 
-		foreach (glob('img/meta/movie/*') as $p)
+		$mp = $_d['config']['paths']['movie-meta'];
+		foreach (glob("$mp/movie/*") as $p)
 		{
 			$f = basename($p);
 

@@ -29,6 +29,8 @@ paths:
   movie:
     - /path/to/movie
 
+  movie-meta: meta/movie
+
   # paths/tv
   #
   # designates a series of paths where folders containing show episodes are
@@ -36,6 +38,8 @@ paths:
   # you would use /path/to/shows.
   tv:
     - /path/to/tv
+
+  tv-meta: meta/tv
 
 # glue
 #

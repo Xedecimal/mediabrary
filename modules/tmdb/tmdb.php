@@ -99,7 +99,8 @@ class ModTMDB extends Module
 		{
 			$id = $_d['q'][2];
 			$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-			$dst = 'img/meta/movie/thm_'.File::GetFile(basename($item['fs_path']));
+			$dst = $_d['config']['paths']['movie-meta'].'/thm_'
+				.File::GetFile(basename($item['fs_path']));
 			file_put_contents($dst, file_get_contents(Server::GetVar('image')));
 			die(json_encode($item));
 		}
@@ -120,7 +121,7 @@ class ModTMDB extends Module
 		// Process all cached media
 
 		$fi = new finfo(FILEINFO_MIME);
-		foreach (glob('img/meta/movie/*') as $f)
+		foreach (glob($_d['config']['paths']['movie-meta'].'/*') as $f)
 		{
 			if ($fi)
 			switch ($mt = $fi->file($f))
@@ -178,8 +179,6 @@ class ModTMDB extends Module
 			}
 		}
 
-		$ret['Stats'][] = 'Checked '.count(glob('img/meta/movie/*')).' media files.';
-
 		return $ret;
 	}
 
@@ -209,7 +208,8 @@ class ModTMDB extends Module
 		$title = ModMovie::CleanTitleForFile($md['title']);
 		$year = substr($md['date'], 0, 4);
 
-		if (count(glob("img/meta/movie/thm_$title ($year).*")) < 1)
+		if (count(glob($_d['config']['paths']['movie-meta']
+		."/thm_$title ($year).*")) < 1)
 		{
 			varinfo("Fixing cover for $title ($year).");
 			$this->FixCover($md['fs_path']);
@@ -336,10 +336,12 @@ class ModTMDB extends Module
 			return $movie;
 
 		# Prepare our meta folder for movies.
-		if (!file_exists('img/meta/movie')) File::MakeFullDir('img/meta/movie');
+		if (!file_exists($_d['config']['paths']['movie-meta']))
+			File::MakeFullDir($_d['config']['paths']['movie-meta']);
 
 		# Cover
-		$thm = 'img/meta/movie/thm_'.basename($dst_pinfo['filename']);
+		$thm = $_d['config']['paths']['meta-movie'].'/movie/thm_'
+			.basename($dst_pinfo['filename']);
 
 		# Cover does not exist.
 		if (!file_exists($thm))
@@ -357,7 +359,8 @@ class ModTMDB extends Module
 				{
 					# Place new cover
 					$src_pinfo = pathinfo($url);
-					$movie['med_thumb'] = "img/meta/movie/thm_".$dst_pinfo['filename'];
+					$movie['med_thumb'] = $_d['paths']['meta-movie']
+						."/thm_".$dst_pinfo['filename'];
 
 					if (!file_put_contents($movie['med_thumb'], $data))
 						trigger_error("Cannot write the cover image.", ERR_FATAL);
@@ -366,7 +369,8 @@ class ModTMDB extends Module
 		}
 
 		# Backdrop
-		$bd = 'img/meta/movie/bd_'.basename($dst_pinfo['filename']);
+		$bd = $_d['config']['paths']['movie-meta'].'/bd_'
+			.basename($dst_pinfo['filename']);
 
 		# Backdrop does not exist.
 		if (!file_exists($bd))
@@ -381,7 +385,8 @@ class ModTMDB extends Module
 				{
 					# Place new backdrop
 					$src_pinfo = pathinfo($url);
-					file_put_contents("img/meta/movie/bd_{$dst_pinfo['filename']}", $data);
+					file_put_contents($_d['config']['paths']['movie-meta']
+						."/bd_{$dst_pinfo['filename']}", $data);
 				}
 			}
 		}
@@ -409,7 +414,8 @@ class ModTMDB extends Module
 			$src_pinfo = pathinfo($c);
 			$dst_pinfo = pathinfo($p);
 			$dst_pinfo['filename'] = File::GetFile($dst_pinfo['basename']);
-			$dst = 'img/meta/movie/thm_'.$dst_pinfo['filename'].'.'.$src_pinfo['extension'];
+			$dst = $_d['config']['paths']['movie-meta'].'/thm_'
+				.$dst_pinfo['filename'].'.'.$src_pinfo['extension'];
 			varinfo("Writing cover: '{$dst}'.");
 			file_put_contents($dst, $data);
 			break;
