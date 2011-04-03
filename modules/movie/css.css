@@ -9,7 +9,6 @@
 	overflow: auto;
 	cursor: pointer;
 	background-size: 100% 100%;
-	/*opacity: 0.5;*/
 }
 
 .movie-image
@@ -34,7 +33,7 @@
 {
 	overflow: hidden;
 	color: #FFF;
-	font-size: 30pt;
+	font-size: 20pt;
 	font-weight: bold;
 	text-shadow: #000 2px 2px;
 }

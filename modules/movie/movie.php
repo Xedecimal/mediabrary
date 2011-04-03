@@ -9,6 +9,7 @@ class ModMovie extends MediaLibrary
 		global $_d;
 
 		$_d['movie.source'] = 'file';
+		$_d['movie.cb.query'] = array();
 
 		$this->_class = 'movie';
 		$this->_thumb_path = $_d['config']['paths']['movie-meta'];
@@ -22,35 +23,7 @@ class ModMovie extends MediaLibrary
 	{
 		global $_d;
 
-		$query = $_d['movie.cb.query'];
-		$this->_items = array();
-
-		$this->_files = $this->CollectFS();
-		$this->_items = $this->CollectDS();
-
-		if (!empty($_d['movie.cb.filter']))
-			$this->_items = U::RunCallbacks($_d['movie.cb.filter'],
-				$this->_items, $this->_files);
-
-		if (!empty($_d['movie.cb.fsquery']['limit']))
-		{
-			$l = $_d['movie.cb.fsquery']['limit'];
-			$this->_items = array_splice($this->_items, $l[0], $l[1]);
-		}
-
-		$this->_vars['total'] = count($this->_items);
-
 		if (!$this->Active) return;
-
-		if (@$_d['q'][1] == 'items')
-		{
-			$this->_template = 'modules/movie/t_movie_item.xml';
-
-			foreach ($this->_items as &$i)
-				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
-
-			die(parent::Get());
-		}
 
 		if (@$_d['q'][1] == 'detail')
 		{
@@ -142,7 +115,34 @@ class ModMovie extends MediaLibrary
 			return $r;
 		}
 
-		if (@$_d['q'][0] != 'movie') return;
+		if (!$this->Active) return;
+
+		$query = $_d['movie.cb.query'];
+		$this->_items = array();
+		$this->_files = $this->CollectFS();
+		$this->_items = $this->CollectDS();
+
+		if (!empty($_d['movie.cb.filter']))
+			$this->_items = U::RunCallbacks($_d['movie.cb.filter'],
+				$this->_items, $this->_files);
+
+		if (!empty($_d['movie.cb.fsquery']['limit']))
+		{
+			$l = $_d['movie.cb.fsquery']['limit'];
+			$this->_items = array_splice($this->_items, $l[0], $l[1]);
+		}
+
+		$this->_vars['total'] = count($this->_items);
+
+		if (@$_d['q'][1] == 'items')
+		{
+			$this->_template = 'modules/movie/t_movie_item.xml';
+
+			foreach ($this->_items as &$i)
+				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
+
+			die(parent::Get());
+		}
 
 		$this->_template = 'modules/movie/t_movie.xml';
 		$t = new Template();
