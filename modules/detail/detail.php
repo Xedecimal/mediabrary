@@ -17,22 +17,11 @@ class ModDetail extends Module
 		{
 			# Movies without a certification set
 			if ($cert == 'Uncertified')
-			{
-				$_d['movie.cb.query']['joins']['detail'] =
-					new Join($_d['movie_detail.ds'], "md_movie = mov_id
-						AND md_name = 'certification'", 'LEFT JOIN');
-				$_d['movie.cb.query']['match']['md_value'] =
-					Database::SqlUnquote(' IS NULL');
-			}
+				$_d['movie.cb.query']['match']['details.certification'] = null;
+
 			# Movies with a specific certification
 			else
-			{
-				$_d['movie.cb.query']['joins']['detail'] =
-					new Join($_d['movie_detail.ds'], 'md_movie = mov_id',
-						'LEFT JOIN');
-				$_d['movie.cb.query']['match']['md_name'] = 'certification';
-				$_d['movie.cb.query']['match']['md_value'] = $cert;
-			}
+				$_d['movie.cb.query']['match']['details.certification'] = $cert;
 			
 			$_d['movie.skipfs'] = true;
 		}
