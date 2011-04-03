@@ -38,7 +38,7 @@ class ModCategory extends MediaLibrary
 		else if ($cat == 'All') $_d['movie.cb.query']['match'] = 1;
 		else if (!empty($cat))
 		{
-			$_d['movie.cb.query']['match']['cat_name'] = $cat;
+			$_d['movie.cb.query']['match']['details.categories'] = $cat;
 			$_d['movie.skipfs'] = true;
 		}
 	}
