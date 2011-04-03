@@ -30,7 +30,8 @@ class ModTMDB extends Module
 		{
 			$title = MediaLibrary::SearchTitle(Server::GetVar('title'));
 			$path = Server::GetVar('path');
-			if (Server::GetVar('manual', 0) == 0 && preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
+			if (Server::GetVar('manual', 0) == 0
+				&& preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
 				$title .= ' '.$m[1];
 
 			die(ModTMDB::Find($path, $title));
@@ -340,7 +341,7 @@ class ModTMDB extends Module
 			File::MakeFullDir($_d['config']['paths']['movie-meta']);
 
 		# Cover
-		$thm = $_d['config']['paths']['meta-movie'].'/movie/thm_'
+		$thm = $_d['config']['paths']['movie-meta'].'/movie/thm_'
 			.basename($dst_pinfo['filename']);
 
 		# Cover does not exist.
@@ -359,7 +360,7 @@ class ModTMDB extends Module
 				{
 					# Place new cover
 					$src_pinfo = pathinfo($url);
-					$movie['med_thumb'] = $_d['paths']['meta-movie']
+					$movie['med_thumb'] = $_d['config']['paths']['movie-meta']
 						."/thm_".$dst_pinfo['filename'];
 
 					if (!file_put_contents($movie['med_thumb'], $data))

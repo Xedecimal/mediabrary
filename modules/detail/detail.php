@@ -106,18 +106,12 @@ EOD;
 	{
 		global $_d;
 
-		if (empty($item['mov_id'])) return $item;
+		if (empty($item['_id'])) return $item;
 
-		$details = $_d['movie_detail.ds']->Get(array(
-			'match' => array(
-				'md_movie' => $item['mov_id']
-			)
-		));
-
-		foreach ($details as $det)
-			if (!empty($det['md_value']))
-				$item['details'][$det['md_name']] = $det['md_value'];
 		$item['details']['Size'] = File::SizeToString(filesize($item['fs_path']));
+
+		foreach ($item['details'] as $n => $v)
+			if (is_array($v)) $item['details'][$n] = implode(', ', $v);
 
 		if (!empty($item['details']['trailer']))
 		{
@@ -150,6 +144,10 @@ EOF;
 		$this->save['categories'] = array();
 		foreach ($sx->movies->movie->categories->category as $c)
 			$this->save['categories'][] = (string)$c['name'];
+
+		$this->save['keywords'] = array();
+		foreach ($sx->movies->movie->keywords->keyword as $k)
+			$this->save['keywords'][] = (string)$k['name'];
 
 		$this->save['obtained'] =
 			Database::TimestampToMySql(filemtime($item['fs_path']));
