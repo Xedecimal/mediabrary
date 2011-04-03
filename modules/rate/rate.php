@@ -7,6 +7,8 @@ class ModRate extends Module
 		global $_d;
 
 		$_d['rate.ds'] = $_d['db']->rate;
+		$_d['rate.ds']->ensureIndex(array('entry' => 1, 'from' => 1),
+			array('unique' => true, 'dropDups' => true));
 	}
 
 	function Link()
@@ -31,24 +33,28 @@ class ModRate extends Module
 		if ($_d['q'][0] != 'rate') return;
 		if ($_d['q'][1] == 'hide') $_SESSION['hide_rate'] = true;
 		if ($_d['q'][1] == 'show') $_SESSION['hide_rate'] = false;
+
+		$id = $_d['q'][1];
+		$vote = $_d['q'][2];
+		$ip = sprintf('%u', ip2long(Server::GetVar('REMOTE_ADDR')));
+
+		$insert = array(
+			'movie' => $id,
+			'from' => $ip,
+			'like' => $vote,
+		);
+
+		# Update the database
+		$res = $_d['db']->command(array('findAndModify' => 'rate',
+			'query' => array('entry' => $id),
+			'update' => $insert, 'new' => 1, 'upsert' => 1));
+
+		die($id);
 	}
 
 	function Get()
 	{
 		global $_d;
-
-		if (@$_d['q'][0] == 'rate')
-		{
-			$id = $_d['q'][1];
-			$vote = $_d['q'][2];
-			$ip = sprintf('%u', ip2long(Server::GetVar('REMOTE_ADDR')));
-			$_d['rate.ds']->Add(array(
-				'rate_for' => $id,
-				'rate_from' => $ip,
-				'rate_amount' => $vote,
-			), true);
-			die($id);
-		}
 	}
 
 	function cb_movie_head()
@@ -73,8 +79,8 @@ class ModRate extends Module
 	function cb_movie_cover($t)
 	{
 		return <<<EOF
-<a href="rate/{{mov_id}}/2" class="a-rate"><img src="modules/rate/img/good.png" alt="Good" /></a>
-<a href="rate/{{mov_id}}/1" class="a-rate"><img src="modules/rate/img/bad.png" alt="Bad" /></a>
+<a href="rate/{{_id}}/2" class="a-rate"><img src="modules/rate/img/good.png" alt="Good" /></a>
+<a href="rate/{{_id}}/1" class="a-rate"><img src="modules/rate/img/bad.png" alt="Bad" /></a>
 EOF;
 	}
 }

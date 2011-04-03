@@ -256,45 +256,6 @@ class ModTVSeries extends MediaLibrary
 		return $max_date;
 	}
 
-	static function GetDownloadingEpisodes($series)
-	{
-		global $_d;
-
-		/*require_once('File/Bittorrent2/Decode.php');
-		$btd = new File_Bittorrent2_Decode;
-		$mtve = new ModTVEpisode;
-		$ret = '';
-		foreach (glob('/data/nas/torrent-files/*.torrent') as $f)
-		{
-			try { $tinfo = $btd->decode(file_get_contents($f)); }
-			catch (File_Bittorrent2_Exception $fbte)
-			{
-				unlink($f);
-				echo "$f is messed up. $fbte";
-				continue;
-			}
-
-			$files = array();
-			if (!empty($tinfo['info']['files']))
-				foreach ($tinfo['info']['files'] as $f) $files[] = $f['path'][0];
-			else $files[] = $tinfo['info']['name'];
-
-			foreach ($files as $f)
-			{
-				$info = $mtve->ScrapeFS($_d['config']['tv_path'].'/'.$f);
-				if (!empty($info['med_title']))
-				{
-					$cleantitle = MediaLibrary::CleanTitleForFile($info['med_title']);
-					$s = number_format($info['med_season']);
-					$e = number_format($info['med_episode']);
-					$ret[$cleantitle][$s][$e] = $info;
-				}
-			}
-		}
-
-		return $ret;*/
-	}
-
 	static function GetAllSeries()
 	{
 		global $_d;
@@ -306,32 +267,6 @@ class ModTVSeries extends MediaLibrary
 				$ret[] = $fx;
 
 		return $ret;
-	}
-
-	static function GrabEpisode($series, $season, $episode)
-	{
-		$file_rss = "$series/.ezrss-title.txt";
-		$file_title = "$series/.title.txt";
-
-		if (file_exists($file_rss))
-			$name = file_get_contents($file_rss);
-		else if (file_exists($file_title))
-			$name = file_get_contents($file_title);
-		else $name = basename($series);
-
-		$url = 'http://ezrss.it/search/index.php?show_name='
-			.rawurlencode($name).'&mode=rss'
-			."&season={$season}&episode=".
-			$episode;
-		U::VarInfo($url);
-		$xml = file_get_contents($url);
-		U::VarInfo($xml);
-		$sx = simplexml_load_string($xml);
-		$link = $sx->xpath('//channel/item/link');
-		if (empty($link)) return false;
-		file_put_contents('/data/nas/torrent-files/'.basename($link[0]),
-			file_get_contents($link[0]));
-		return true;
 	}
 
 	static function GetInfo($series)
