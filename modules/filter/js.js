@@ -1,6 +1,6 @@
 $(function () {
 	$.get('filter/get', function (data) {
-		if (data.source == 'obtained') { data.step = 2592000; data.type = 'slider'; }
+		if (data.source == 'obtained') { data.step = 1; data.type = 'slider'; }
 		else if (data.source == 'rating') { data.step = 0.5; data.type = 'slider' }
 		else { data.step = 1; data.type = 'slider'; }
 		showValue(data.cmin, data.cmax);
@@ -40,14 +40,7 @@ function createSlider(data)
 function showValue(ts1, ts2)
 {
 	t = $('#selFilterType').val();
-
-	// Date Types
-	if (t == 'obtained')
-		$("#date-value").text('Date '
-			+new Date(ts1*1000).getFullYear()+' - '
-			+new Date(ts2*1000).getFullYear());
-	else // Numeric Types
-		$("#date-value").text('Value: '+ts1+' - '+ts2);
+	$("#date-value").text('Value: '+ts1+' - '+ts2);
 }
 
 function setFilter(min, max) {

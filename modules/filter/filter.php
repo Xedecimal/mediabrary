@@ -30,9 +30,6 @@ class ModFilter extends Module
 
 		if ($type == 'cert')
 		{
-			$_d['movie.cb.query']['joins']['md'] =
-				new Join($_d['movie_detail.ds'], "md_name = 'certification'
-					AND md_movie = mov_id", 'LEFT JOIN');
 			$checks = Server::GetVar('filter.checks');
 			if (!empty($checks))
 				$_d['movie.cb.query']['match']['md_value'] =
@@ -46,8 +43,6 @@ class ModFilter extends Module
 		{
 			if ($type == 'obtained')
 			{
-				$_d['movie.cb.query']['joins']['md'] =
-					new Join($_d['movie_date.ds'], "md_name = 'obtained' AND md_movie = mov_id", 'LEFT JOIN');
 				$_d['movie.cb.query']['match']['md_date'] =
 					Database::SqlBetween(date('Y-m-d', $min), date('Y-m-d', $max+1));
 				$_d['movie.cb.query']['order'] = array('md_date' => 'DESC');
@@ -99,14 +94,10 @@ class ModFilter extends Module
 			}
 			else if ($type == 'obtained')
 			{
-				$q['columns'] = array(
-					'min' => Database::SqlUnquote('UNIX_TIMESTAMP(min(md_date))'),
-					'max' => Database::SqlUnquote('UNIX_TIMESTAMP(max(md_date))')
-				);
-				$q['match']['md_name'] = 'obtained';
-				$q['match']['md_date'] = Database::SqlMore('0000-00-00');
-
-				$items = $_d['movie_date.ds']->Get($q);
+				$min = $_d['entry.ds']->find(array(), array('details.obtained' => 1))->sort(array('details.obtained' => 1))->getNext();
+				$items[0]['min'] = date('Y', strtotime($min['details']['obtained']));
+				$max = $_d['entry.ds']->find(array(), array('details.obtained' => 1))->sort(array('details.obtained' => -1))->getNext();
+				$items[0]['max'] = date('Y', strtotime($max['details']['obtained']));
 			}
 			else if ($type == 'rating')
 			{
