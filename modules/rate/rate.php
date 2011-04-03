@@ -61,11 +61,11 @@ class ModRate extends Module
 
 	function cb_movie_detail($item)
 	{
-		if (!array_key_exists('rate_amount', $item)) return $item;
-		$seen = '';
-		$liked = '';
-		if ($item['rate_amount'] > 0) $seen = ' checked="checked"';
-		if ($item['rate_amount'] > 1) $liked = ' checked="checked"';
+		$ip = sprintf('%u', ip2long(Server::GetVar('REMOTE_ADDR')));
+		$liked = $seen = '';
+		if (empty($item['rates'][$ip])) $liked = $seen = '';
+		else if ($item['rates'][$ip] > 1) $liked = ' checked="checked"';
+		else if ($item['rates'][$ip] > 0) $seen = ' checked="checked"';
 		$item['details']['Seen'] = '<input type="checkbox" id="chk-seen"'.$seen.' />';
 		$item['details']['Liked'] = '<input type="checkbox" id="chk-liked"'.$liked.' />';
 		return $item;

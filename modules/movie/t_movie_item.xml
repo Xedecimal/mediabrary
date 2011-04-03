@@ -1,6 +1,6 @@
 <null>
 <item>
-	<div style="background: url('{{med_thumb}}') no-repeat;" title="{{fs_path}}"
+	<div id="{{_id}}" style="background: url('{{med_thumb}}') no-repeat;" title="{{fs_path}}"
 		class="movie-item">
 		<div class="movie-details" style="display: none">
 		<div class="quick-buttons">

@@ -11,7 +11,11 @@ $(function () {
 
 	$('.a-rate').live('click', function () {
 		$.get($(this).attr('href'));
-		$('#movie-items').load('movie/items');
+		if ($('#rate-hide').attr('checked')) {
+			id = $(this).attr('href').match(/([^\/]+)\/(\d+)$/)[1];
+			$('#'+id).hide(500);
+		}
+		//$('#movie-items').load('movie/items');
 		return false;
 	});
 
