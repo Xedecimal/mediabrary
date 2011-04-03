@@ -14,6 +14,7 @@ class ModTVSeries extends MediaLibrary
 		global $_d;
 
 		$this->_class = 'tv';
+		$this->_thumb_path = 'img/meta/tv';
 
 		$this->CheckActive('tv');
 	}
