@@ -13,5 +13,5 @@
 		</div>
 	</div>
 </item>
-<div class="clear">Total: {{total}}</div>
+<!-- <div class="clear">Total: {{total}}</div> -->
 </null>

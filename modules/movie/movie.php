@@ -458,8 +458,13 @@ EOD;
 
 		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
 		$cur = $_d['entry.ds']->find($m);
+		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))
-			$cur->limit($_d['movie.cb.query']['limit']);
+		{
+			$l = $_d['movie.cb.query']['limit'];
+			if (!empty($p)) $cur->skip($p*$l);
+			$cur->limit($l);
+		}
 		if (!empty($_d['movie.cb.query']['order']))
 			$cur->sort($_d['movie.cb.query']['order']);
 		foreach ($cur as $i)

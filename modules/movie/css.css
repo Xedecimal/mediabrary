@@ -8,6 +8,7 @@
 	height: 275px;
 	overflow: auto;
 	cursor: pointer;
+	background-size: 100% 100%;
 	/*opacity: 0.5;*/
 }
 
