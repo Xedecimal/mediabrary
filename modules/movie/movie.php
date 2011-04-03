@@ -14,6 +14,8 @@ class ModMovie extends MediaLibrary
 		$this->_thumb_path = 'img/meta/movie';
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/movie/img/missing.jpg';
+
+		$this->CheckActive('movie');
 	}
 
 	function Prepare()
@@ -37,39 +39,18 @@ class ModMovie extends MediaLibrary
 		}
 
 		$this->_vars['total'] = count($this->_items);
-	}
 
-	function Get()
-	{
-		global $_d;
+		if (!$this->Active) return;
 
-		# Main Page
-
-		if (empty($_d['q'][0]))
+		if (@$_d['q'][1] == 'items')
 		{
-			$r['head'] = '<link type="text/css" rel="stylesheet"
-				href="modules/movie/css.css" />';
+			$this->_template = 'modules/movie/t_movie_item.xml';
 
-			$total = $size = 0;
+			foreach ($this->_items as &$i)
+				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
 
-			if (!empty($_d['config']['paths']['movie']))
-			foreach ($_d['config']['paths']['movie'] as $p)
-			{
-				//foreach (glob($p.'/*') as $f)
-				//{
-				//	$size += filesize($f);
-				//	$total++;
-				//}
-			}
-			$size = File::SizeToString($size);
-			$text = "{$size} of {$total} Movies";
-
-			$r['default'] = '<div class="main-link" id="divMainMovies"><a
-				href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
-			return $r;
+			die(parent::Get());
 		}
-
-		if (@$_d['q'][0] != 'movie') return;
 
 		if (@$_d['q'][1] == 'detail')
 		{
@@ -95,6 +76,7 @@ class ModMovie extends MediaLibrary
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
 			die($t->ParseFile('modules/movie/t_movie_detail.xml'));
 		}
+
 		else if (@$_d['q'][1] == 'fix')
 		{
 			# Collect generic information.
@@ -140,21 +122,32 @@ class ModMovie extends MediaLibrary
 
 			die('Fixed');
 		}
-		else if (@$_d['q'][1] == 'items')
-		{
-			$this->_template = 'modules/movie/t_movie_item.xml';
+	}
 
-			foreach ($this->_items as &$i)
-				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
+	function Get()
+	{
+		global $_d;
 
-			die(parent::Get());
-		}
-		else
+		# Main Page
+
+		$r['head'] = '<link type="text/css" rel="stylesheet"
+			href="modules/movie/css.css" />';
+
+		if (empty($_d['q'][0]))
 		{
-			$this->_template = 'modules/movie/t_movie.xml';
-			$t = new Template();
-			return $t->ParseFile($this->_template);
+			$text = "Movies";
+
+			$r['default'] = '<div class="main-link" id="divMainMovies"><a
+				href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
+			return $r;
 		}
+
+		if (@$_d['q'][0] != 'movie') return;
+
+		$this->_template = 'modules/movie/t_movie.xml';
+		$t = new Template();
+		$r['default'] = $t->ParseFile($this->_template);
+		return $r;
 	}
 
 	function TagDetailItem($t, $g, $a)

@@ -48,11 +48,7 @@ class ModCategory extends MediaLibrary
 		global $_d;
 
 		if ($_d['q'][0] != 'category') return;
-		if ($_d['q'][1] == 'items')
-		{
-			die($this->GetItems());
-		}
-
+		if ($_d['q'][1] == 'items') die($this->GetItems());
 		$_SESSION['category'] = $_d['q'][1];
 	}
 

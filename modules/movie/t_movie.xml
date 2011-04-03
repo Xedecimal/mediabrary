@@ -1,5 +1,4 @@
 <div id="movies">
-<style type="text/css">@import url('{{app_abs}}/modules/movie/css.css');</style>
 <script type="text/javascript" src="movie/_movie.js" />
 
 <a href="#" id="filter-toggle">Filtration</a>
