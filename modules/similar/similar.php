@@ -8,17 +8,21 @@ class ModSimilar extends Module
 		
 		if (!$this->Active) return;
 
-		$this->glue = new Glue;
-
-		if (!$tok = $this->glue->Authorize())
-		{
-			die('Click <a href="'.$this->glue->GetAuthURL()
-				.'" target="_blank">here</a> to authorize.');
-		}
+		$this->finders[] = 'TasteKid';
 
 		$t = new Template();
 		$t->ReWrite('item', array(&$this, 'TagItem'));
 		die($t->ParseFile(Module::L('similar/t.xml')));
+	}
+
+	function Link()
+	{
+		global $_d;
+
+		$_d['movie.cb.buttons']['similar'] =
+			array(&$this, 'cb_buttons_similar');
+		$_d['tv.cb.buttons']['similar'] =
+			array(&$this, 'cb_buttons_similar');
 	}
 
 	function Get()
@@ -36,34 +40,54 @@ EOF;
 		return $ret;
 	}
 
-	function Link()
-	{
-		global $_d;
-
-		$_d['movie.cb.buttons']['similar'] =
-			array(&$this, 'cb_buttons_similar');
-		$_d['tv.cb.buttons']['similar'] =
-			array(&$this, 'cb_buttons_similar');
-	}
-
 	function cb_buttons_similar($t)
 	{
-		if (!isset($t->vars['mov_title'])) return;
+		if (!isset($t->vars['_id'])) return;
 		$icon = Module::P('similar/img/icon.png');
-		return '<a href="{{mov_title}}" id="a-similar"><img src="'.
+		return '<a href="{{title}}" id="a-similar"><img src="'.
 			$icon.'" alt="icon" /></a>';
 	}
 
 	function TagItem($t, $g)
 	{
-		$token = Glue::GetToken();
-		$keys = Glue::FindObject($token, Server::GetVar('s'));
-		$items = Glue::GetSimilar($token, $keys[0]);
+		$items = array();
+		foreach ($this->finders as $f)
+		{
+			$if = new $f;
+			$items += $if->FindObject(Server::GetVar('s'));
+		}
 
 		$vp = new VarParser();
-		$ret = null;
-		foreach ($items as $i) $ret .= $vp->ParseVars($g, $i);
-		return $ret;
+		return $vp->Concat($g, $items);
+	}
+}
+
+Module::Register('ModSimilar');
+
+class TasteKid
+{
+	const api_url = 'http://www.tastekid.com/ask/ws?verbose=1&';
+
+	static function FindObject($query)
+	{
+		$dat = file_get_contents(TasteKid::api_url.http_build_query(array(
+			'q' => $query)));
+
+		$sx = simplexml_load_string($dat);
+
+		$keys = array();
+		foreach ($sx->results->resource as $m)
+		{
+			$i['title'] = (string)$m->name;
+			$i['teaser'] = (string)$m->wTeaser;
+			$i['wiki'] = (string)$m->wUrl;
+			$i['fullname'] = (string)$m->yTitle;
+			$i['trailer'] = (string)$m->yUrl;
+			$i['id'] = (string)$m->yID;
+			$keys[] = $i;
+		}
+
+		return $keys;
 	}
 }
 
@@ -169,7 +193,5 @@ class Glue
 		return $ret;
 	}
 }
-
-Module::Register('ModSimilar');
 
 ?>

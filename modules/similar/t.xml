@@ -1,4 +1,4 @@
 <items>
-	<item><div class="similar-item"><img src="{{image}}" alt="thumb" />
-		<a href="{{url}}">{{title}}</a></div></item>
+	<item><p><a href="{{trailer}}" target="_blank">{{title}}</a></p>
+	<p>{{teaser}}</p></item>
 </items>
