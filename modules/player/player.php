@@ -21,7 +21,8 @@ class ModPlayer extends Module
 		if (@$_d['q'][1] == 'select')
 		{
 			$t = new Template($_d);
-			$m['path'] = rawurlencode($p = Server::GetVar('path'));
+			$m['path'] = $p = Server::GetVar('path');
+			$m['encpath'] = rawurlencode($p);
 			$m['trans'] = ModPlayer::GetTrans($p);
 			if (is_file($p)) $m['trans'] .= '/'.basename($p);
 			$t->Set($m);
