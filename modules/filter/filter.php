@@ -7,6 +7,7 @@ class ModFilter extends Module
 	function __construct()
 	{
 		$this->Filters[] = new FilterReleased();
+		$this->CheckActive('filter');
 	}
 
 	function Prepare()
@@ -70,14 +71,12 @@ class ModFilter extends Module
 	{
 		global $_d;
 
-		if ($_d['q'][0] != 'filter') return;
-
-		if ($_d['q'][1] == 'content')
+		if ($this->Active && $_d['q'][1] == 'content')
 		{
 			$t = new Template();
 			die($t->ParseFile(Module::L('filter/content.xml')));
 		}
-		if ($_d['q'][1] == 'get')
+		else if ($this->Active && $_d['q'][1] == 'get')
 		{
 			$type = Server::GetVar('filter.type', 'mov_date');
 
@@ -126,7 +125,7 @@ class ModFilter extends Module
 			$items[0]['source'] = $type;
 			die(json_encode($items[0]));
 		}
-		if ($_d['q'][1] == 'set')
+		else if ($this->Active && $_d['q'][1] == 'set')
 		{
 			$type = $_SESSION['filter.type'] = $_d['q'][2];
 			if ($type == 'cert')

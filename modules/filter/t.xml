@@ -1,6 +1,17 @@
 <div class="filter">
+<style type="text/css">#date-slider { width: 50%; }</style>
 <script type="text/javascript" src="filter/js.js"></script>
-<a href="filter/content" target="filter" class="refresh" />
 
-<div id="filter"></div>
+<block name="filters" />
+
+<select id="selFilterType">
+<option value="YEAR(mov_date)">Date Released</option>
+<option value="obtained">Date Obtained</option>
+<option value="rating">Rating</option>
+<option value="cert">Certification</option>
+<option value="none">Remove Filter</option>
+</select>
+<div id="date-value"></div>
+<div id="date-slider"></div>
+<callback ds="_d" name="filter.cb.filters" />
 </div>

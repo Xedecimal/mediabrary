@@ -12,22 +12,17 @@ class ModDetail extends Module
 		global $_d;
 
 		$cert = Server::GetVar('cert');
-		if ($cert == 'None') unset($_SESSION['cert']);
+		if ($cert == 'Remove Filter') unset($_SESSION['cert']);
 		else if (!empty($cert))
 		{
-			# Movies without a certification set
-			if ($cert == 'Uncertified')
-				$_d['movie.cb.query']['match']['details.certification'] = null;
-
-			# Movies with a specific certification
-			else
-				$_d['movie.cb.query']['match']['details.certification'] = $cert;
-			
+			if ($cert == 'Uncertified') $cert = null;
+			$_d['movie.cb.query']['match']['details.certification'] = $cert;
 			$_d['movie.skipfs'] = true;
 		}
 
 		$_d['movie.cb.check']['detail'] = array(&$this, 'cb_movie_check');
 		$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
+		$_d['filter.cb.filters']['detail'] = array(&$this, 'cb_filter_filters');
 		$_d['tmdb.cb.postscrape']['detail'] = array(&$this, 'cb_tmdb_postscrape');
 		$_d['tmdb.cb.scrape']['detail'] = array(&$this, 'cb_tmdb_scrape');
 	}
@@ -41,42 +36,8 @@ class ModDetail extends Module
 
 	function Get()
 	{
-		global $_d;
-
-		$m = new MongoCode('function() {
-	emit(this.details.certification, { count: 1 });
-};');
-
-		$r = new MongoCode('function(key, values) {
-	var total = 0
-	for (var i = 0; i < values.length; i++)
-		total += values[i].count;
-	return { count: total };
-};');
-
-		$_d['db']->command(array('mapreduce' => 'entry',
-			'map' => $m, 'reduce' => $r, 'out' => 'mr_out'));
-
-		$res = $_d['db']->mr_out->find();
-		while ($res->hasNext())
-		{
-			$r = $res->getNext();
-			$n = empty($r['_id']) ? 'Uncertified' : $r['_id'];
-			$cloud[$n] = $r['value']['count'];
-		}
-
-		if (empty($cloud)) return;
-
-		$cloud = Math::RespectiveSize($cloud);
-
-		$out = '';
-		foreach ($cloud as $c => $s)
-			$out .= '<a href="{{app_abs}}/cert/'.$c.'" class="aCert category"
-				style="font-size: '.$s.'px;">'.$c.'</a> ';
-
-		$url = Module::P('detail/detail.js');
-		$ret['head'] = '<script type="text/javascript" src="'.$url.'"></script>';
-		$ret['filters'] = '<div class="filter">'.$out.'</div>';
+		$ret['head'] = '<script type="text/javascript"
+			src="modules/detail/detail.js"></script>';
 
 		return $ret;
 	}
@@ -158,6 +119,57 @@ EOF;
 		global $_d;
 		if (!empty($this->save)) $item['details'] = $this->save;
 		return $item;
+	}
+
+	function cb_filter_filters()
+	{
+		global $_d;
+
+		$curcert = Server::GetVar('cert');
+
+		$m = new MongoCode('function() {
+	emit(this.details.certification, { count: 1 });
+};');
+
+		$r = new MongoCode('function(key, values) {
+	var total = 0
+	for (var i = 0; i < values.length; i++)
+		total += values[i].count;
+	return { count: total };
+};');
+
+		$_d['db']->command(array('mapreduce' => 'entry',
+			'map' => $m, 'reduce' => $r, 'out' => 'mr_out'));
+
+		$res = $_d['db']->mr_out->find();
+		while ($res->hasNext())
+		{
+			$r = $res->getNext();
+			$n = empty($r['_id']) ? 'Uncertified' : $r['_id'];
+			$cloud[$n]['cert_class'] = 'aCert';
+			if ($n == $curcert) $cloud[$n]['cert_class'] .= ' current';
+			$sizes[$n] = $r['value']['count'];
+		}
+
+		$cloud['Remove Filter'] = array('cert_class' => 'aCert', 'cert_size' => 0);
+		$sizes['Remove Filter'] = 0;
+
+		if (empty($sizes)) return;
+
+		$sizes = Math::RespectiveSize($sizes);
+		foreach ($sizes as $n => $size)
+			$cloud[$n]['cert_size'] = $size;
+
+		$out = '';
+		foreach ($cloud as $n => $item)
+			$out .= '<a href="{{app_abs}}/cert/'.$n.'" class="'.$item['cert_class'].'"
+				style="font-size: '.$item['cert_size'].'px;">'.$n.'</a> ';
+
+		return '<div class="filter">Certification: '.$out.'</div>';
+	}
+
+	static function GetCertCloud()
+	{
 	}
 }
 
