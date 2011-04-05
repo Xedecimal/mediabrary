@@ -457,6 +457,7 @@ EOD;
 		$ret = array();
 
 		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
+		#var_dump($m);
 		$cur = $_d['entry.ds']->find($m);
 		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))

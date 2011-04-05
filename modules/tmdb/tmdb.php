@@ -71,7 +71,7 @@ class ModTMDB extends Module
 			# Update the database
 			$res = $_d['db']->command(array('findAndModify' => 'entry',
 				'query' => array('title' => $movie['title'], 'date' => $movie['date']),
-				'update' => $movie, 'new' => 1, 'upsert' => 1, 'safe' => 1));
+				'update' => $movie, 'new' => 1, 'upsert' => 1));
 
 			if (Server::GetVar('fast') == 1) die('Fixed!');
 			die(json_encode($movie + $media));

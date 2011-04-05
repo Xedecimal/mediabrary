@@ -42,13 +42,7 @@ class ModFilter extends Module
 
 		if (!empty($min) && !@$_d['movie.exclusive'])
 		{
-			if ($type == 'obtained')
-			{
-				$_d['movie.cb.query']['match']['md_date'] =
-					Database::SqlBetween(date('Y-m-d', $min), date('Y-m-d', $max+1));
-				$_d['movie.cb.query']['order'] = array('md_date' => 'DESC');
-			}
-			else if ($type == 'rating')
+			if ($type == 'rating')
 			{
 				$_d['movie.cb.query']['joins']['mf'] =
 					new Join($_d['movie_float.ds'], "mf_name = 'rating' AND mf_movie = mov_id", 'LEFT JOIN');
@@ -57,7 +51,7 @@ class ModFilter extends Module
 				$_d['movie.cb.query']['order'] = array('mf_value' => 'DESC');
 			}
 			else $_d['movie.cb.query']['match'][$type] =
-				Database::SqlBetween($min, $max);
+				array('$gte' => $min, '$lte' => (string)((int)$max+1));
 		}
 	}
 
@@ -78,18 +72,14 @@ class ModFilter extends Module
 		}
 		else if ($this->Active && $_d['q'][1] == 'get')
 		{
-			$type = Server::GetVar('filter.type', 'mov_date');
+			$type = Server::GetVar('filter.type', 'date');
 
-			if ($type == 'YEAR(mov_date)')
+			if ($type == 'date')
 			{
-				$query = $_d['movie.cb.query'];
-				$query['columns'] = array(
-					'min' => Database::SqlUnquote('YEAR(min(mov_date))'),
-					'max' => Database::SqlUnquote('YEAR(max(mov_date))')
-				);
-				$query['match'][$type] = Database::SqlMore('0000-00-00');
-
-				$items = $_d['movie.ds']->Get($query);
+				$d = $_d['entry.ds']->find(array(), array('date' => 1))->sort(array('date' => 1))->limit(1)->getNext();
+				$item['min'] = date('Y', strtotime($d['date']));
+				$d = $_d['entry.ds']->find(array(), array('date' => 1))->sort(array('date' => -1))->limit(1)->getNext();
+				$item['max'] = date('Y', strtotime($d['date']));
 			}
 			else if ($type == 'obtained')
 			{
@@ -118,12 +108,12 @@ class ModFilter extends Module
 			}
 			else
 			{
-				$items[0] = array('min' => 0, 'max' => 1);
+				$item = array('min' => 0, 'max' => 1);
 			}
-			$items[0]['cmin'] = Server::GetVar('filter.min', $items[0]['min']);
-			$items[0]['cmax'] = Server::GetVar('filter.max', $items[0]['max']);
-			$items[0]['source'] = $type;
-			die(json_encode($items[0]));
+			$item['cmin'] = Server::GetVar('filter.min', $item['min']);
+			$item['cmax'] = Server::GetVar('filter.max', $item['max']);
+			$item['source'] = $type;
+			die(json_encode($item));
 		}
 		else if ($this->Active && $_d['q'][1] == 'set')
 		{
@@ -132,8 +122,8 @@ class ModFilter extends Module
 				$_SESSION['filter.checks'] = Server::GetVar('checks');
 			else // Date
 			{
-				$_SESSION['filter.min'] = $_d['q'][3];
-				$_SESSION['filter.max'] = $_d['q'][4];
+				$_SESSION['filter.min'] = isset($_d['q'][3]) ? $_d['q'][3] : 0;
+				$_SESSION['filter.max'] = isset($_d['q'][4]) ? $_d['q'][4] : 0;
 			}
 			die(session_write_close());
 		}
