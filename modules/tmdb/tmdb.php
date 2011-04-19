@@ -4,10 +4,7 @@ define('TMDB_KEY', '263e2042d04c1989170721f79e675028');
 define('TMDB_FIND', 'http://api.themoviedb.org/2.1/Movie.search/en/xml/'.TMDB_KEY.'/');
 define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_KEY.'/');
 
-// http://api.themoviedb.org/2.1/Movie.search/en/xml/263e2042d04c1989170721f79e675028/Once
-// http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/263e2042d04c1989170721f79e675028/9473
-
-class ModTMDB extends Module
+class TMDB extends Module
 {
 	# Module Extension
 
@@ -34,7 +31,7 @@ class ModTMDB extends Module
 				&& preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
 				$title .= ' '.$m[1];
 
-			die(ModTMDB::Find($path, $title));
+			die(TMDB::Find($path, $title));
 		}
 		else if (@$_d['q'][1] == 'scrape')
 		{
@@ -49,14 +46,14 @@ class ModTMDB extends Module
 			{
 				$title = MediaLibrary::SearchTitle($movie['title']).' '
 					.@$movie['date'];
-				$sx_movies = ModTMDB::FindXML($title);
+				$sx_movies = TMDB::FindXML($title);
 				if (empty($sx_movies)) die('Found nothing for "'.$title.'"');
 				$tmdbid = (string)$sx_movies[0]->id;
 			}
 			else $tmdbid = Server::GetVar('tmdb_id');
 
 			# Do the actual scrape.
-			$movie = ModTMDB::Scrape($movie, $tmdbid);
+			$movie = TMDB::Scrape($movie, $tmdbid);
 
 			# Collect updated information.
 			$media = ModMovie::GetMedia('movie', $movie,
@@ -90,7 +87,7 @@ class ModTMDB extends Module
 			if (empty($item) || empty($item['tmdbid']))
 				die("This movie doesn't seem fully scraped.");
 
-			$covers = ModTMDB::GetCovers($item['tmdbid']);
+			$covers = TMDB::GetCovers($item['tmdbid']);
 			$ret = '';
 			foreach ($covers as $ix => $c)
 				$ret .= '<a href="'.$id.'" class="tmdb-aCover"><img src="'.$c.'" /></a>';
@@ -263,20 +260,20 @@ class ModTMDB extends Module
 		);
 
 		$t->Set($args);
-		$t->ReWrite('result', array('ModTMDB', 'TagResult'), $args);
+		$t->ReWrite('result', array('TMDB', 'TagResult'), $args);
 		return $t->ParseFile('modules/tmdb/t_find_result.xml');
 	}
 	
 	static function TagResult($t, $g, $a, $tag, $args)
 	{
 		$vp = new VarParser();
-		$sx_movies = ModTMDB::FindXML($args['title']);
+		$sx_movies = TMDB::FindXML($args['title']);
 
 		$ret = null;
 		if (!empty($sx_movies))
 		foreach ($sx_movies as $sx_movie)
 		{
-			$m = ModTMDB::Decode($sx_movie);
+			$m = TMDB::Decode($sx_movie);
 			$m += $args;
 			$ret .= $vp->ParseVars($g, $m);
 		}
@@ -408,7 +405,7 @@ class ModTMDB extends Module
 		global $_d;
 
 		$md = $_d['movie.ds']->Get(array('match' => array('fs_path' => $p)));
-		$covers = ModTMDB::GetCovers($md[0]['tmdbid']);
+		$covers = TMDB::GetCovers($md[0]['tmdbid']);
 		foreach ($covers as $c)
 		{
 			if (!$data = @file_get_contents($c)) continue;
@@ -428,6 +425,6 @@ class ModTMDB extends Module
 	}
 }
 
-Module::Register('ModTMDB');
+Module::Register('TMDB');
 
 ?>

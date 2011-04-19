@@ -1,6 +1,6 @@
 <?php
 
-class ModMovie extends MediaLibrary
+class Movie extends MediaLibrary
 {
 	function __construct()
 	{
@@ -30,7 +30,7 @@ class ModMovie extends MediaLibrary
 			$t = new Template();
 
 			$item = $this->ScrapeFS(Server::GetVar('path'),
-				ModMovie::GetFSPregs());
+				Movie::GetFSPregs());
 
 			if (!empty($_d['q'][2]))
 			{
@@ -177,7 +177,7 @@ class ModMovie extends MediaLibrary
 		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $fsi)
 		{
 			$f = str_replace('\\', '/', $fsi->GetPathname());
-			$this->_files[$f] = ModMovie::GetMovie($f);
+			$this->_files[$f] = Movie::GetMovie($f);
 			$ext = File::ext($f);
 			$filelist[] = basename($f, '.'.$ext);
 		}
@@ -273,7 +273,7 @@ EOF;
 	/**
 	 * Check all date parameters.
 	 * 
-	 * @param array $file Result of ModMovie::GetMovie
+	 * @param array $file Result of Movie::GetMovie
 	 * @param array $dbentry Database entry for this movie.
 	 */
 	function CheckDates($p, $md)
@@ -310,7 +310,7 @@ EOF;
 		}
 
 		# Title Related
-		$title = ModMovie::CleanTitleForFile($md['title']);
+		$title = Movie::CleanTitleForFile($md['title']);
 
 		# Validate strict naming conventions.
 
@@ -424,14 +424,14 @@ EOD;
 
 		$ret = array();
 
-		$pregs = ModMovie::GetFSPregs();
+		$pregs = Movie::GetFSPregs();
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
 		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS) as $f)
 		{
 			$path = str_replace('\\', '/', $f->GetPathname());
-			$mov = ModMovie::GetMovie($path);
+			$mov = Movie::GetMovie($path);
 			if (@$mov['fs_part'] > 1) continue;
 			$ret[$path] = $mov;
 		}
@@ -536,7 +536,7 @@ EOD;
 
 		$q['mp_path'] = $path;
 
-		$ret = MediaLibrary::ScrapeFS($path, ModMovie::GetFSPregs());
+		$ret = MediaLibrary::ScrapeFS($path, Movie::GetFSPregs());
 
 		# This is a part, lets try to find the rest of them.
 		if (!empty($ret['fs_part']))
@@ -551,8 +551,14 @@ EOD;
 
 		return $ret;
 	}
+
+	static function RegisterDetailer($class)
+	{
+		global $_d;
+		$_d['movie.detailers'][$class] = $class;
+	}
 }
 
-Module::Register('ModMovie');
+Module::Register('Movie');
 
 ?>

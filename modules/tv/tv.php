@@ -461,10 +461,6 @@ class ModTVEpisode extends MediaLibrary
 	static function GetMissingEpisodes($series)
 	{
 		$eps = ModTVEpisode::GetExistingEpisodes($series);
-		//$eps += ModTVSeries::GetDownloadingEpisodes($series);
-		$down = ModTVSeries::GetDownloadingEpisodes($series);
-		if (isset($down[$series]))
-			$eps += $down[$series];
 
 		# All Episodes
 		$aeps = ModTVSeries::GetInfo($series);

@@ -25,7 +25,8 @@ if (!file_exists('config/config.yml'))
 	copy('config/default.yml', 'config/config.yml');
 
 $_d['config'] = spyc_load_file('config/config.yml');
-$_d['i18n'] = spyc_load_file('lang/en.yml');
+$lang = !empty($_d['config']['lang']) ? $_d['config']['lang'] : 'en';
+$_d['i18n'] = spyc_load_file("lang/{$lang}.yml");
 
 $_d['module.disable']['MediaInfo'] = 1;
 
