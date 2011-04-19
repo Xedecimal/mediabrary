@@ -36,7 +36,7 @@ class TMDB extends Module
 		else if (@$_d['q'][1] == 'scrape')
 		{
 			$p = Server::GetVar('target');
-			$movie = ModMovie::GetMovie($p);
+			$movie = Movie::GetMovie($p);
 
 			if (empty($movie['title'])) $movie['title'] = $movie['fs_title'];
 			if (empty($movie['date'])) $movie['date'] = @$movie['fs_date'];
@@ -56,7 +56,7 @@ class TMDB extends Module
 			$movie = TMDB::Scrape($movie, $tmdbid);
 
 			# Collect updated information.
-			$media = ModMovie::GetMedia('movie', $movie,
+			$media = Movie::GetMedia('movie', $movie,
 				Module::P('movie/img/missing.jpg'));
 
 			if (empty($movie)) die(json_encode(array('error' => 'Not found',
@@ -203,7 +203,7 @@ class TMDB extends Module
 	
 		if (!@$md['clean']) return $ret;
 		
-		$title = ModMovie::CleanTitleForFile($md['title']);
+		$title = Movie::CleanTitleForFile($md['title']);
 		$year = substr($md['date'], 0, 4);
 
 		if (count(glob($_d['config']['paths']['movie-meta']
@@ -329,7 +329,7 @@ class TMDB extends Module
 		# Scrape a cover thumbnail
 
 		# Don't re-scrape a cover and backdrop.
-		$media = ModMovie::GetMedia('movie', $movie, null);
+		$media = Movie::GetMedia('movie', $movie, null);
 		if (!empty($media['med_thumb']) && !empty($media['med_bd']))
 			return $movie;
 
