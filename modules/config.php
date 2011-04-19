@@ -46,7 +46,8 @@ class Config extends Module
 
 		# Default Language
 		$langs = FormOption::FromArray($langs);
-		$langs[$_d['config']['lang']]->selected = true;
+		if (isset($_d['config']['lang']))
+			$langs[$_d['config']['lang']]->selected = true;
 
 		# Configuration Form
 		$frm = new Form('frmConfig');
