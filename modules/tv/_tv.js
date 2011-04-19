@@ -32,9 +32,9 @@ $(function () {
 		$("#progressbar").progressbar({value: 0});
 		window.scrape_total = 0;
 		window.scraped = 0;
-		$('.tv-item').each(function (ix, item) {
+		$('.a-tv-item').each(function (ix, item) {
 			window.scrape_total += 1;
-			$.get('tv/search', { series: $(item).attr('title') },
+			$.get('tv/search', { series: $(item).attr('href') },
 				function () {
 				window.scraped += 1;
 				$("#progressbar").progressbar('option', 'value',
