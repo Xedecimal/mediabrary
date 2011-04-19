@@ -73,7 +73,8 @@ class Movie extends MediaLibrary
 
 				# Apply File Transformations
 				$p = $dstf;
-				rename($src, $dstf);
+				if (!rename($src, $dstf))
+					die("Unable to rename file.");
 				@touch($dstf);
 			}
 
