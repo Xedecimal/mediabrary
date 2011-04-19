@@ -360,26 +360,25 @@ EOD;
 		$ext = File::ext($file);
 		$next = basename($file, '.'.$ext);
 		$mp = $_d['config']['paths']['movie-meta'];
-		if (empty($md['part']) || $md['part'] < 2)
+		if (!empty($md['part'])) return $ret;
+
+		# Look for cover or backdrop.
+		if (!file_exists("$mp/thm_$next"))
 		{
-			# Look for cover or backdrop.
-			if (!file_exists("$mp/thm_$next"))
-			{
-				$urlunfix = "tmdb/remove?id={$md['_id']}";
-				$ret['Media'][] = <<<EOD
+			$urlunfix = "tmdb/remove?id={$md['_id']}";
+			$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['fs_path']}
 - <a href="http://www.themoviedb.org/movie/{$md['tmdbid']}"
 target="_blank">Reference</a>
 EOD;
-			}
+		}
 
-			if (!file_exists("$mp/bd_$next"))
-			{
+		if (!file_exists("$mp/bd_$next"))
+		{
 				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
 EOD;
-			}
 		}
 
 		return $ret;
