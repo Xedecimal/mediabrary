@@ -11,6 +11,7 @@ class Movie extends MediaLibrary
 		$_d['movie.source'] = 'file';
 		$_d['movie.cb.query'] = array();
 
+		$this->_items = array();
 		$this->_class = 'movie';
 		$this->_thumb_path = $_d['config']['paths']['movie-meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
@@ -118,7 +119,6 @@ class Movie extends MediaLibrary
 		if (!$this->Active) return;
 
 		$query = $_d['movie.cb.query'];
-		$this->_items = array();
 		$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
 
