@@ -4,10 +4,15 @@ class Pager extends Module
 {
 	function Get()
 	{
-		$r['head'] = '<script type="text/javascript"
-			src="{{app_abs}}/modules/pager/pager.js" ></script>';
+		global $_d;
 
-		return $r;
+		# TODO: Add pagination for other sections as well.
+		if (@$_d['q'][0] == 'movie')
+		{
+			$r['head'] = '<script type="text/javascript"
+				src="{{app_abs}}/modules/pager/pager.js" ></script>';
+			return $r;
+		}
 	}
 }
 
