@@ -550,6 +550,12 @@ EOD;
 
 		return $ret;
 	}
+
+	static function RegisterDetailer($class)
+	{
+		global $_d;
+		$_d['movie.detailers'][$class] = $class;
+	}
 }
 
 Module::Register('Movie');
