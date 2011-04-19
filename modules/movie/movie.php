@@ -305,9 +305,9 @@ EOF;
 		$ext = File::ext($file);
 
 		# Filename related
-		if (array_search($ext, array('avi', 'mkv', 'mp4')))
+		if (array_search($ext, array('avi', 'mkv', 'mp4')) === false)
 		{
-			$ret['File Name Compliance'][] = "File {$file} has an unknown extension.";
+			$ret['File Name Compliance'][] = "File {$file} has an unknown extension. ($ext)";
 		}
 
 		# Title Related
