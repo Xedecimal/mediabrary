@@ -1,10 +1,9 @@
 <div id="movies">
 <script type="text/javascript" src="movie/_movie.js" />
 
-<a href="#" id="filter-toggle">Filtration</a>
-
 <div id="dialog-movie" class="hidden"></div>
 <div id="movie-controls">
+<block name="movie_head" />
 <callback ds="_d" name="movie.cb.head" />
 </div>
 

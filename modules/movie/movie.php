@@ -11,6 +11,7 @@ class Movie extends MediaLibrary
 		$_d['movie.source'] = 'file';
 		$_d['movie.cb.query'] = array();
 
+		$this->_items = array();
 		$this->_class = 'movie';
 		$this->_thumb_path = $_d['config']['paths']['movie-meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
@@ -72,7 +73,8 @@ class Movie extends MediaLibrary
 
 				# Apply File Transformations
 				$p = $dstf;
-				rename($src, $dstf);
+				if (!rename($src, $dstf))
+					die("Unable to rename file.");
 				@touch($dstf);
 			}
 
@@ -118,7 +120,6 @@ class Movie extends MediaLibrary
 		if (!$this->Active) return;
 
 		$query = $_d['movie.cb.query'];
-		$this->_items = array();
 		$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
 
@@ -304,9 +305,9 @@ EOF;
 		$ext = File::ext($file);
 
 		# Filename related
-		if ($ext != 'avi')
+		if (array_search($ext, array('avi', 'mkv', 'mp4')) === false)
 		{
-			$ret['File Name Compliance'][] = "File {$file} has a bad extension.";
+			$ret['File Name Compliance'][] = "File {$file} has an unknown extension. ($ext)";
 		}
 
 		# Title Related
@@ -360,26 +361,25 @@ EOD;
 		$ext = File::ext($file);
 		$next = basename($file, '.'.$ext);
 		$mp = $_d['config']['paths']['movie-meta'];
-		if (empty($md['part']) || $md['part'] < 2)
+		if (!empty($md['part'])) return $ret;
+
+		# Look for cover or backdrop.
+		if (!file_exists("$mp/thm_$next"))
 		{
-			# Look for cover or backdrop.
-			if (!file_exists("$mp/thm_$next"))
-			{
-				$urlunfix = "tmdb/remove?id={$md['_id']}";
-				$ret['Media'][] = <<<EOD
+			$urlunfix = "tmdb/remove?id={$md['_id']}";
+			$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['fs_path']}
 - <a href="http://www.themoviedb.org/movie/{$md['tmdbid']}"
 target="_blank">Reference</a>
 EOD;
-			}
+		}
 
-			if (!file_exists("$mp/bd_$next"))
-			{
+		if (!file_exists("$mp/bd_$next"))
+		{
 				$urlunfix = "tmdb/remove?id={$md['_id']}";
 				$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
 EOD;
-			}
 		}
 
 		return $ret;
@@ -457,6 +457,7 @@ EOD;
 		$ret = array();
 
 		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
+		#var_dump($m);
 		$cur = $_d['entry.ds']->find($m);
 		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))

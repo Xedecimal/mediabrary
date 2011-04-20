@@ -101,6 +101,7 @@ class ModTVSeries extends MediaLibrary
 		else if (@$_d['q'][1] == 'search')
 		{
 			$ret = '';
+			session_write_close();
 			foreach (ModTVSeries::$scrapers as $s)
 				$ret .= call_user_func(array($s, 'Find'), Server::GetVar('series'), true);
 			return $ret;

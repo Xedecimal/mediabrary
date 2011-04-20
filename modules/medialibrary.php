@@ -26,12 +26,25 @@ class MediaLibrary extends Module
 		if (!empty($this->_items))
 		foreach ($this->_items as $i)
 		{
+			# URL friendly path
+			$i['reu_path'] = rawurlencode($i['fs_path']);
+
+			# Thumbnail
+			$thm_path = $this->_thumb_path.
+				'/thm_'.File::GetFile($i['fs_filename']);
+			if (file_exists($thm_path))
+				$i['med_thumb'] = $this->_thumb_path.
+					'/thm_'.File::GetFile($i['fs_filename']);
+			else
+				$i['med_thumb'] = $this->_missing_image;
+
+			# HTML friendly strings
 			foreach (array_keys($i) as $k)
 				if (is_string($i[$k]))
 					$i[$k] = htmlspecialchars($i[$k]);
-			$i['reu_path'] = rawurlencode($i['fs_path']);
-			$i['med_thumb'] = str_replace("'", "\\'", $this->_thumb_path.
-				'/thm_'.File::GetFile($i['fs_filename']));
+
+			$i['med_thumb'] = str_replace("'", "\\'", $i['med_thumb']);
+
 			$ret .= $vp->ParseVars($g, $i + $_d);
 		}
 

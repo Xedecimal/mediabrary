@@ -47,7 +47,9 @@ class ModCategory extends MediaLibrary
 	{
 		global $_d;
 
-		if ($_d['q'][0] != 'category') return;
+		$ret['head'] = '<link type="text/css" rel="stylesheet"
+			href="modules/movie_category/css.css" />';
+		if ($_d['q'][0] != 'category') return $ret;
 		if ($_d['q'][1] == 'items') die($this->GetItems());
 		$_SESSION['category'] = $_d['q'][1];
 	}

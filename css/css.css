@@ -9,8 +9,6 @@ html, body {
 a { color: #FFF; text-decoration: none; }
 a img { border: 0; }
 
-.filter { display: none; }
-
 .hidden { display: none; }
 .clear { clear: both; }
 .left { float: left; }
