@@ -1,0 +1,21 @@
+<div id="find-results">
+<p>Select one or multiple chunks of data from the sources below to save in your
+cache. Afterwards, pick a cover that you find attractive and all data will then
+be saved. You may optionally choose the blank image if no covers are found or
+you dislike all of them.</p>
+
+<scraper>
+<fieldset class="scrape-set" id="scrape-{{Name}}">
+<legend><a href="{{Link}}" target="_blank"><img src="{{Icon}}" align="absbottom" /> {{Name}}</a></legend>
+<div class="results">
+<result>
+<label><input type="radio" class="find-result" id="sel-{{Name}}"
+name="{{Name}}" value="{{id}}" /> {{title}} - {{date}}</label><br /></result>
+</div> <!-- .results -->
+</fieldset>
+</scraper>
+
+<div id="div-covers">
+<img src="modules/movie/img/missing.jpg" alt="No Cover" title="No Cover" />
+</div>
+</div> <!-- find-results -->

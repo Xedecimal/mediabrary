@@ -1,6 +1,4 @@
 $(function () {
-	$('#tmdb-aSearch').live('click', movie_find);
-	$('#tmdb-butFind').live('click', { source: '#inTitle', attr: 'value' }, movie_find);
 	$('#tmdb-aRemove').live('click', function () {
 		if (confirm('Are you sure?'))
 		{
@@ -46,19 +44,3 @@ $(function () {
 		return false;
 	});
 });
-
-function movie_find(event) {
-	dat = { path: $('#movie_path').val() };
-
-	if ($('#inTitle').val())
-	{
-		dat['manual'] = 1;
-		dat['title'] = $('#inTitle').val();
-	}
-	else dat['title'] = $('#movie_title').val();
-
-	$.get('tmdb/find', dat, function (data) {
-		$('#movie-details').html(data);
-	}, 'html');
-	return false;
-}

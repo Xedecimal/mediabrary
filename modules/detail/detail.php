@@ -110,8 +110,8 @@ EOD;
 
 		$item['details']['Size'] = File::SizeToString(filesize($item['fs_path']));
 
-		foreach ($item['details'] as $n => $v)
-			if (is_array($v)) $item['details'][$n] = implode(', ', $v);
+		#foreach ($item['details'] as $n => $v)
+		#	if (is_array($v)) $item['details'][$n] = implode(', ', $v);
 
 		if (!empty($item['details']['trailer']))
 		{
@@ -127,7 +127,6 @@ EOF;
 
 	function cb_tmdb_scrape($item, $xml)
 	{
-		file_put_contents('scrape.txt', $xml);
 		$sx = simplexml_load_string($xml);
 		$this->save = array();
 		foreach ($sx->movies->movie[0] as $n => $v)
