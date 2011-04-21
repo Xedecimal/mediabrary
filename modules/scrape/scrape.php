@@ -8,19 +8,55 @@ class Scrape extends Module
 	{
 		global $_d;
 
-		$_d['movie.cb.buttons'][] = array(&$this, 'movie_cb_buttons');
+		$_d['movie.cb.buttons']['scrape'] = array(&$this, 'movie_cb_buttons');
+		$_d['movie.cb.detail']['scrape'] = array(&$this, 'movie_cb_details');
 	}
 
 	function Prepare()
 	{
 		global $_d;
 
+		$this->CheckActive('scrape');
+		if (!$this->Active) return;
+
 		# Collecting a list of possibilities.
 		if (@$_d['q'][1] == 'find')
 		{
 			$t = new Template;
 			$t->ReWrite('scraper', array(&$this, 'TagFindScraper'));
+			$p = Server::GetVar('path');
+			$q['fs_path'] = $p;
+			$item = $_d['entry.ds']->findOne($q);
+			if (empty($item)) $item = array();
+			$item += Movie::GetMovie($p);
+			$t->Set($item);
 			die($t->ParseFile(Module::L('scrape/find.xml')));
+		}
+
+		if (@$_d['q'][1] == 'scrape')
+		{
+			$ids = Server::GetVar('ids');
+			$path = Server::GetVar('path');
+
+			# Collect generic information
+			$q['fs_path'] = $path;
+			$item = $_d['entry.ds']->findOne($q);
+			if (empty($item)) $item = array();
+			$item += Movie::GetMovie($path);
+
+			# Collect scraper information
+			foreach ($ids as $sc => $ix)
+				$item = $sc::Scrape($item, $ix);
+
+			# Save details
+			$_d['entry.ds']->save($item);
+
+			# Save cover
+			$filename = basename($item['fs_filename'], ".{$item['fs_ext']}");
+			$ct = "{$_d['config']['paths']['movie-meta']}/thm_{$filename}";
+			file_put_contents($ct, file_get_contents(Server::GetVar('cover')));
+
+			die(json_encode($item));
 		}
 	}
 
@@ -56,6 +92,18 @@ EOF;
 		return $ret;
 	}
 
+	function movie_cb_details($details, $item)
+	{
+		global $_d;
+
+		foreach ($_d['scrape.scrapers'] as $s)
+			$details = $s::GetDetails($details, $item);
+
+		return $details;
+	}
+
+	# Tags
+
 	function TagFindScraper($t, $g)
 	{
 		global $_d;
@@ -81,6 +129,8 @@ EOF;
 		$res = $s::Find(Server::GetVar('title'));
 		return VarParser::Concat($g, $res);
 	}
+
+	# Static Tooling
 
 	static function RegisterScraper($class)
 	{

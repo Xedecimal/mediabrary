@@ -34,14 +34,12 @@ class Movie extends MediaLibrary
 				Movie::GetFSPregs());
 
 			if (!empty($_d['q'][2]))
-			{
-				$id = $_d['q'][2];
-				$item += $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-			}
+				$item += $_d['entry.ds']->findOne(array('_id' =>
+					new MongoID($_d['q'][2])));
 
-			if (!empty($_d['movie.cb.detail']))
-				foreach ($_d['movie.cb.detail'] as $cb)
-					$item = call_user_func($cb, $item);
+			$this->details = array();
+			foreach ($_d['movie.cb.detail'] as $cb)
+				$this->details = call_user_func_array($cb, array($this->details, $item));
 
 			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
 			$item['fs_filename'] = basename(Server::GetVar('path'));
@@ -154,8 +152,8 @@ class Movie extends MediaLibrary
 	function TagDetailItem($t, $g, $a)
 	{
 		$vp = new VarParser();
-		if (!empty($this->_item['details']))
-		foreach ($this->_item['details'] as $n => $v)
+		if (!empty($this->details))
+		foreach ($this->details as $n => $v)
 		{
 			@$ret .= $vp->ParseVars($g, array('name' => $n, 'value' => $v));
 		}
@@ -482,59 +480,37 @@ EOD;
 		return array(
 			# title [date].ext
 			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'),
-
-			# title[date].ext
-			/*'#([^/\[]+)\[([0-9]{4})\].*\.([^.]+)#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'),*/
+				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_ext'),
 
 			# title (date).ext
 			'#/([^/]+)\s*\((\d{4})\)\.([^.]+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_ext'),
+				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_ext'),
 
 			# title (date) CDnum.ext
 			'#/([^/]+)\s*\((\d{4})\)\s*cd(\d+)\.([^.]+)$#i' => array(
-				1 => 'fs_title',
-				2 => 'fs_date',
-				3 => 'fs_part',
-				4 => 'fs_ext'
-			),
+				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_part', 4 => 'fs_ext'),
 
 			# title CDnum.ext
 			'#/([^/]+).*cd(\d+)\.([^.]+)$#i' => array(
-				1 => 'fs_title',
-				2 => 'fs_part',
-				3 => 'fs_ext'
-			),
+				1 => 'fs_title', 2 => 'fs_part', 3 => 'fs_ext'),
 
 			# title [strip].ext
 			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_ext'),
+				1 => 'fs_title', 2 => 'fs_ext'),
 
 			# title.ext
 			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
-				1 => 'fs_title',
-				3 => 'fs_ext'),
+				1 => 'fs_title', 3 => 'fs_ext'),
 
 			# title.ext
 			'#([^/]+)\s*\.(\S+)$#' => array(
-				1 => 'fs_title',
-				2 => 'fs_ext')
+				1 => 'fs_title', 2 => 'fs_ext')
 		);
 	}
 
 	static function GetMovie($path)
 	{
 		global $_d;
-
-		$q['mp_path'] = $path;
 
 		$ret = MediaLibrary::ScrapeFS($path, Movie::GetFSPregs());
 

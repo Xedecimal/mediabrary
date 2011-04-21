@@ -33,8 +33,6 @@ $_d['module.disable']['MediaInfo'] = 1;
 $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
-$_d['entry.ds']->ensureIndex(array('title' => 1, 'date' => 1),
-	array('unique' => true, 'dropDups' => true));
 $_d['entry.ds']->ensureIndex(array('fs_path' => 1),
 	array('unique' => true, 'dropDups' => true));
 

@@ -42,29 +42,6 @@ class RottenTomatoes extends Module
 
 			die(json_encode($ret));
 		}
-
-		if (@$_d['q'][1] == 'scrape')
-		{
-			$path = Server::GetVar('path');
-			$id = Server::GetVar('id');
-
-			# Collect remote data
-			
-			$data = json_decode(self::Details($id), true);
-
-			# Pull our local copy.
-
-			$q['fs_path'] = $path;
-			$item = $_d['entry.ds']->findOne($q);
-
-			# Update our local copy
-			$item['details'][self::$Name] = $data;
-
-			# Save our local copy.
-			$_d['entry.ds']->save($item);
-
-			die(json_encode($item));
-		}
 	}
 
 	# Scraper Related
@@ -75,11 +52,11 @@ class RottenTomatoes extends Module
 
 	static function Find($title)
 	{
+		$title = MediaLibrary::SearchTitle($title);
+
 		# Collect data.
-		if (!file_exists('det_rt.txt'))
-			file_put_contents('det_rt.txt',
-				file_get_contents(det_rt_find.rawurlencode($title)));
-		$dat = json_decode(file_get_contents('det_rt.txt'), true);
+		$dat = json_decode(file_get_contents(det_rt_find.rawurlencode($title)),
+			true);
 
 		# Prepare results.
 		$ret = array();
@@ -88,7 +65,8 @@ class RottenTomatoes extends Module
 			$ret[$m['id']] = array(
 				'title' => $m['title'],
 				'date' => $m['year'],
-				'cover' => $m['posters']['detailed']);
+				'cover' => $m['posters']['detailed'],
+				'ref' => $m['links']['alternate']);
 		}
 
 		return $ret;
@@ -97,10 +75,22 @@ class RottenTomatoes extends Module
 	static function Details($id)
 	{
 		# Collect Information
-		if (!file_exists('det_rt_info.txt'))
-			file_put_contents('det_rt_info.txt',
-				file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key));
-		return file_get_contents('det_rt_info.txt');
+		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key);
+	}
+
+	static function Scrape($item, $id)
+	{
+		$item['details'][self::$Name] = json_decode(self::Details($id), true);
+		return $item;
+	}
+
+	static function GetDetails($details, $item)
+	{
+		if (!isset($item['details'][self::$Name])) return $details;
+
+		$title = $item['details'][self::$Name]['title'];
+		if (!empty($title)) $details['title'] = $title;
+		return $details;
 	}
 }
 

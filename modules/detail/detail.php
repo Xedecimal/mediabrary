@@ -21,10 +21,9 @@ class ModDetail extends Module
 		}
 
 		$_d['movie.cb.check']['detail'] = array(&$this, 'cb_movie_check');
-		$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
+		#$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
 		$_d['filter.cb.filters']['detail'] = array(&$this, 'cb_filter_filters');
-		$_d['tmdb.cb.postscrape']['detail'] = array(&$this, 'cb_tmdb_postscrape');
-		$_d['tmdb.cb.scrape']['detail'] = array(&$this, 'cb_tmdb_scrape');
+		$_d['scrape.cb.scrape']['detail'] = array(&$this, 'cb_scrape_scrape');
 	}
 
 	function Prepare()
@@ -86,37 +85,11 @@ EOF;
 		return $item;
 	}
 
-	function cb_tmdb_scrape($item, $xml)
+	function cb_scrape_scrape($item)
 	{
-		$sx = simplexml_load_string($xml);
-		$this->save = array();
-		foreach ($sx->movies->movie[0] as $n => $v)
-		{
-			$v = trim($v);
-			if (empty($v)) continue;
-
-			if (is_numeric($v)) $this->save[$n] = (float)$v;
-			else if (preg_match('/\d{4}-\d{2}-\d{2}/', $v))
-				$this->save[$n] = new MongoDate(strtotime($v));
-			else $this->save[$n] = $v;
-		}
-
-		$this->save['categories'] = array();
-		foreach ($sx->movies->movie->categories->category as $c)
-			$this->save['categories'][] = (string)$c['name'];
-
-		$this->save['keywords'] = array();
-		foreach ($sx->movies->movie->keywords->keyword as $k)
-			$this->save['keywords'][] = (string)$k['name'];
-
 		$this->save['obtained'] =
 			Database::TimestampToMySql(filemtime($item['fs_path']));
-	}
 
-	function cb_tmdb_postscrape($item)
-	{
-		global $_d;
-		if (!empty($this->save)) $item['details'] = $this->save;
 		return $item;
 	}
 

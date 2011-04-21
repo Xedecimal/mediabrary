@@ -21,17 +21,26 @@ $(function () {
 	});
 
 	$('.scrape-cover').live('click', function () {
+		var fs_path = $('#movie_path').val();
+
+		var cov = $(this).attr('src');
+
+		// Place cover image
+		$('.movie-item[title="'+fs_path+'"]').css('background',
+			'url("'+cov+'")');
+
+		var ids = {};
+
 		$('.find-result:checked').each(function (ix, item) {
-			var scraper = $(item).attr('name');
-			var id = $(item).val();
-			dat = { path: $('#movie_path').val(), 'id': id }
-			$.get(scraper+'/scrape', dat, function (data) {
-				console.dir(data);
-			}, 'json');
-			$('#scrape-'+scraper+' .results').hide(500, function () {
-				$(this).html('Scraping...').show(500);
-			});
+			ids[$(item).attr('name')] = $(item).val();
 		});
+
+		dat = { path: fs_path, cover: cov, 'ids': ids }
+		$.get('scrape/scrape', dat, function (data) {
+		}, 'json');
+
+		// Close movie dialog
+		$('#dialog-movie').dialog('close');
 	});
 });
 

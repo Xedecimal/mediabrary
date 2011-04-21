@@ -48,24 +48,6 @@ class TMDB extends Module
 
 			die(json_encode($ret));
 		}
-
-		if (@$_d['q'][1] == 'scrape')
-		{
-			$id = Server::GetVar('id');
-			$path = Server::GetVar('path');
-
-			# Collect remote data
-			$data = Arr::FromXML(self::Details($id));
-
-			# Pull our local copy
-			$q['fs_path'] = $path;
-			$item = $_d['entry.ds']->findOne($q);
-			$item['details'][self::$Name] = $data['movies']['movie'];
-
-			# Save our data
-			$_d['entry.ds']->save($item);
-			die(json_encode($item));
-		}
 	}
 
 	function Get()
@@ -256,6 +238,75 @@ class TMDB extends Module
 
 	static function GetName() { return 'The Movie DB'; }
 
+	static function FindXML($title)
+	{
+		$title = urlencode(trim($title));
+		$xml = @file_get_contents(TMDB_FIND.$title);
+		if (empty($xml)) return null;
+
+		$sx = simplexml_load_string($xml);
+		$sx_movies = $sx->xpath('//movies/movie');
+
+		return $sx_movies;
+	}
+
+	static function Find($title)
+	{
+		$xml = file_get_contents(TMDB_FIND.rawurlencode($title));
+
+		$sx = simplexml_load_string($xml);
+		$sx_movies = $sx->xpath('//movies/movie');
+
+		$ret = array();
+		if (!empty($sx_movies))
+		foreach ($sx_movies as $sx_movie)
+		{
+			foreach ($sx_movie->xpath('images/image[@size="cover"]') as $c)
+				$covers[] = (string)$c['url'];
+
+			$ret[(string)$sx_movie->id] = array(
+				'title' => $sx_movie->name,
+				'date' => $sx_movie->released,
+				'covers' => implode('|', $covers),
+				'ref' => (string)$sx_movie->url
+			);
+		}
+
+		return $ret;
+	}
+
+	static function Details($id)
+	{
+		return file_get_contents(TMDB_INFO.$id);
+	}
+
+	static function Scrape($item, $id)
+	{
+		# Collect remote data
+		$data = Arr::FromXML(self::Details($id));
+		$item['details'][self::$Name] = $data['movies']['movie'];
+
+		return $item;
+	}
+
+	static function GetDetails($details, $item)
+	{
+		if (!isset($item['details'][self::$Name])) return $details;
+
+		$trailer = $item['details'][self::$Name]['trailer'];
+		if (!empty($trailer))
+		{
+			preg_match('/\?v=([^&]+)/', $trailer, $m);
+			$v = $m[1];
+			$details['trailer'] = <<<EOF
+<object width="580" height="360"><param name="movie" value="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="580" height="360"></embed></object>
+EOF;
+		}
+		return $details;
+	}
+
+	# DEPRECATED OLD SYSTEM
+
 	#TODO: Deprecated ?
 	static function Decode($sx_movie)
 	{
@@ -275,58 +326,7 @@ class TMDB extends Module
 		else $ret['thumbs'][0] = 'modules/movie/img/missing.jpg';
 		return $ret;
 	}
-
-	static function FindXML($title)
-	{
-		if (file_exists('tmdb.txt')) return file_get_contents('tmdb.txt');
-		$title = urlencode(trim($title));
-		$xml = @file_get_contents(TMDB_FIND.$title);
-		if (empty($xml)) return null;
-		file_put_contents('tmdb.txt', $xml);
-
-		$sx = simplexml_load_string($xml);
-		$sx_movies = $sx->xpath('//movies/movie');
-
-		return $sx_movies;
-	}
-
-	static function Find($title)
-	{
-		if (!file_exists('det_tmdb.txt'))
-			file_put_contents('det_tmdb.txt',
-				file_get_contents(TMDB_FIND.rawurlencode($title)));
-
-		$xml = file_get_contents('det_tmdb.txt');
-
-		$sx = simplexml_load_string($xml);
-		$sx_movies = $sx->xpath('//movies/movie');
-
-		$ret = array();
-		if (!empty($sx_movies))
-		foreach ($sx_movies as $sx_movie)
-		{
-			foreach ($sx_movie->xpath('images/image[@size="cover"]') as $c)
-				$covers[] = (string)$c['url'];
-
-			$ret[(string)$sx_movie->id] = array(
-				'title' => $sx_movie->name,
-				'date' => $sx_movie->released,
-				'covers' => implode('|', $covers)
-			);
-		}
-
-		return $ret;
-	}
-
-	static function Details($id)
-	{
-		if (!file_exists('det_tmdb_info.txt'))
-			file_put_contents('det_tmdb_info.txt',
-				file_get_contents(TMDB_INFO.$id));
-
-		return file_get_contents('det_tmdb_info.txt');
-	}
-
+	
 	static function TagResult($t, $g, $a, $tag, $args)
 	{
 		$vp = new VarParser();
@@ -364,7 +364,7 @@ class TMDB extends Module
 		return 0;
 	}
 
-	static function Scrape($movie, $id)
+	/*static function Scrape($movie, $id)
 	{
 		global $_d;
 
@@ -452,15 +452,7 @@ class TMDB extends Module
 		}
 
 		return $movie;
-	}
-
-	static function GetCovers($id)
-	{
-		$xml = file_get_contents(TMDB_INFO.$id);
-		$sx = simplexml_load_string($xml);
-		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
-		return xpath_attrs($sx, $xp_thumb, 'url');
-	}
+	}*/
 
 	static function FixCover($p)
 	{
@@ -484,6 +476,14 @@ class TMDB extends Module
 			." <a href=\"http://www.themoviedb.org/movie/{$md[0]['tmdbid']}\">"
 			."this</a>, sorry.\n");
 		return 1;
+	}
+
+	static function GetCovers($id)
+	{
+		$xml = file_get_contents(TMDB_INFO.$id);
+		$sx = simplexml_load_string($xml);
+		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
+		return xpath_attrs($sx, $xp_thumb, 'url');
 	}
 }
 

@@ -59,16 +59,16 @@ class ModRate extends Module
 		return $t->ParseFile(Module::L('rate/filter.xml'));
 	}
 
-	function cb_movie_detail($item)
+	function cb_movie_detail($details, $item)
 	{
 		$ip = sprintf('%u', ip2long(Server::GetVar('REMOTE_ADDR')));
 		$liked = $seen = '';
 		if (empty($item['rates'][$ip])) $liked = $seen = '';
 		else if ($item['rates'][$ip] > 1) $liked = ' checked="checked"';
 		else if ($item['rates'][$ip] > 0) $seen = ' checked="checked"';
-		$item['details']['Seen'] = '<input type="checkbox" id="chk-seen"'.$seen.' />';
-		$item['details']['Liked'] = '<input type="checkbox" id="chk-liked"'.$liked.' />';
-		return $item;
+		$details['Seen'] = '<input type="checkbox" id="chk-seen"'.$seen.' />';
+		$details['Liked'] = '<input type="checkbox" id="chk-liked"'.$liked.' />';
+		return $details;
 	}
 
 	function cb_movie_cover($t)
