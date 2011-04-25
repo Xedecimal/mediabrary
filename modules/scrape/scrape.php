@@ -1,6 +1,6 @@
 <?php
 
-if (empty($_d['scraper.scrapers'])) $_d['scrape.scrapers'] = array();
+if (empty($_d['scrape.scrapers'])) $_d['scrape.scrapers'] = array();
 
 class Scrape extends Module
 {
@@ -38,6 +38,15 @@ class Scrape extends Module
 			$ids = Server::GetVar('ids');
 			$path = Server::GetVar('path');
 
+			# This is automated
+			if (empty($ids))
+			{
+				$auto = true;
+				$mov = Movie::GetMovie($path);
+				foreach ($_d['scrape.scrapers'] as $s)
+					if ($s::CanAuto()) $ids[$s] = null;
+			}
+
 			# Collect generic information
 			$q['fs_path'] = $path;
 			$item = $_d['entry.ds']->findOne($q);
@@ -45,16 +54,19 @@ class Scrape extends Module
 			$item += Movie::GetMovie($path);
 
 			# Collect scraper information
-			foreach ($ids as $sc => $ix)
-				$item = $sc::Scrape($item, $ix);
+			foreach ($ids as $sc => $ix) $item = $sc::Scrape($item, $ix);
 
 			# Save details
 			$_d['entry.ds']->save($item);
 
+			#TODO: When auto-scraping, we need to store first cover.
 			# Save cover
-			$filename = basename($item['fs_filename'], ".{$item['fs_ext']}");
-			$ct = "{$_d['config']['paths']['movie-meta']}/thm_{$filename}";
-			file_put_contents($ct, file_get_contents(Server::GetVar('cover')));
+			if (!$auto)
+			{
+				$filename = basename($item['fs_filename'], ".{$item['fs_ext']}");
+				$ct = "{$_d['config']['paths']['movie-meta']}/thm_{$filename}";
+				file_put_contents($ct, file_get_contents(Server::GetVar('cover')));
+			}
 
 			die(json_encode($item));
 		}
@@ -137,6 +149,16 @@ EOF;
 		global $_d;
 		$_d['scrape.scrapers'][$class] = $class;
 	}
+}
+
+interface Scraper
+{
+	static function GetName();
+	static function CanAuto();
+	static function Find($title);
+	static function Details($id);
+	static function Scrape($item, $id = null);
+	static function GetDetails($details, $item);
 }
 
 Module::Register('Scrape');

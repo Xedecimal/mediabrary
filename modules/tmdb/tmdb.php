@@ -6,7 +6,7 @@ define('TMDB_KEY', '263e2042d04c1989170721f79e675028');
 define('TMDB_FIND', 'http://api.themoviedb.org/2.1/Movie.search/en/xml/'.TMDB_KEY.'/');
 define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_KEY.'/');
 
-class TMDB extends Module
+class TMDB extends Module implements Scraper
 {
 	public static $Name = 'TMDB';
 	public static $Link = 'http://www.themoviedb.org/';
@@ -22,8 +22,6 @@ class TMDB extends Module
 	function Link()
 	{
 		global $_d;
-
-		# $_d['movie.cb.buttons'][] = array($this, 'movie_cb_buttons');
 		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
 	}
 
@@ -217,26 +215,23 @@ class TMDB extends Module
 	function movie_cb_check($md)
 	{
 		$ret = array();
-	
-		if (!@$md['clean']) return $ret;
-		
-		$title = Movie::CleanTitleForFile($md['title']);
-		$year = substr($md['date'], 0, 4);
 
-		if (count(glob($_d['config']['paths']['movie-meta']
-		."/thm_$title ($year).*")) < 1)
+		if (empty($md['details']['TMDB']))
 		{
-			varinfo("Fixing cover for $title ($year).");
-			$this->FixCover($md['fs_path']);
-			flush();
+			$p = $md['fs_path'];
+			$uep = rawurlencode($p);
+			$ret['Scrape'][] = <<<EOF
+<a href="scrape/scrape?path=$uep"
+	class="a-fix">Fix</a> File {$p} needs to be scraped
+EOF;
 		}
-
 		return $ret;
 	}
 
 	# Static Methods
 
 	static function GetName() { return 'The Movie DB'; }
+	static function CanAuto() { return true; }
 
 	static function FindXML($title)
 	{
@@ -264,7 +259,9 @@ class TMDB extends Module
 			foreach ($sx_movie->xpath('images/image[@size="cover"]') as $c)
 				$covers[] = (string)$c['url'];
 
-			$ret[(string)$sx_movie->id] = array(
+			$id = (string)$sx_movie->id;
+			$ret[$id] = array(
+				'id' => $id,
 				'title' => $sx_movie->name,
 				'date' => $sx_movie->released,
 				'covers' => implode('|', $covers),
@@ -280,8 +277,13 @@ class TMDB extends Module
 		return file_get_contents(TMDB_INFO.$id);
 	}
 
-	static function Scrape($item, $id)
+	static function Scrape($item, $id = null)
 	{
+		if ($id == null)
+		{
+			$keys = array_keys(TMDB::Find("{$item['fs_title']} {$item['fs_date']}"));
+			$id = $keys[0];
+		}
 		# Collect remote data
 		$data = Arr::FromXML(self::Details($id));
 		$item['details'][self::$Name] = $data['movies']['movie'];

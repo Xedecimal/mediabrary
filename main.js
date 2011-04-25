@@ -6,4 +6,5 @@ window.refreshAll = function() {
 
 $(function () {
 	window.refreshAll();
+	$('.date').datepicker();
 });

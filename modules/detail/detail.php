@@ -52,9 +52,10 @@ class ModDetail extends Module
 			$url = "{{app_abs}}/movie/scrape?target={$uep}&amp;fast=1";
 			$tmdbid = @$movie['tmdbid'];
 			$imdbid = @$movie['details']['imdb_id'];
+			# TODO: This does not do TMDB related matters.
 			$ret['Details'][] = <<<EOD
 <a href="{$url}">Scrape</a> No certification for
-{$movie['title']}
+{$movie['fs_title']}
 - <a href="http://www.themoviedb.org/movie/{$tmdbid}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;

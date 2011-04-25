@@ -176,10 +176,16 @@ class Movie extends MediaLibrary
 		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $fsi)
 		{
 			$f = str_replace('\\', '/', $fsi->GetPathname());
+			$f = iconv('ISO-8859-1', 'UTF-8', $f);
 			$this->_files[$f] = Movie::GetMovie($f);
 			$ext = File::ext($f);
 			$filelist[] = basename($f, '.'.$ext);
 		}
+
+		# Make sure our entry cache is up to date.
+		foreach ($this->_files as $p => $movie)
+			$ret = array_merge_recursive($ret,
+				$this->CheckDatabaseExistence($movie));
 
 		# Collect database information
 		$this->_ds = array();
@@ -187,7 +193,7 @@ class Movie extends MediaLibrary
 		foreach ($dr['paths'] as $p)
 		{
 			# Remove missing items
-			if (empty($p) || !file_exists($p))
+			if (empty($p) || !isset($this->_files[$p]))
 			{
 				$ret['cleanup'][] = "Removed database entry for non-existing '"
 					.$p."'";
@@ -205,15 +211,10 @@ class Movie extends MediaLibrary
 		}
 
 		# Iterate all known combined items.
-		foreach ($this->_files as $p => $file)
+		foreach ($this->_files as $p => $movie)
 		{
-			$uep = urlencode($p);
-
 			# We reported information in here to place in $ret later.
 			$rep = array();
-
-			$rep = array_merge_recursive($rep,
-				$this->CheckDatabaseExistence($file));
 
 			# Database available, run additional checks.
 			if (isset($this->_ds[$p]))
@@ -248,23 +249,18 @@ class Movie extends MediaLibrary
 	 * @param <type> $file
 	 * @return array Array of error messages.
 	 */
-	function CheckDatabaseExistence($file)
+	function CheckDatabaseExistence($movie)
 	{
+		global $_d;
+
 		$ret = array();
 
 		# This is multipart, we only keep track of the first item.
-		if (@$file['fs_part'] > 1) return $ret;
+		if (@$movie['fs_part'] > 1) return $ret;
 
-		$p = $file['fs_path'];
+		$p = $movie['fs_path'];
 		if (!isset($this->_ds[$p]))
-		{
-			$uep = urlencode($p);
-
-			$ret['Scrape'][] = <<<EOF
-<a href="movie/scrape?target=$uep&amp;fast=1"
-	class="a-fix">Fix</a> File {$p} needs to be scraped
-EOF;
-		}
+			$_d['entry.ds']->save($movie);
 
 		return $ret;
 	}
@@ -282,16 +278,16 @@ EOF;
 		$ret = array();
 
 		# Date Related
-		$date = $md['date'];
+		$date = $md['fs_date'];
 		$year = substr($date, 0, 4);
 
 		# Missing month and day.
-		if (strlen($date) < 10)
+		/*if (strlen($date) < 10)
 		{
-			$_d['entry.ds']->remove(array('_id' => $md['_id']));
+			//$_d['entry.ds']->remove(array('_id' => $md['_id']));
 			$ret['Scrape'][] = "File {$p} has incorrectly
 				scraped date \"{$year}\"";
-		}
+		}*/
 
 		return $ret;
 	}
@@ -309,12 +305,12 @@ EOF;
 		}
 
 		# Title Related
-		$title = Movie::CleanTitleForFile($md['title']);
+		$title = Movie::CleanTitleForFile($md['fs_title']);
 
 		# Validate strict naming conventions.
 
 		$next = basename($file, $ext);
-		$date = $md['date'];
+		$date = $md['fs_date'];
 		$year = substr($date, 0, 4);
 
 		# Part files need their CD#
@@ -361,8 +357,9 @@ EOD;
 		$mp = $_d['config']['paths']['movie-meta'];
 		if (!empty($md['part'])) return $ret;
 
+		#TODO: We don't check TMDB media here.
 		# Look for cover or backdrop.
-		if (!file_exists("$mp/thm_$next"))
+		/*if (!file_exists("$mp/thm_$next"))
 		{
 			$urlunfix = "tmdb/remove?id={$md['_id']}";
 			$ret['Media'][] = <<<EOD
@@ -378,7 +375,7 @@ EOD;
 				$ret['Media'][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
 EOD;
-		}
+		}*/
 
 		return $ret;
 	}
@@ -429,6 +426,9 @@ EOD;
 		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS) as $f)
 		{
 			$path = str_replace('\\', '/', $f->GetPathname());
+			#TODO: Windows NEEDS this, not sure about nix, we may need to do an
+			# OS check.
+			$path = iconv('ISO-8859-1', 'UTF-8', $path);
 			$mov = Movie::GetMovie($path);
 			if (@$mov['fs_part'] > 1) continue;
 			$ret[$path] = $mov;
@@ -455,7 +455,6 @@ EOD;
 		$ret = array();
 
 		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
-		#var_dump($m);
 		$cur = $_d['entry.ds']->find($m);
 		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))

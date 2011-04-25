@@ -14,7 +14,7 @@ define('det_rt_url', 'http://api.rottentomatoes.com/api/public/v1.0/movies');
 define('det_rt_find', det_rt_url.'.json?apikey='.det_rt_key.'&q=');
 define('det_rt_info', det_rt_url.'/');
 
-class RottenTomatoes extends Module
+class RottenTomatoes extends Module implements Scraper
 {
 	# Module Related
 	public static $Name = 'RottenTomatoes';
@@ -48,6 +48,8 @@ class RottenTomatoes extends Module
 	public static $Link = 'http://www.rottentomatoes.com';
 	public static $Icon = 'modules/det_rt/icon.png';
 
+	static function CanAuto() { return false; }
+
 	static function GetName() { return 'Rotten Tomatoes'; }
 
 	static function Find($title)
@@ -78,7 +80,7 @@ class RottenTomatoes extends Module
 		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key);
 	}
 
-	static function Scrape($item, $id)
+	static function Scrape($item, $id = null)
 	{
 		$item['details'][self::$Name] = json_decode(self::Details($id), true);
 		return $item;
