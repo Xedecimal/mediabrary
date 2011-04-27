@@ -5,7 +5,7 @@ cache. Afterwards, pick a cover that you find attractive and all data will then
 be saved. You may optionally choose the blank image if no covers are found or
 you dislike all of them.</p>
 
-<p>Scraping '{{fs_filename}}'</p>
+<p>Original Filename: '{{fs_filename}}'</p>
 
 <scraper>
 <fieldset class="scrape-set" id="scrape-{{Name}}">

@@ -245,7 +245,7 @@ EOF;
 		return $sx_movies;
 	}
 
-	static function Find($title)
+	static function Find($title, $date)
 	{
 		$xml = file_get_contents(TMDB_FIND.rawurlencode($title));
 

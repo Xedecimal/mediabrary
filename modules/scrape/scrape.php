@@ -138,7 +138,7 @@ EOF;
 	function TagFindResult($t, $g)
 	{
 		$s = $this->_scraper;
-		$res = $s::Find(Server::GetVar('title'));
+		$res = $s::Find(Server::GetVar('title'), Server::GetVar('date'));
 		return VarParser::Concat($g, $res);
 	}
 
@@ -155,7 +155,7 @@ interface Scraper
 {
 	static function GetName();
 	static function CanAuto();
-	static function Find($title);
+	static function Find($title, $date);
 	static function Details($id);
 	static function Scrape($item, $id = null);
 	static function GetDetails($details, $item);

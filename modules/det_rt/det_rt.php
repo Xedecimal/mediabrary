@@ -21,7 +21,7 @@ class RottenTomatoes extends Module implements Scraper
 
 	function __construct()
 	{
-		$this->CheckActive(RottenTomatoes::$Name);
+		$this->CheckActive(self::$Name);
 	}
 
 	function Prepare()
@@ -34,7 +34,7 @@ class RottenTomatoes extends Module implements Scraper
 		{
 			$id = Server::GetVar('id');
 
-			$data = RottenTomatoes::Details($id);
+			$data = self::Details($id);
 
 			$res = json_decode($data, true);
 			$ret['id'] = self::$Name;
@@ -52,7 +52,7 @@ class RottenTomatoes extends Module implements Scraper
 
 	static function GetName() { return 'Rotten Tomatoes'; }
 
-	static function Find($title)
+	static function Find($title, $date)
 	{
 		$title = MediaLibrary::SearchTitle($title);
 

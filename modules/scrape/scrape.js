@@ -54,7 +54,11 @@ function movie_find(event) {
 		dat['title'] = $('#inTitle').val();
 	}
 	// Initial automatic search.
-	else dat['title'] = $('#movie_title').val();
+	else
+	{
+		dat['title'] = $('#movie_title').val();
+		dat['date'] = $('#movie_date').val();
+	}
 
 	$.get('scrape/find', dat, function (data) {
 		$('#movie-details').html(data);

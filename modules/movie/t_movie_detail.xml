@@ -6,7 +6,8 @@
 	<input type="hidden" id="movie-id" value="{{mov_id}}" />
 	<input type="hidden" id="movie-bd" value="{{med_bd}}" />
 	<input type="hidden" id="movie_path" value="{{fs_path}}" />
-	<input type="hidden" id="movie_title" value="{{fs_title}} {{fs_date}}" />
+	<input type="hidden" id="movie_title" value="{{fs_title}}" />
+	<input type="hidden" id="movie_date" value="{{fs_date}}" />
 
 	<div id="movie-details">
 		<table>
