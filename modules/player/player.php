@@ -24,18 +24,15 @@ class ModPlayer extends Module
 			$m['path'] = $p = Server::GetVar('path');
 			$m['encpath'] = rawurlencode($p);
 			$m['trans'] = ModPlayer::GetTrans($p);
-			if (is_file($p)) $m['trans'] .= '/'.basename($p);
+			#if (is_file($p)) $m['trans'] .= '/'.basename($p);
 			$t->Set($m);
 			die($t->ParseFile(Module::L('player/select.xml')));
 		}
 
 		# Return a translated path.
 		if (@$_d['q'][1] == 'translate')
-		{
-			$p = Server::GetVar('path');
-			$f = basename($p);
-			die(ModPlayer::GetTrans($p).'/'.$f);
-		}
+			die(ModPlayer::GetTrans($p));
+
 		if (@$_d['q'][1] == 'js')
 		{
 			$t = new Template($_d);
@@ -50,8 +47,7 @@ class ModPlayer extends Module
 		$ret = "#EXTM3U\r\n";
 
 		# Iterate all the paths we will be playing and add them to the m3u.
-		if (is_dir($rp))
-			$files = glob($rp.'/*');
+		if (is_dir($rp)) $files = glob($rp.'/*');
 		else $files[] = $rp;
 		foreach ($files as $p)
 		{
@@ -62,7 +58,7 @@ class ModPlayer extends Module
 			# Translate a path to a faster source
 
 			$np = ModPlayer::GetTrans($p);
-
+			
 			# Locate an use any regioning data
 
 			$regions = ModPlayer::GetRegions($d);
@@ -70,16 +66,11 @@ class ModPlayer extends Module
 			# Create an M3U File
 
 			if (is_dir($p))
-			{
 				foreach (glob($p.'/*.*') as $ix => $xp)
 					foreach ($trans as $t)
-					{
-						$xf = basename($xp);
-						$ret .= $this->AddM3U($ix, $np.'/'.$xf,
+						$ret .= $this->AddM3U($ix, "$np",
 							@$regions[$xf]);
-					}
-			}
-			else $ret .= $this->AddM3U(1, $np.'/'.$f, @$regions[$f]);
+			else $ret .= $this->AddM3U(1, $np, @$regions[$f]);
 		}
 
 		Server::SendDownloadStart(File::GetFile(basename($p)).'.m3u');
@@ -172,19 +163,17 @@ EOF;
 	{
 		global $_d;
 
-		if (is_file($p)) $d = dirname($p);
-		else $d = $p;
-
-		$trans = array($p);
 		foreach ($_d['config']['player']['trans'] as $t)
 		{
 			if (isset($t['client']))
 				if (preg_match($t['client'], $_SERVER['REMOTE_ADDR']))
-					return str_replace($t['source'], $t['target'], $d);
+					return str_replace($t['source'], $t['target'], $p);
 			if (isset($t['agent']))
 				if (preg_match($t['agent'], $_SERVER['HTTP_USER_AGENT']))
-					return str_replace($t['source'], $t['target'], $d);
+					return str_replace($t['source'], $t['target'], $p);
 		}
+		
+		return $p;
 	}
 }
 
