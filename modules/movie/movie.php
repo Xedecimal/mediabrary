@@ -61,8 +61,8 @@ class Movie extends MediaLibrary
 			foreach ($item['paths'] as &$p)
 			{
 				# Figure out what the file should be named.
-				$ftitle = $this->CleanTitleForFile($item['title']);
-				$fyear = substr($item['date'], 0, 4);
+				$ftitle = $this->CleanTitleForFile($item['fs_title']);
+				$fyear = substr($item['fs_date'], 0, 4);
 
 				$dstf = "{$m[1]}{$ftitle} ({$fyear})";
 				if (!empty($item['fs_part']))
