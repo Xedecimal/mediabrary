@@ -14,7 +14,10 @@ class TMDB extends Module implements Scraper
 
 	function __construct()
 	{
+		global $_d;
+
 		$this->CheckActive(self::$Name);
+		$_d['search.cb.query'][] = array(&$this, 'cb_search_query');
 	}
 
 	# Module Extension
@@ -226,6 +229,12 @@ class TMDB extends Module implements Scraper
 EOF;
 		}
 		return $ret;
+	}
+
+	function cb_search_query($q)
+	{
+		return array('details.TMDB.keywords.keyword.@attributes.name' =>
+			new MongoRegex("/$q/i"));
 	}
 
 	# Static Methods
