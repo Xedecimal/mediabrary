@@ -299,7 +299,7 @@ class Movie extends MediaLibrary
 		$ext = File::ext($file);
 
 		# Filename related
-		if (array_search($ext, array('avi', 'mkv', 'mp4')) === false)
+		if (array_search($ext, array('avi', 'mkv', 'mp4', 'divx')) === false)
 		{
 			$ret['File Name Compliance'][] = "File {$file} has an unknown extension. ($ext)";
 		}
