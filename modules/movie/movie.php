@@ -482,7 +482,7 @@ EOD;
 				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_ext'),
 
 			# title (date).ext
-			'#/([^/]+)\s*\((\d{4})\)\.([^.]+)$#' => array(
+			'#/([^/]+)\s+\((\d{4})\)\.([^.]+)$#' => array(
 				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_ext'),
 
 			# title (date) CDnum.ext
