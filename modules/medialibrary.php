@@ -101,13 +101,13 @@ class MediaLibrary extends Module
 	static function CleanTitleForFile($title, $trans_the = true)
 	{
 		// Regular expression cleanups.
-		$preps = array('/\.$/' => '');
-		$ret = preg_replace(array_keys($preps), array_values($preps), $title);
+		#$preps = array('/\.$/' => '');
+		#$ret = preg_replace(array_keys($preps), array_values($preps), $title);
 
 		// Literal cleanups.
 		$reps = array('/' => ' ', ': ' => ' - ', ':' => '-', '?' => '_', '*' => '_', '"' => "'");
 
-		$ret = str_replace(array_keys($reps), array_values($reps), $ret);
+		$ret = str_replace(array_keys($reps), array_values($reps), $title);
 
 		if ($trans_the)
 		{
