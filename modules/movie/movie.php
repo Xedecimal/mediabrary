@@ -316,13 +316,13 @@ class Movie extends MediaLibrary
 		# Part files need their CD#
 		if (!empty($md['part']))
 		{
-			$preg = '#/'.preg_quote($title).' \('.$year.'\) CD'
+			$preg = '#/'.preg_quote($title, '#').' \('.$year.'\) CD'
 				.$file['fs_part'].'\.(\S+)$#';
 			$target = "$title ($year) CD{$md['part']}.$ext";
 		}
 		else
 		{
-			$preg = '#/'.preg_quote($title).' \('.$year.'\)\.(\S+)$#';
+			$preg = '#/'.preg_quote($title, '#').' \('.$year.'\)\.(\S+)$#';
 			$target = "$title ($year).$ext";
 		}
 
