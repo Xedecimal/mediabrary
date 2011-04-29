@@ -290,7 +290,7 @@ EOF;
 	{
 		if ($id == null)
 		{
-			$keys = array_keys(TMDB::Find("{$item['fs_title']} {$item['fs_date']}"));
+			$keys = array_keys(TMDB::Find($item['fs_title'], $item['fs_date']));
 			$id = $keys[0];
 		}
 		# Collect remote data
