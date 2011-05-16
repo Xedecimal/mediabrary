@@ -25,25 +25,18 @@ class MediaLibrary extends Module
 		foreach ($this->_items as $i)
 		{
 			# URL friendly path
-			$i['reu_path'] = rawurlencode($i['fs_path']);
+			$i->PathEncoded = rawurlencode($i->Path);
 
 			# Thumbnail
 			$thm_path = $this->_thumb_path.
-				'/thm_'.File::GetFile($i['fs_filename']);
+				'/thm_'.File::GetFile($i->Filename);
 			if (file_exists($thm_path))
-				$i['med_thumb'] = $this->_thumb_path.
-					'/thm_'.File::GetFile($i['fs_filename']);
+				$i->Image = $this->_thumb_path.
+					'/thm_'.File::GetFile($i->Filename);
 			else
-				$i['med_thumb'] = $this->_missing_image;
+				$i->Image = $this->_missing_image;
 
-			# HTML friendly strings
-			foreach (array_keys($i) as $k)
-				if (is_string($i[$k]))
-					$i[$k] = htmlspecialchars($i[$k]);
-
-			$i['med_thumb'] = str_replace("'", "\\'", $i['med_thumb']);
-
-			$ret .= $vp->ParseVars($g, $i + $_d);
+			$ret .= $vp->ParseVars($g, $i);
 		}
 
 		return $ret;
@@ -78,7 +71,7 @@ class MediaLibrary extends Module
 
 		// Collect the cover
 
-		$path = $item['fs_path'];
+		$path = $item->Path;
 		$pinfo = pathinfo($path);
 		if (is_file($path))
 			$fname = basename($pinfo['basename'], '.'.$pinfo['extension']);
