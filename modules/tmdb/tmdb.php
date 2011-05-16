@@ -309,7 +309,7 @@ EOF;
 		{
 			preg_match('/\?v=([^&]+)/', $trailer, $m);
 			$v = $m[1];
-			$details['trailer'] = <<<EOF
+			$details['Trailer'] = <<<EOF
 <object width="580" height="360"><param name="movie" value="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="580" height="360"></embed></object>
 EOF;
 		}
