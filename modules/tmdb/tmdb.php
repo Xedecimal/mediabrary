@@ -375,96 +375,6 @@ EOF;
 		return 0;
 	}
 
-	/*static function Scrape($movie, $id)
-	{
-		global $_d;
-
-		session_write_close();
-
-		$ctx_timeout = stream_context_create(array('http' =>
-			array('timeout' => 1)));
-
-		$xml = @file_get_contents(TMDB_INFO.$id, 0, $ctx_timeout);
-		if (empty($xml)) return $movie;
-		if (!empty($_d['tmdb.cb.scrape']))
-			U::RunCallbacks($_d['tmdb.cb.scrape'], $movie, $xml);
-		$sx = simplexml_load_string($xml);
-
-		# Scrape some general information
-
-		$movie['tmdbid'] = $id;
-		$movie['title'] = (string)$sx->movies->movie->name;
-		$movie['date'] = trim((string)$sx->movies->movie->released);
-
-		$dst_pinfo = pathinfo($movie['fs_path']);
-		$dst_pinfo['filename'] = File::GetFile($dst_pinfo['basename']);
-
-		# Scrape a cover thumbnail
-
-		# Don't re-scrape a cover and backdrop.
-		$media = Movie::GetMedia('movie', $movie, null);
-		if (!empty($media['med_thumb']) && !empty($media['med_bd']))
-			return $movie;
-
-		# Prepare our meta folder for movies.
-		if (!file_exists($_d['config']['paths']['movie-meta']))
-			File::MakeFullDir($_d['config']['paths']['movie-meta']);
-
-		# Cover
-		$thm = $_d['config']['paths']['movie-meta'].'/movie/thm_'
-			.basename($dst_pinfo['filename']);
-
-		# Cover does not exist.
-		if (!file_exists($thm))
-		{
-			$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
-			$urls = xpath_attrs($sx, $xp_thumb, 'url');
-
-			# Covers are available to grab
-			if (!empty($urls))
-			{
-				$url = (string)$urls[0];
-				$data = @file_get_contents($url, 0, $ctx_timeout);
-
-				if (!empty($data))
-				{
-					# Place new cover
-					$src_pinfo = pathinfo($url);
-					$movie['med_thumb'] = $_d['config']['paths']['movie-meta']
-						."/thm_".$dst_pinfo['filename'];
-
-					if (!file_put_contents($movie['med_thumb'], $data))
-						trigger_error("Cannot write the cover image.", ERR_FATAL);
-				}
-			}
-		}
-
-		# Backdrop
-		$bd = $_d['config']['paths']['movie-meta'].'/bd_'
-			.basename($dst_pinfo['filename']);
-
-		# Backdrop does not exist.
-		if (!file_exists($bd))
-		{
-			$xp_back = '//movies/movie/images/image[@type="backdrop"][@size="poster"]';
-			$urls = xpath_attr($sx, $xp_back, 'url');
-			if (!empty($urls))
-			{
-				$url = (string)$urls[0];
-				$data = @file_get_contents($url, 0, $ctx_timeout);
-				if (!empty($data))
-				{
-					# Place new backdrop
-					$src_pinfo = pathinfo($url);
-					file_put_contents($_d['config']['paths']['movie-meta']
-						."/bd_{$dst_pinfo['filename']}", $data);
-				}
-			}
-		}
-
-		return $movie;
-	}*/
-
 	static function FixCover($p)
 	{
 		global $_d;
@@ -494,7 +404,8 @@ EOF;
 		$xml = file_get_contents(TMDB_INFO.$id);
 		$sx = simplexml_load_string($xml);
 		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
-		return xpath_attrs($sx, $xp_thumb, 'url');
+		$el = $sx->xpath($xp_thumb);
+		return (string)$el['url'];
 	}
 }
 
