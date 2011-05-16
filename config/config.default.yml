@@ -31,6 +31,11 @@ paths:
 
   movie-meta: meta/movie
 
+  music:
+    - /path/to/music
+
+  music-meta: meta/music
+
   # paths/tv
   #
   # designates a series of paths where folders containing show episodes are
