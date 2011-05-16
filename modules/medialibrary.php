@@ -111,7 +111,7 @@ class MediaLibrary extends Module
 				$ret = $m[2].', '.$m[1];
 		}
 
-		return $ret;
+		return trim($ret);
 	}
 
 	static function SearchTitle($title)
