@@ -302,9 +302,9 @@ EOF;
 
 	static function GetDetails($details, $item)
 	{
-		if (!isset($item['details'][self::$Name])) return $details;
+		if (!isset($item->Data['details'][self::$Name])) return $details;
 
-		$trailer = $item['details'][self::$Name]['trailer'];
+		$trailer = $item->Data['details'][self::$Name]['trailer'];
 		if (!empty($trailer))
 		{
 			preg_match('/\?v=([^&]+)/', $trailer, $m);
