@@ -3,7 +3,7 @@
 require_once(Module::L('tv/scrape.tvdb.php'));
 require_once(Module::L('tv/scrape.tvrage.php'));
 
-class ModTVSeries extends MediaLibrary
+class TV extends MediaLibrary
 {
 	static $scrapers = array('ModScrapeTVDB', 'ModScrapeTVRage');
 
@@ -70,16 +70,8 @@ class ModTVSeries extends MediaLibrary
 
 			if (!empty($_d['config']['paths']['tv']))
 			foreach ($_d['config']['paths']['tv'] as $p)
-			{
 				$series = count(glob("$p/*", GLOB_ONLYDIR));
 
-				//$total = $size = 0;
-				//foreach (File::Comb($p, '#downloads#i', SCAN_FILES) as $f)
-				//{
-				//	$size += filesize($f);
-				//	$total++;
-				//}
-			}
 			$size = File::SizeToString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
 
@@ -89,7 +81,9 @@ class ModTVSeries extends MediaLibrary
 
 		if (@$_d['q'][0] != 'tv') return;
 
-		else if (@$_d['q'][1] == 'series')
+		$this->_items = TV::CollectFS();
+
+		if (@$_d['q'][1] == 'series')
 		{
 			$series = Server::GetVar('name');
 			$m = new ModTVEpisode();
@@ -112,34 +106,6 @@ class ModTVSeries extends MediaLibrary
 			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 
-			if (!empty($_d['config']['paths']['tv']))
-			foreach ($_d['config']['paths']['tv'] as $p)
-			{
-				$dp = opendir($p);
-				while ($f = readdir($dp))
-				{
-					if ($f[0] == '.') continue;
-					if (!is_dir($p.'/'.$f)) continue;
-					$dirs[] = $p.'/'.$f;
-				}
-			}
-
-			if (is_array(@$dirs)) asort($dirs);
-
-			$ep_pregs = ModTVSeries::GetFSPregs();
-			if (!empty($dirs))
-			foreach ($dirs as $f)
-			{
-				$this->_items[$f] = MediaLibrary::ScrapeFS($f, $ep_pregs);
-				$this->_items[$f] += $this->GetMedia('tv', $this->_items[$f],
-					$this->_missing_image);
-			}
-
-			# Root directories are not included.
-			if (!empty($_d['config']['paths']['tv']))
-			foreach ($_d['config']['paths']['tv'] as $p)
-				unset($this->_items[$p]);
-
 			die(parent::Get());
 		}
 		else if (@$_d['q'][1] == 'rename')
@@ -147,18 +113,11 @@ class ModTVSeries extends MediaLibrary
 			if (!rename(Server::GetVar('src'), Server::GetVar('dst'))) die('Error!');
 			else die('Done.');
 		}
-		else if (@$_d['q'][1] == 'grab')
-		{
-			if (ModTVSeries::GrabEpisode(Server::GetVar('series'), Server::GetVar('season'),
-				Server::GetVar('episode')))
-				return "Successful!";
-			return "Failure!";
-		}
 		else
 		{
 			$missings = array();
 			// += overlaps episodes, combine instead.
-			foreach (ModTVSeries::GetAllSeries() as $series)
+			foreach (TV::GetAllSeries() as $series)
 			{
 				$add = ModTVEpisode::GetMissingEpisodes($series);
 				if (!empty($add)) $missings = array_merge($missings, $add);
@@ -257,6 +216,19 @@ class ModTVSeries extends MediaLibrary
 		return $max_date;
 	}
 
+	static function CollectFS()
+	{
+		global $_d;
+
+		$ret = array();
+		foreach ($_d['config']['paths']['tv'] as $p)
+			foreach (new FilesystemIterator($p,
+				FilesystemIterator::SKIP_DOTS) as $f)
+				$ret[] = new SeriesEntry($f->GetPathname());
+
+		return $ret;
+	}
+
 	static function GetAllSeries()
 	{
 		global $_d;
@@ -273,7 +245,7 @@ class ModTVSeries extends MediaLibrary
 	static function GetInfo($series)
 	{
 		$eps = array();
-		foreach (ModTVSeries::$scrapers as $s)
+		foreach (TV::$scrapers as $s)
 		{
 			$neps = call_user_func(array($s, 'GetInfo'), $series);
 			$eps = array_replace_recursive($eps, $neps);
@@ -282,7 +254,11 @@ class ModTVSeries extends MediaLibrary
 	}
 }
 
-Module::Register('ModTVSeries');
+Module::Register('TV');
+
+class SeriesEntry extends MediaEntry
+{
+}
 
 class ModTVEpisode extends MediaLibrary
 {
@@ -464,7 +440,7 @@ class ModTVEpisode extends MediaLibrary
 		$eps = ModTVEpisode::GetExistingEpisodes($series);
 
 		# All Episodes
-		$aeps = ModTVSeries::GetInfo($series);
+		$aeps = TV::GetInfo($series);
 
 		$ret = array();
 		foreach ($aeps['eps'] as $sn => $season)
@@ -483,9 +459,7 @@ class ModTVEpisode extends MediaLibrary
 					$ser = rawurlencode($series);
 					$aired = date('m/d/Y', $ep['aired']);
 					$rout = "<a href=\"http://www.torrentz.com/search?q=$query\" target=\"_blank\">
-						$series S{$snp}E{$enp}</a> - {$aired} <a
-						href=\"{{app_abs}}/tv/grab?series=$ser&season=$snp&episode=$enp\"
-						target=\"_blank\">Attempt quick torrent grab</a>";
+						$series S{$snp}E{$enp}</a> - {$aired}";
 					if (!empty($ep['links']))
 					foreach ($ep['links'] as $n => $l)
 					{

@@ -1,8 +1,6 @@
 <item>
 	<div class="tv-item">
-	<a href="{{fs_path}}" class="a-tv-item" title="{{med_title}}">
-	<img class="tv-image" src="{{med_thumb}}" alt="{{med_title}}" />
-	</a>
-	<input type="hidden" id="backdrop:{{mov_id}}" value="{{mov_backdrop}}" />
+	<a href="{{Path}}" class="a-tv-item" title="{{Title}}">
+	<img class="tv-image" src="{{Image}}" alt="{{Title}}" /></a>
 	</div>
 </item>
