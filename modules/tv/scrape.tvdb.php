@@ -101,7 +101,7 @@ class ModScrapeTVDB
 			$eid = (string)$ep->id;
 			$snid = (string)$ep->seasonid;
 			$srid = (string)$ep->seriesid;
-			$ret['eps'][$sn][$en]['links']['TVDB'] = "http://thetvdb.com/index.php?tab=episode&seriesid=$srid&seasonid=$snid&id=$eid";
+			$ret['eps'][$sn][$en]['links']['TVDB'] = "http://thetvdb.com/index.php?tab=episode&amp;seriesid=$srid&amp;seasonid=$snid&amp;id=$eid";
 		}
 		return $ret;
 	}
