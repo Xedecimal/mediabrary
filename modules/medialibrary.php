@@ -19,9 +19,7 @@ class MediaLibrary extends Module
 		global $_d;
 
 		$vp = new VarParser();
-		$vp->Behavior->Bleed = false;
-		$ret = null;
-		$scraped = false;
+		$ret = '';
 
 		if (!empty($this->_items))
 		foreach ($this->_items as $i)
