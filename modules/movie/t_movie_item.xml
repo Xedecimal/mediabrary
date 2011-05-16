@@ -1,6 +1,6 @@
 <null>
 <item>
-	<div id="{{Data._id}}" style="background: url('{{Image}}') no-repeat;" title="{{Path}}"
+	<div id="{{Data._id}}" style="background: url('{{ImageCSS}}') no-repeat;" title="{{Path}}"
 		class="movie-item">
 		<div class="movie-details" style="display: none">
 		<div class="quick-buttons">

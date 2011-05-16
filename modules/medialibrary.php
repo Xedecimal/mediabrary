@@ -31,8 +31,11 @@ class MediaLibrary extends Module
 			$thm_path = $this->_thumb_path.
 				'/thm_'.File::GetFile($i->Filename);
 			if (file_exists($thm_path))
+			{
 				$i->Image = $this->_thumb_path.
 					'/thm_'.File::GetFile($i->Filename);
+				$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
+			}
 			else
 				$i->Image = $this->_missing_image;
 
