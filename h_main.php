@@ -18,6 +18,7 @@ require_once('xedlib/3rd/spyc.php');
 
 # Local requirements
 require_once('modules/medialibrary.php');
+require_once('classes/media_entry.php');
 
 date_default_timezone_set('America/Los_Angeles');
 
