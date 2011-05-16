@@ -318,63 +318,6 @@ EOF;
 
 	# DEPRECATED OLD SYSTEM
 
-	#TODO: Deprecated ?
-	static function Decode($sx_movie)
-	{
-		$ret['id'] = (string)$sx_movie->id;
-		$ret['score'] = (string)$sx_movie->score;
-		$ret['popularity'] = (string)$sx_movie->popularity;
-		$ret['name'] = (string)$sx_movie->name;
-		$ret['released'] = (string)$sx_movie->released;
-		$ret['overview'] = (string)$sx_movie->overview;
-		$xp_thumbs = 'images/image[@type="poster"]';
-		$sx_thumbs = $sx_movie->xpath($xp_thumbs);
-		if (!empty($sx_thumbs))
-		foreach ($sx_thumbs as $el_thumb)
-		{
-			$ret['thumbs'][] = (string)$el_thumb['url'];
-		}
-		else $ret['thumbs'][0] = 'modules/movie/img/missing.jpg';
-		return $ret;
-	}
-	
-	static function TagResult($t, $g, $a, $tag, $args)
-	{
-		$vp = new VarParser();
-
-		$ret = null;
-		if (!empty($sx_movies))
-		foreach ($sx_movies as $sx_movie)
-		{
-			$m = TMDB::Decode($sx_movie);
-			$m += $args;
-			$ret .= $vp->ParseVars($g, $m);
-		}
-		if (empty($ret)) $ret = 'Nothing found.';
-
-		return $ret;
-	}
-
-	#TODO: Fails on damn near everything, been ruled out.
-	static function cmp_title($cmp1, $cmp2)
-	{
-		return (double)$cmp1->score < (double)$cmp2->score;
-
-		global $_movie;
-
-		similar_text($_movie['fs_title'], (string)$cmp1->name, $title1);
-		similar_text($_movie['fs_title'], (string)$cmp2->name, $title2);
-		if (isset($_movie['fs_date']))
-		{
-			similar_text($_movie['fs_date'], date('Y', Database::MyDateTimestamp($cmp1->released)), $date1);
-			similar_text($_movie['fs_date'], date('Y', Database::MyDateTimestamp($cmp2->released)), $date2);
-		}
-
-		if ($title1 != $title2) return $title1 <= $title2;
-		if (isset($_movie['fs_date'])) return $date1 <= $date2;
-		return 0;
-	}
-
 	static function FixCover($p)
 	{
 		global $_d;

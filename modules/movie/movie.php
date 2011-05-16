@@ -133,7 +133,6 @@ class Movie extends MediaLibrary
 		if (@$_d['q'][1] == 'items')
 		{
 			$this->_template = 'modules/movie/t_movie_item.xml';
-
 			die(parent::Get());
 		}
 
