@@ -1,0 +1,6 @@
+<div id="music">
+<!-- <script type="text/javascript" src="music/music.js" /> -->
+
+<a href="music/items" target="music-items" class="refresh" />
+<div id="music-items"></div>
+</div>
