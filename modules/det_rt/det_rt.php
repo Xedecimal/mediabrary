@@ -88,9 +88,9 @@ class RottenTomatoes extends Module implements Scraper
 
 	static function GetDetails($details, $item)
 	{
-		if (!isset($item['details'][self::$Name])) return $details;
+		if (!isset($item->Data['details'][self::$Name])) return $details;
 
-		$title = $item['details'][self::$Name]['title'];
+		$title = $item->Data['details'][self::$Name]['title'];
 		if (!empty($title)) $details['title'] = $title;
 		return $details;
 	}
