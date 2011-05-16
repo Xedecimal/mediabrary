@@ -272,7 +272,7 @@ class Movie extends MediaLibrary
 		$ret = array();
 
 		# Date Related
-		$date = $md['fs_date'];
+		$date = @$md['fs_date'];
 		$year = substr($date, 0, 4);
 
 		# Missing month and day.
@@ -304,7 +304,7 @@ class Movie extends MediaLibrary
 		# Validate strict naming conventions.
 
 		$next = basename($file, $ext);
-		$date = $md['fs_date'];
+		$date = @$md['fs_date'];
 		$year = substr($date, 0, 4);
 
 		# Part files need their CD#
