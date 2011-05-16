@@ -1,15 +1,15 @@
 <null>
 <item>
-	<div id="{{_id}}" style="background: url('{{med_thumb}}') no-repeat;" title="{{fs_path}}"
+	<div id="{{Data._id}}" style="background: url('{{Image}}') no-repeat;" title="{{Path}}"
 		class="movie-item">
 		<div class="movie-details" style="display: none">
 		<div class="quick-buttons">
-			<a href="{{app_abs}}/movie/detail/{{_id}}?path={{reu_path}}"
+			<a href="{{app_abs}}/movie/detail/{{Data._id}}?path={{PathEncoded}}"
 				class="a-movie-item"><img
 					src="modules/movie/img/information.png" /></a>
 			<callback ds="_d" name="movie.cb.cover" />
 		</div>
-		{{title}}
+		{{Title}}
 		</div>
 	</div>
 </item>

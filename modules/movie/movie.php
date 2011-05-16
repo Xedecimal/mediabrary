@@ -30,19 +30,16 @@ class Movie extends MediaLibrary
 		{
 			$t = new Template();
 
-			$item = $this->ScrapeFS(Server::GetVar('path'),
-				Movie::GetFSPregs());
+			$item = new MovieEntry(Server::GetVar('path'));
 
 			if (!empty($_d['q'][2]))
-				$item += $_d['entry.ds']->findOne(array('_id' =>
+				$item->Data = $_d['entry.ds']->findOne(array('_id' =>
 					new MongoID($_d['q'][2])));
 
 			$this->details = array();
 			foreach ($_d['movie.cb.detail'] as $cb)
 				$this->details = call_user_func_array($cb, array($this->details, $item));
 
-			$item += MediaLibrary::GetMedia('movie', $item, $this->_missing_image);
-			$item['fs_filename'] = basename(Server::GetVar('path'));
 			$t->Set($item);
 			$this->_item = $item;
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
@@ -136,9 +133,6 @@ class Movie extends MediaLibrary
 		if (@$_d['q'][1] == 'items')
 		{
 			$this->_template = 'modules/movie/t_movie_item.xml';
-
-			foreach ($this->_items as &$i)
-				$i += MediaLibrary::GetMedia('movie', $i, $this->_missing_image);
 
 			die(parent::Get());
 		}
@@ -429,9 +423,7 @@ EOD;
 			#TODO: Windows NEEDS this, not sure about nix, we may need to do an
 			# OS check.
 			$path = iconv('ISO-8859-1', 'UTF-8', $path);
-			$mov = Movie::GetMovie($path);
-			if (@$mov['fs_part'] > 1) continue;
-			$ret[$path] = $mov;
+			$ret[$path] = new MovieEntry($f->GetPathname());
 		}
 
 		return $ret;
@@ -467,8 +459,9 @@ EOD;
 			$cur->sort($_d['movie.cb.query']['order']);
 		foreach ($cur as $i)
 		{
-			$i['url'] = urlencode($i['paths'][0]);
-			$ret[$i['paths'][0]] = $i;
+			$add = new MovieEntry($i['paths'][0]);
+			$add->Data = $i;
+			$ret[$i['paths'][0]] = $add;
 		}
 
 		return $ret;
@@ -526,6 +519,10 @@ EOD;
 
 		return $ret;
 	}
+}
+
+class MovieEntry extends MediaEntry
+{
 }
 
 Module::Register('Movie');
