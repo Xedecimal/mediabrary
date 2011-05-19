@@ -149,7 +149,7 @@ class TV extends MediaLibrary
 		FilesystemIterator::SKIP_DOTS) as $fser)
 		{
 			$series = $fser->GetPathname();
-			foreach (ModTVSeries::$scrapers as $s)
+			foreach (TV::$scrapers as $s)
 				$eps = call_user_func(array($s, 'GetInfo'), $series);
 
 			foreach (new FilesystemIterator($series,

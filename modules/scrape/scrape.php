@@ -39,35 +39,29 @@ class Scrape extends Module
 			$ids = Server::GetVar('ids');
 			$path = Server::GetVar('path');
 
+			$auto = false;
+
 			# This is automated
 			if (empty($ids))
 			{
 				$auto = true;
-				$mov = Movie::GetMovie($path);
+				$mov = new MovieEntry($path, Movie::GetFSPregs());
 				foreach ($_d['scrape.scrapers'] as $s)
 					if ($s::CanAuto()) $ids[$s] = null;
 			}
 
 			# Collect generic information
-			$q['fs_path'] = $path;
+			$q['path'] = $path;
 			$item = new MovieEntry($path, Movie::GetFSPregs());
 			$item->Data = $_d['entry.ds']->findOne($q);
-
-			$item->Data['title'] = $item->Title;
-			$item->Data['released'] = $item->Released;
-			$item->Data['paths'] = $item->Paths;
-			$item->Data['path'] = $item->Path;
 
 			# Collect scraper information
 			foreach ($ids as $sc => $ix) $item->Data = $sc::Scrape($item->Data, $ix);
 
 			# Save details
-			var_dump($item->Data);
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));
 
-			#TODO: When auto-scraping, we need to store first cover.
-			$auto = false;
-			# Save cover
+			# TODO: Save first cover on auto-scrape.
 			if (!$auto)
 			{
 				$filename = basename($item->Filename, '.'.$item->Ext);

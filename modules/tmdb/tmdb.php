@@ -219,15 +219,35 @@ class TMDB extends Module implements Scraper
 	{
 		$ret = array();
 
+		# Check for TMDB metadata.
+
 		if (empty($md['details']['TMDB']))
 		{
-			$p = $md['fs_path'];
+			$p = $md['path'];
 			$uep = rawurlencode($p);
-			$ret['Scrape'][] = <<<EOF
+			$ret['TMDB'][] = <<<EOF
 <a href="scrape/scrape?path=$uep"
-	class="a-fix">Fix</a> File {$p} needs to be scraped
+	class="a-fix">Scrape</a> File {$p} has no TMDB metadata.
 EOF;
+			return $ret;
 		}
+
+		# Check for certification.
+
+		if (empty($md['details']['TMDB']['certification']))
+		{
+			$uep = urlencode($md['path']);
+			$url = "{{app_abs}}/movie/scrape?target={$uep}&amp;fast=1";
+			$tmdbid = @$md['tmdbid'];
+			$imdbid = @$md['details']['imdb_id'];
+
+			$ret['TMDB'][] = <<<EOD
+<a href="{$url}">Scrape</a> No certification for {$md['title']}
+- <a href="http://www.themoviedb.org/movie/{$tmdbid}" target="_blank">TMDB</a>
+- <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
+EOD;
+		}
+
 		return $ret;
 	}
 
@@ -292,7 +312,7 @@ EOF;
 	{
 		if ($id == null)
 		{
-			$keys = array_keys(TMDB::Find($item['fs_title'], $item['fs_date']));
+			$keys = array_keys(TMDB::Find($item['title'], $item['released']));
 			$id = $keys[0];
 		}
 		# Collect remote data

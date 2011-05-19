@@ -20,7 +20,6 @@ class ModDetail extends Module
 			$_d['movie.skipfs'] = true;
 		}
 
-		$_d['movie.cb.check']['detail'] = array(&$this, 'cb_movie_check');
 		#$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
 		$_d['filter.cb.filters']['detail'] = array(&$this, 'cb_filter_filters');
 		$_d['scrape.cb.scrape']['detail'] = array(&$this, 'cb_scrape_scrape');
@@ -38,28 +37,6 @@ class ModDetail extends Module
 		$ret['head'] = '<script type="text/javascript"
 			src="modules/detail/detail.js"></script>';
 
-		return $ret;
-	}
-
-	function cb_movie_check($movie)
-	{
-		global $_d;
-
-		$ret = array();
-		if (empty($movie['details']['certification']))
-		{
-			$uep = urlencode($movie['fs_path']);
-			$url = "{{app_abs}}/movie/scrape?target={$uep}&amp;fast=1";
-			$tmdbid = @$movie['tmdbid'];
-			$imdbid = @$movie['details']['imdb_id'];
-			# TODO: This does not do TMDB related matters.
-			$ret['Details'][] = <<<EOD
-<a href="{$url}">Scrape</a> No certification for
-{$movie['fs_title']}
-- <a href="http://www.themoviedb.org/movie/{$tmdbid}" target="_blank">TMDB</a>
-- <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
-EOD;
-		}
 		return $ret;
 	}
 
@@ -96,7 +73,7 @@ EOF;
 
 	function cb_filter_filters()
 	{
-		global $_d;
+		/*global $_d;
 
 		$curcert = Server::GetVar('cert');
 
@@ -138,7 +115,7 @@ EOF;
 			$out .= '<a href="{{app_abs}}/cert/'.$n.'" class="'.$item['cert_class'].'"
 				style="font-size: '.$item['cert_size'].'px;">'.$n.'</a> ';
 
-		return '<div class="filter">Certification: '.$out.'</div>';
+		return '<div class="filter">Certification22: '.$out.'</div>';*/
 	}
 
 	static function GetCertCloud()

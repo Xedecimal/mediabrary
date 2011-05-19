@@ -58,8 +58,8 @@ class Movie extends MediaLibrary
 			foreach ($item['paths'] as &$p)
 			{
 				# Figure out what the file should be named.
-				$ftitle = $this->CleanTitleForFile($item['fs_title']);
-				$fyear = substr($item['fs_date'], 0, 4);
+				$ftitle = $this->CleanTitleForFile($item['title']);
+				$fyear = substr($item['released'], 0, 4);
 
 				$dstf = "{$m[1]}{$ftitle} ({$fyear})";
 				if (!empty($item['fs_part']))
@@ -170,7 +170,7 @@ class Movie extends MediaLibrary
 		{
 			$f = str_replace('\\', '/', $fsi->GetPathname());
 			$f = iconv('ISO-8859-1', 'UTF-8', $f);
-			$this->_files[$f] = Movie::GetMovie($f);
+			$this->_files[$f] = new MovieEntry($f, Movie::GetFSPregs());
 			$ext = File::ext($f);
 			$filelist[] = basename($f, '.'.$ext);
 		}
@@ -239,7 +239,7 @@ class Movie extends MediaLibrary
 
 	/**
 	 * Check if a given item exists in the database.
-	 * @param <type> $file
+	 * @param MovieEntry $movie
 	 * @return array Array of error messages.
 	 */
 	function CheckDatabaseExistence($movie)
@@ -249,11 +249,10 @@ class Movie extends MediaLibrary
 		$ret = array();
 
 		# This is multipart, we only keep track of the first item.
-		if (@$movie['fs_part'] > 1) return $ret;
+		if (!empty($movie->Part)) return $ret;
 
-		$p = $movie['fs_path'];
-		if (!isset($this->_ds[$p]))
-			$_d['entry.ds']->save($movie);
+		if (!isset($this->_ds[$movie->Path]))
+			$_d['entry.ds']->save($movie->Data);
 
 		return $ret;
 	}
@@ -298,12 +297,12 @@ class Movie extends MediaLibrary
 		}
 
 		# Title Related
-		$title = Movie::CleanTitleForFile($md['fs_title']);
+		$title = Movie::CleanTitleForFile($md['title']);
 
 		# Validate strict naming conventions.
 
 		$next = basename($file, $ext);
-		$date = @$md['fs_date'];
+		$date = @$md['released'];
 		$year = substr($date, 0, 4);
 
 		# Part files need their CD#
@@ -516,6 +515,12 @@ class MovieEntry extends MediaEntry
 		}
 		# Just a single movie
 		else $this->Paths[] = $this->Path;
+
+		# Default data values for every movie entry.
+		$this->Data['title'] = $this->Title;
+		if (isset($this->Released)) $this->Data['released'] = $this->Released;
+		$this->Data['paths'] = $this->Paths;
+		$this->Data['path'] = $this->Path;
 	}
 }
 

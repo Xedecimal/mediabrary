@@ -42,7 +42,7 @@ class ModCheck extends Module
 		foreach ($mods as $m)
 			if (method_exists($m, 'Check'))
 				$this->_msgs = array_merge_recursive($this->_msgs, $m->Check());
-
+			
 		$t = new Template();
 		$t->ReWrite('group', array(&$this, 'TagGroup'));
 		return $t->ParseFile('modules/check/t_check.xml');
