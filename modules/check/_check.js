@@ -1,13 +1,15 @@
 $(function () {
 	$('.a-fix').click(function () {
-		$(this).load($(this).attr('href'), function () {
+		var up = $(this);
+		$.get($(this).attr('href'), function () {
+			up.html('Complete');
 			if (window.hitall)
 			{
 				$(this).attr('class', '');
 				stepFix();
 			}
 		});
-		$(this).attr('href', '').html('<img src="img/load.gif" alt="loading" />');
+		$(this).attr('href', '#').html('<img src="img/load.gif" alt="loading" />');
 		return false;
 	});
 

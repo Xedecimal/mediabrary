@@ -237,13 +237,52 @@ EOF;
 		if (empty($md['details']['TMDB']['certification']))
 		{
 			$uep = urlencode($md['path']);
-			$url = "{{app_abs}}/movie/scrape?target={$uep}&amp;fast=1";
-			$tmdbid = @$md['tmdbid'];
-			$imdbid = @$md['details']['imdb_id'];
+			$url = "{{app_abs}}/scrape/scrape?path={$uep}";
+			$tmdburl = @$md['details']['TMDB']['url'];
+			$imdbid = @$md['details']['TMDB']['imdb_id'];
 
 			$ret['TMDB'][] = <<<EOD
-<a href="{$url}">Scrape</a> No certification for {$md['title']}
-- <a href="http://www.themoviedb.org/movie/{$tmdbid}" target="_blank">TMDB</a>
+<a href="{$url}" class="a-fix">Scrape</a> No certification for {$md['title']}
+- <a href="{$tmdburl}" target="_blank">TMDB</a>
+- <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
+EOD;
+		}
+
+		# Check filename compliance.
+
+		$filetitle = Movie::CleanTitleForFile($md['title']);
+		$date = substr($md['details']['TMDB']['released'], 0, 4);
+		$file = $md['path'];
+		$ext = File::ext(basename($md['path']));
+
+		# Part files need their CD#
+		if (!empty($md['part']))
+		{
+			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
+				.$file['part'].'\.(\S+)$#';
+			$target = "$filetitle ($date) CD{$md['part']}.$ext";
+		}
+		else
+		{
+			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\)\.(\S+)$#';
+			$target = "$filetitle ($date).$ext";
+		}
+
+		if (!preg_match($preg, $file))
+		{
+			$urlfix = "movie/fix?path=".urlencode($file);
+			# TODO: Do not directly reference tmdb here!
+			$urlunfix = "tmdb/remove?id={$md['_id']}";
+			$bn = basename($file);
+
+			$tmdburl = $md['details']['TMDB']['url'];
+			$imdbid = $md['details']['TMDB']['imdb_id'];
+
+			$ret['TMDB'][] = <<<EOD
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$target".
+- <a href="{$tmdburl}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
 		}
@@ -276,7 +315,7 @@ EOD;
 
 	static function Find($title, $date)
 	{
-		$xml = file_get_contents(TMDB_FIND.rawurlencode($title));
+		$xml = file_get_contents(TMDB_FIND.rawurlencode($title).'+'.$date);
 
 		if (empty($xml)) return;
 
@@ -312,7 +351,7 @@ EOD;
 	{
 		if ($id == null)
 		{
-			$keys = array_keys(TMDB::Find($item['title'], $item['released']));
+			$keys = array_keys(TMDB::Find(MediaLibrary::SearchTitle($item['title']), $item['released']));
 			$id = $keys[0];
 		}
 		# Collect remote data
