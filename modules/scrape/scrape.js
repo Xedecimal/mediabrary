@@ -57,7 +57,7 @@ function movie_find(event) {
 	else
 	{
 		dat['title'] = $('#movie_title').val();
-		dat['date'] = $('#movie_date').val();
+		dat['date'] = $('#movie_released').val();
 	}
 
 	$.get('scrape/find', dat, function (data) {

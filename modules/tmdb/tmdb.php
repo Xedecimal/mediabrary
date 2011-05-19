@@ -258,6 +258,8 @@ EOF;
 	{
 		$xml = file_get_contents(TMDB_FIND.rawurlencode($title));
 
+		if (empty($xml)) return;
+
 		$sx = simplexml_load_string($xml);
 		$sx_movies = $sx->xpath('//movies/movie');
 

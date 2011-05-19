@@ -25,10 +25,11 @@ class Scrape extends Module
 			$t = new Template;
 			$t->ReWrite('scraper', array(&$this, 'TagFindScraper'));
 			$p = Server::GetVar('path');
+			$item = new MovieEntry($p);
+
 			$q['fs_path'] = $p;
-			$item = $_d['entry.ds']->findOne($q);
-			if (empty($item)) $item = array();
-			$item += Movie::GetMovie($p);
+			$item->Data = $_d['entry.ds']->findOne($q);
+
 			$t->Set($item);
 			die($t->ParseFile(Module::L('scrape/find.xml')));
 		}
@@ -49,21 +50,27 @@ class Scrape extends Module
 
 			# Collect generic information
 			$q['fs_path'] = $path;
-			$item = $_d['entry.ds']->findOne($q);
-			if (empty($item)) $item = array();
-			$item += Movie::GetMovie($path);
+			$item = new MovieEntry($path, Movie::GetFSPregs());
+			$item->Data = $_d['entry.ds']->findOne($q);
+
+			$item->Data['title'] = $item->Title;
+			$item->Data['released'] = $item->Released;
+			$item->Data['paths'] = $item->Paths;
+			$item->Data['path'] = $item->Path;
 
 			# Collect scraper information
-			foreach ($ids as $sc => $ix) $item = $sc::Scrape($item, $ix);
+			foreach ($ids as $sc => $ix) $item->Data = $sc::Scrape($item->Data, $ix);
 
 			# Save details
-			$_d['entry.ds']->save($item);
+			var_dump($item->Data);
+			$_d['entry.ds']->save($item->Data, array('safe' => 1));
 
 			#TODO: When auto-scraping, we need to store first cover.
+			$auto = false;
 			# Save cover
 			if (!$auto)
 			{
-				$filename = basename($item['fs_filename'], ".{$item['fs_ext']}");
+				$filename = basename($item->Filename, '.'.$item->Ext);
 				$ct = "{$_d['config']['paths']['movie-meta']}/thm_{$filename}";
 				file_put_contents($ct, file_get_contents(Server::GetVar('cover')));
 			}
@@ -88,7 +95,7 @@ EOF;
 
 	function movie_cb_buttons($t)
 	{
-		$ret = '<a href="{{fs_path}}" id="a-scrape-find"><img src="img/find.png"
+		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="img/find.png"
 			alt="Find" /></a>';
 
 		if (!empty($t->vars['date']))

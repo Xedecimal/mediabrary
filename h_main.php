@@ -34,7 +34,7 @@ $_d['module.disable']['MediaInfo'] = 1;
 $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
-$_d['entry.ds']->ensureIndex(array('fs_path' => 1),
+$_d['entry.ds']->ensureIndex(array('path' => 1),
 	array('unique' => true, 'dropDups' => true));
 
 require_once('xedlib/modules/nav.php');

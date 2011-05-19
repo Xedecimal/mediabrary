@@ -8,7 +8,7 @@ class MediaLibrary extends Module
 
 	function Get()
 	{
-		$t = new Template();
+		$t = new Template($GLOBALS['_d']);
 		$t->ReWrite('item', array($this, 'TagItem'));
 		$t->Set($this->_vars);
 		return $t->Parsefile($this->_template);
@@ -31,14 +31,12 @@ class MediaLibrary extends Module
 			$thm_path = $this->_thumb_path.
 				'/thm_'.File::GetFile($i->Filename);
 			if (file_exists($thm_path))
-			{
 				$i->Image = $this->_thumb_path.
 					'/thm_'.File::GetFile($i->Filename);
-				$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
-			}
 			else
 				$i->Image = $this->_missing_image;
 
+			$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
 			$ret .= $vp->ParseVars($g, $i);
 		}
 

@@ -95,7 +95,7 @@ class ModPlayer extends Module
 	{
 		global $_d;
 
-		$p = $t->vars['med_path'];
+		$p = $t->vars['Path'];
 
 		$icon = Module::P('player/img/play.png');
 		return '<a class="a-play" href="'.urlencode($p).'">

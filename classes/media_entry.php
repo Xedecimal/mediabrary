@@ -13,6 +13,7 @@ class MediaEntry
 	{
 		$this->Path = $path;
 		$this->Filename = basename($path);
+		$this->Ext = File::ext($this->Filename);
 
 		if (!empty($parses))
 		{
@@ -27,6 +28,7 @@ class MediaEntry
 				}
 				$mx++;
 			}
+			if (!isset($this->DebugMatched)) $this->FailedFSPreg = 1;
 		}
 		else $this->Title = $this->Filename;
 	}

@@ -63,7 +63,7 @@ class ModCategory extends MediaLibrary
 	function cb_movie_unscraped_filter($ds_items, $fs_items)
 	{
 		foreach ($ds_items as $ds)
-			foreach ($ds['paths'] as $p)
+			foreach ($ds->Data['paths'] as $p)
 				unset($fs_items[$p]);
 		return $fs_items;
 	}

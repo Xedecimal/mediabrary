@@ -30,7 +30,7 @@ class Movie extends MediaLibrary
 		{
 			$t = new Template();
 
-			$item = new MovieEntry(Server::GetVar('path'));
+			$item = new MovieEntry(Server::GetVar('path'), self::GetFSPregs());
 
 			if (!empty($_d['q'][2]))
 				$item->Data = $_d['entry.ds']->findOne(array('_id' =>
@@ -422,7 +422,7 @@ EOD;
 			#TODO: Windows NEEDS this, not sure about nix, we may need to do an
 			# OS check.
 			$path = iconv('ISO-8859-1', 'UTF-8', $path);
-			$ret[$path] = new MovieEntry($f->GetPathname());
+			$ret[$path] = new MovieEntry($f->GetPathname(), $pregs);
 		}
 
 		return $ret;
@@ -471,57 +471,52 @@ EOD;
 		return array(
 			# title [date].ext
 			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
-				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_ext'),
+				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title (date).ext
-			'#/([^/]+)\s+\((\d{4})\)\.([^.]+)$#' => array(
-				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_ext'),
+			'/\/([^\/]+)\s+\((\d{4})\)\.([^.]+)$/' => array(
+				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title (date) CDnum.ext
 			'#/([^/]+)\s*\((\d{4})\)\s*cd(\d+)\.([^.]+)$#i' => array(
-				1 => 'fs_title', 2 => 'fs_date', 3 => 'fs_part', 4 => 'fs_ext'),
+				1 => 'Title', 2 => 'Released', 3 => 'Part', 4 => 'Ext'),
 
 			# title CDnum.ext
 			'#/([^/]+).*cd(\d+)\.([^.]+)$#i' => array(
-				1 => 'fs_title', 2 => 'fs_part', 3 => 'fs_ext'),
+				1 => 'Title', 2 => 'Part', 3 => 'Ext'),
 
 			# title [strip].ext
 			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
-				1 => 'fs_title', 2 => 'fs_ext'),
+				1 => 'Title', 2 => 'Ext'),
 
 			# title.ext
 			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
-				1 => 'fs_title', 3 => 'fs_ext'),
+				1 => 'Title', 3 => 'Ext'),
 
 			# title.ext
 			'#([^/]+)\s*\.(\S+)$#' => array(
-				1 => 'fs_title', 2 => 'fs_ext')
+				1 => 'Title', 2 => 'Ext')
 		);
-	}
-
-	static function GetMovie($path)
-	{
-		global $_d;
-
-		$ret = MediaLibrary::ScrapeFS($path, Movie::GetFSPregs());
-
-		# This is a part, lets try to find the rest of them.
-		if (!empty($ret['fs_part']))
-		{
-			$qg = File::QuoteGlob($ret['fs_path']);
-			$search = preg_replace('/CD\d+/i', '[Cc][Dd]*', $qg);
-			$files = glob($search);
-			$ret['paths'] = $files;
-		}
-		# Just a single movie
-		else $ret['paths'][] = $ret['fs_path'];
-
-		return $ret;
 	}
 }
 
 class MovieEntry extends MediaEntry
 {
+	function __construct($path, $pregs = null)
+	{
+		parent::__construct($path, $pregs);
+
+		# This is a part, lets try to find the rest of them.
+		if (!empty($this->Part))
+		{
+			$qg = File::QuoteGlob($this->Path);
+			$search = preg_replace('/CD\d+/i', '[Cc][Dd]*', $qg);
+			$files = glob($search);
+			$this->Paths = $files;
+		}
+		# Just a single movie
+		else $this->Paths[] = $this->Path;
+	}
 }
 
 Module::Register('Movie');
