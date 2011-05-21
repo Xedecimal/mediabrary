@@ -478,11 +478,11 @@ EOD;
 				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title (date).ext
-			'/\/([^\/]+)\s+\((\d{4})\)\.([^.]+)$/' => array(
+			'/\/([^\/]+)\s+\((\d{4})\).*\.([^.]+)$/' => array(
 				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title (date) CDnum.ext
-			'#/([^/]+)\s*\((\d{4})\)\s*cd(\d+)\.([^.]+)$#i' => array(
+			'#/([^/]+)\s*\((\d{4})\).*cd(\d+)\.([^.]+)$#i' => array(
 				1 => 'Title', 2 => 'Released', 3 => 'Part', 4 => 'Ext'),
 
 			# title CDnum.ext
