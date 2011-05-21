@@ -270,9 +270,9 @@ EOD;
 
 		if (!preg_match($preg, $file))
 		{
-			$urlfix = "movie/fix?path=".urlencode($file);
-			# TODO: Do not directly reference tmdb here!
-			$urlunfix = "tmdb/remove?id={$md['_id']}";
+			$urlfix = "movie/rename?path=".urlencode($file);
+			$urlfix .= '&amp;target='.dirname($file).'/'.urlencode($target);
+			$urlunfix = "tmdb/remove?id={$md->Data['_id']}";
 			$bn = basename($file);
 
 			$tmdburl = $md->Data['details']['TMDB']['url'];
