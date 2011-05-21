@@ -441,7 +441,7 @@ EOD;
 		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = 50;
 		if (empty($_d['movie.cb.query']['match']))
-			$_d['movie.cb.query']['order'] = array('details.obtained' => -1);
+			$_d['movie.cb.query']['order'] = array('obtained' => -1);
 
 		$query = $_d['movie.cb.query'];
 
