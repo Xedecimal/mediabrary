@@ -317,7 +317,9 @@ EOD;
 
 	static function Find($title, $date)
 	{
-		$xml = file_get_contents(TMDB_FIND.rawurlencode($title).'+'.$date);
+		$url = TMDB_FIND.rawurlencode($title);
+		if (!empty($date)) $url .= '+'.$date;
+		$xml = file_get_contents($url);
 
 		if (empty($xml)) return;
 
@@ -353,7 +355,8 @@ EOD;
 	{
 		if ($id == null)
 		{
-			$keys = array_keys(TMDB::Find(MediaLibrary::SearchTitle($item['title']), $item['released']));
+			$keys = array_keys(TMDB::Find(MediaLibrary::SearchTitle($item['title']), @$item['released']));
+			if (empty($keys)) return $item;
 			$id = $keys[0];
 		}
 		# Collect remote data
