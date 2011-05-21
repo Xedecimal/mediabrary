@@ -36,6 +36,7 @@ $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
 $_d['entry.ds']->ensureIndex(array('path' => 1),
 	array('unique' => true, 'dropDups' => true));
+$_d['entry.ds']->ensureIndex(array('obtained' => 1));
 
 require_once('xedlib/modules/nav.php');
 
