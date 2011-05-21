@@ -22,7 +22,7 @@ class ModSearch extends Module
 		if (!empty($q))
 		{
 			#$_d['movie.cb.query']['match']['fs_title'] = new MongoRegex("/$q/i");
-			$_d['movie.cb.query']['match'] = array();
+			$_d['movie.cb.query']['match']['$or'][]['title'] = new MongoRegex("/$q/i");
 			foreach ($_d['search.cb.query'] as $cb)
 				$_d['movie.cb.query']['match'] += call_user_func($cb, $q);
 		}

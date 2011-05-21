@@ -292,8 +292,10 @@ EOD;
 
 	function cb_search_query($q)
 	{
-		return array('details.TMDB.keywords.keyword.@attributes.name' =>
-			new MongoRegex("/$q/i"));
+		$ret['$or'][]['details.TMDB.keywords.keyword.@attributes.name'] =
+			new MongoRegex("/$q/i");
+		$ret['$or'][]['details.TMDB.name'] = new MongoRegex("/$q/i");
+		return $ret;
 	}
 
 	# Static Methods
