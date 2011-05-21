@@ -37,6 +37,7 @@ class MediaLibrary extends Module
 				$i->Image = $this->_missing_image;
 
 			$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
+			$i->RuePath = rawurlencode($i->Path);
 			$ret .= $vp->ParseVars($g, $i);
 		}
 
