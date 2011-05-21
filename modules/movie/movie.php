@@ -92,6 +92,14 @@ class Movie extends MediaLibrary
 
 			die('Fixed');
 		}
+		
+		else if (@$_d['q'][1] == 'rename')
+		{
+			$path = Server::GetVar('path');
+			$targ = Server::GetVar('target');
+			rename($path, $targ);
+			die('Fixed');
+		}
 	}
 
 	function Get()
@@ -326,17 +334,11 @@ class Movie extends MediaLibrary
 		if (!preg_match($preg, $file))
 		{
 			$urlfix = "movie/fix?path=".urlencode($file);
-			# TODO: Do not directly reference tmdb here!
-			$urlunfix = "tmdb/remove?id={$md['_id']}";
 			$bn = basename($file);
 
-			$tmdbid = @$md['tmdbid'];
 			$ret['File Name Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
-<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
-File "$bn" should be "$target".
-- <a href="http://www.themoviedb.org/movie/{$tmdbid}"
-target="_blank">Reference</a>
+File "$bn" should be "$target"
 EOD;
 		}
 
