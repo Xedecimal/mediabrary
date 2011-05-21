@@ -5,7 +5,7 @@ $(function () {
 			up.html('Complete');
 			if (window.hitall)
 			{
-				$(this).attr('class', '');
+				up.attr('class', '');
 				stepFix();
 			}
 		});
