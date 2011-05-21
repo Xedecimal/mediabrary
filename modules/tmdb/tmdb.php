@@ -221,9 +221,9 @@ class TMDB extends Module implements Scraper
 
 		# Check for TMDB metadata.
 
-		if (empty($md['details']['TMDB']))
+		if (empty($md->Data['details']['TMDB']))
 		{
-			$p = $md['path'];
+			$p = $md->Path;
 			$uep = rawurlencode($p);
 			$ret['TMDB'][] = <<<EOF
 <a href="scrape/scrape?path=$uep"
@@ -234,15 +234,15 @@ EOF;
 
 		# Check for certification.
 
-		if (empty($md['details']['TMDB']['certification']))
+		if (empty($md->Data['details']['TMDB']['certification']))
 		{
-			$uep = urlencode($md['path']);
+			$uep = urlencode($md->Path);
 			$url = "{{app_abs}}/scrape/scrape?path={$uep}";
-			$tmdburl = @$md['details']['TMDB']['url'];
-			$imdbid = @$md['details']['TMDB']['imdb_id'];
+			$tmdburl = $md->Data['details']['TMDB']['url'];
+			$imdbid = $md->Data['details']['TMDB']['imdb_id'];
 
 			$ret['TMDB'][] = <<<EOD
-<a href="{$url}" class="a-fix">Scrape</a> No certification for {$md['title']}
+<a href="{$url}" class="a-fix">Scrape</a> No certification for {$md->Title}
 - <a href="{$tmdburl}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
@@ -250,13 +250,13 @@ EOD;
 
 		# Check filename compliance.
 
-		$filetitle = Movie::CleanTitleForFile($md['title']);
-		$date = substr($md['details']['TMDB']['released'], 0, 4);
-		$file = $md['path'];
-		$ext = File::ext(basename($md['path']));
+		$filetitle = Movie::CleanTitleForFile($md->Data['details']['TMDB']['name']);
+		$date = substr($md->Data['details']['TMDB']['released'], 0, 4);
+		$file = $md->Path;
+		$ext = File::ext(basename($md->Path));
 
 		# Part files need their CD#
-		if (!empty($md['part']))
+		if (!empty($md->Data['part']))
 		{
 			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
 				.$file['part'].'\.(\S+)$#';
@@ -275,8 +275,8 @@ EOD;
 			$urlunfix = "tmdb/remove?id={$md['_id']}";
 			$bn = basename($file);
 
-			$tmdburl = $md['details']['TMDB']['url'];
-			$imdbid = $md['details']['TMDB']['imdb_id'];
+			$tmdburl = $md->Data['details']['TMDB']['url'];
+			$imdbid = $md->Data['details']['TMDB']['imdb_id'];
 
 			$ret['TMDB'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>

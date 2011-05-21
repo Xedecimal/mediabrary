@@ -212,7 +212,8 @@ class Movie extends MediaLibrary
 			# Database available, run additional checks.
 			if (isset($this->_ds[$p]))
 			{
-				$md = $this->_ds[$p];
+				$md = $this->_files[$p];
+				$md->Data = $this->_ds[$p];
 				$rep = array_merge_recursive($rep, $this->CheckDates($p, $md));
 				$rep = array_merge_recursive($rep, $this->CheckFilename($p, $md));
 				$rep = array_merge_recursive($rep, $this->CheckMedia($p, $md));
@@ -223,7 +224,7 @@ class Movie extends MediaLibrary
 			# If we can, mark this movie clean to skip further checks.
 			if (empty($rep) && isset($md) && @$file['fs_part'] < 2)
 			{
-				$_d['entry.ds']->update(array('_id' => $md['_id']),
+				$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
 					array('$set' => array('mov_clean' => true))
 				);
 			}
@@ -297,16 +298,20 @@ class Movie extends MediaLibrary
 		}
 
 		# Title Related
-		$title = Movie::CleanTitleForFile($md['title']);
-
+		$title = Movie::CleanTitleForFile($md->Title);
+		
 		# Validate strict naming conventions.
 
 		$next = basename($file, $ext);
-		$date = @$md['released'];
-		$year = substr($date, 0, 4);
+		if (isset($md->Released))
+		{
+			$date = $md->Released;
+			$year = substr($date, 0, 4);
+		}
+		else $year = 'Unknown';
 
 		# Part files need their CD#
-		if (!empty($md['part']))
+		if (!empty($md->Part))
 		{
 			$preg = '#/'.preg_quote($title, '#').' \('.$year.'\) CD'
 				.$file['fs_part'].'\.(\S+)$#';
@@ -347,7 +352,7 @@ EOD;
 		$ext = File::ext($file);
 		$next = basename($file, '.'.$ext);
 		$mp = $_d['config']['paths']['movie-meta'];
-		if (!empty($md['part'])) return $ret;
+		if (!empty($md->Part)) return $ret;
 
 		#TODO: We don't check TMDB media here.
 		# Look for cover or backdrop.
@@ -521,6 +526,7 @@ class MovieEntry extends MediaEntry
 		if (isset($this->Released)) $this->Data['released'] = $this->Released;
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = $this->Path;
+		$this->Data['obtained'] = filemtime($this->Path);
 	}
 }
 
