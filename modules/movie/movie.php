@@ -184,11 +184,6 @@ class Movie extends MediaLibrary
 			$filelist[] = basename($f, '.'.$ext);
 		}
 
-		# Make sure our entry cache is up to date.
-		foreach ($this->_files as $p => $movie)
-			$ret = array_merge_recursive($ret,
-				$this->CheckDatabaseExistence($movie));
-
 		# Collect database information
 		$this->_ds = array();
 		foreach ($_d['entry.ds']->find(array(), $_d['movie.cb.query']['columns']) as $dr)
@@ -211,6 +206,11 @@ class Movie extends MediaLibrary
 
 			$this->_ds[$p] = $dr;
 		}
+
+		# Make sure our entry cache is up to date.
+		foreach ($this->_files as $p => $movie)
+			$ret = array_merge_recursive($ret,
+				$this->CheckDatabaseExistence($movie));
 
 		# Iterate all known combined items.
 		foreach ($this->_files as $p => $movie)
