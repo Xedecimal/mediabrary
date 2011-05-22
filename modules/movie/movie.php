@@ -223,7 +223,6 @@ class Movie extends MediaLibrary
 			{
 				$md = $this->_files[$p];
 				$md->Data = $this->_ds[$p];
-				$rep = array_merge_recursive($rep, $this->CheckDates($p, $md));
 				$rep = array_merge_recursive($rep, $this->CheckFilename($p, $md));
 				$rep = array_merge_recursive($rep, $this->CheckMedia($p, $md));
 				$rep = array_merge_recursive($rep,
@@ -263,33 +262,6 @@ class Movie extends MediaLibrary
 
 		if (!isset($this->_ds[$movie->Path]))
 			$_d['entry.ds']->save($movie->Data);
-
-		return $ret;
-	}
-
-	/**
-	 * Check all date parameters.
-	 * 
-	 * @param array $file Result of Movie::GetMovie
-	 * @param array $dbentry Database entry for this movie.
-	 */
-	function CheckDates($p, $md)
-	{
-		global $_d;
-
-		$ret = array();
-
-		# Date Related
-		$date = @$md['fs_date'];
-		$year = substr($date, 0, 4);
-
-		# Missing month and day.
-		/*if (strlen($date) < 10)
-		{
-			//$_d['entry.ds']->remove(array('_id' => $md['_id']));
-			$ret['Scrape'][] = "File {$p} has incorrectly
-				scraped date \"{$year}\"";
-		}*/
 
 		return $ret;
 	}
