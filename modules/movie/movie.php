@@ -176,10 +176,9 @@ class Movie extends MediaLibrary
 		# Collect known filesystem data
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $fsi)
+		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS) as $fsi)
 		{
-			$f = str_replace('\\', '/', $fsi->GetPathname());
-			$f = iconv('ISO-8859-1', 'UTF-8', $f);
+			$f = $fsi->GetPathname();
 			$this->_files[$f] = new MovieEntry($f, Movie::GetFSPregs());
 			$ext = File::ext($f);
 			$filelist[] = basename($f, '.'.$ext);
