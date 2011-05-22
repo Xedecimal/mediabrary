@@ -25,6 +25,11 @@ class TMDB extends Module implements Scraper
 	function Link()
 	{
 		global $_d;
+		$_d['movie.cb.query']['columns']['details.TMDB.name'] = 1;
+		$_d['movie.cb.query']['columns']['details.TMDB.url'] = 1;
+		$_d['movie.cb.query']['columns']['details.TMDB.imdb_id'] = 1;
+		$_d['movie.cb.query']['columns']['details.TMDB.released'] = 1;
+		$_d['movie.cb.query']['columns']['details.TMDB.certification'] = 1;
 		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
 	}
 

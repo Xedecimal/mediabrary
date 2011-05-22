@@ -10,6 +10,8 @@ class Movie extends MediaLibrary
 
 		$_d['movie.source'] = 'file';
 		$_d['movie.cb.query'] = array();
+		$_d['movie.cb.query']['columns']['path'] = 1;
+		$_d['movie.cb.query']['columns']['paths'] = 1;
 
 		$this->_items = array();
 		$this->_class = 'movie';
@@ -190,7 +192,7 @@ class Movie extends MediaLibrary
 
 		# Collect database information
 		$this->_ds = array();
-		foreach ($_d['entry.ds']->find() as $dr)
+		foreach ($_d['entry.ds']->find(array(), $_d['movie.cb.query']['columns']) as $dr)
 		foreach ($dr['paths'] as $p)
 		{
 			# Remove missing items
@@ -452,7 +454,7 @@ EOD;
 		$ret = array();
 
 		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
-		$cur = $_d['entry.ds']->find($m);
+		$cur = $_d['entry.ds']->find($m, $_d['movie.cb.query']['columns']);
 		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))
 		{
