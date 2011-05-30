@@ -1,6 +1,5 @@
 <null>
 <script type="text/javascript" src="modules/check/_check.js"></script>
-<style type="text/css">@import url('modules/check/css.css')</style>
 <group>
 <div id="fg-{{id}}" class="group">
 <a href="{{id}}" class="a-fixthese">[{{_d.i18n.Fix_These}}]</a>

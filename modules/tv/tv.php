@@ -135,11 +135,11 @@ class TV extends MediaLibrary
 		}
 	}
 
-	function Check()
+	function Check(&$msgs)
 	{
 		global $_d;
 
-		$ret = array();
+		$errors = 0;
 
 		$pregs = ModTVEpisode::GetFSPregs();
 
@@ -184,12 +184,13 @@ class TV extends MediaLibrary
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
 					$fname = "{$eps['series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
 					$url = Module::L('tv/rename?src='.urlencode($episode).'&amp;dst='.urlencode("$dir/$fname.$ext"));
-					$ret['File Name Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
+					$msgs['TV/Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
+					$errors++;
 				}
 			}
 		}
 
-		return $ret;
+		return $errors;
 	}
 
 	function GetFeed($url, $stop_date)
@@ -271,9 +272,9 @@ class ModTVEpisode extends MediaLibrary
 	function Get()
 	{
 		global $_d;
-		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['med_path']);
+		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['Path']);
 
-		$sx = ModScrapeTVDB::GetXML($this->_vars['med_path']);
+		$sx = ModScrapeTVDB::GetXML($this->_vars['Path']);
 		if (!empty($sx))
 		{
 			$elEps = $sx->xpath('//Episode');

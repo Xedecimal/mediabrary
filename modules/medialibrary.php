@@ -133,7 +133,7 @@ class MediaLibrary extends Module
 		return trim($str);
 	}
 
-	function Check() { return array(); }
+	function Check(&$msgs) { return 0; }
 }
 
 ?>

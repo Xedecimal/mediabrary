@@ -38,11 +38,12 @@ class ModCheck extends Module
 		set_time_limit(0);
 		session_write_close();
 
+		$errors = 0;
 		// Collect check messages
 		foreach ($mods as $m)
 			if (method_exists($m, 'Check'))
-				$this->_msgs = array_merge_recursive($this->_msgs, $m->Check());
-			
+				$m->Check($this->_msgs);
+
 		$t = new Template();
 		$t->ReWrite('group', array(&$this, 'TagGroup'));
 		return $t->ParseFile('modules/check/t_check.xml');

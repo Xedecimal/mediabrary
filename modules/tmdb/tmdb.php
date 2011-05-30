@@ -220,22 +220,22 @@ class TMDB extends Module implements Scraper
 		return $ret;
 	}
 
-	function movie_cb_check($md)
+	function movie_cb_check($md, &$msgs)
 	{
-		$ret = array();
-
 		# Check for TMDB metadata.
 
 		if (empty($md->Data['details']['TMDB']))
 		{
 			$p = $md->Path;
 			$uep = rawurlencode($p);
-			$ret['TMDB'][] = <<<EOF
+			$msgs['TMDB/Metadata'][] = <<<EOF
 <a href="scrape/scrape?path=$uep"
 	class="a-fix">Scrape</a> File {$p} has no TMDB metadata.
 EOF;
-			return $ret;
+			return 1;
 		}
+
+		$errors = 0;
 
 		# Check for certification.
 
@@ -246,7 +246,7 @@ EOF;
 			$tmdburl = $md->Data['details']['TMDB']['url'];
 			$imdbid = $md->Data['details']['TMDB']['imdb_id'];
 
-			$ret['TMDB'][] = <<<EOD
+			$msgs['TMDB/Certification'][] = <<<EOD
 <a href="{$url}" class="a-fix">Scrape</a> No certification for {$md->Title}
 - <a href="{$tmdburl}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
@@ -283,16 +283,16 @@ EOD;
 			$tmdburl = $md->Data['details']['TMDB']['url'];
 			$imdbid = $md->Data['details']['TMDB']['imdb_id'];
 
-			$ret['TMDB'][] = <<<EOD
+			$msgs['TMDB/Filename Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
-<A href="{$urlunfix}" class="a-nogo">Unscrape</a>
+<a href="{$urlunfix}" class="a-nogo">Unscrape</a>
 File "$bn" should be "$target".
 - <a href="{$tmdburl}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
 		}
 
-		return $ret;
+		return $errors;
 	}
 
 	function cb_search_query($q)

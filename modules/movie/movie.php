@@ -163,7 +163,7 @@ class Movie extends MediaLibrary
 		return @$ret;
 	}
 
-	function Check()
+	function Check(&$msgs)
 	{
 		global $_d;
 
@@ -216,27 +216,26 @@ class Movie extends MediaLibrary
 		foreach ($this->_files as $p => $movie)
 		{
 			# We reported information in here to place in $ret later.
-			$rep = array();
+			$errors = 0;
 
 			# Database available, run additional checks.
 			if (isset($this->_ds[$p]))
 			{
 				$md = $this->_files[$p];
 				$md->Data = $this->_ds[$p];
-				$rep = array_merge_recursive($rep, $this->CheckFilename($p, $md));
-				$rep = array_merge_recursive($rep, $this->CheckMedia($p, $md));
-				$rep = array_merge_recursive($rep,
-					U::RunCallbacks($_d['movie.cb.check'], $md));
+				$errors += $this->CheckFilename($p, $md, $msgs);
+				$errors += $this->CheckMedia($p, $md, $msgs);
+				foreach ($_d['movie.cb.check'] as $cb)
+					$errors += call_user_func_array($cb, array(&$md, &$msgs));
 			}
 
 			# If we can, mark this movie clean to skip further checks.
-			if (empty($rep) && isset($md) && @$file['fs_part'] < 2)
+			if (empty($errors) && isset($md) && @$file['fs_part'] < 2)
 			{
 				$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
 					array('$set' => array('mov_clean' => true))
 				);
 			}
-			else $ret = array_merge_recursive($ret, $rep);
 		}
 
 		$ret = array_merge_recursive($ret, $this->CheckOrphanMedia($filelist));
@@ -266,10 +265,8 @@ class Movie extends MediaLibrary
 		return $ret;
 	}
 
-	function CheckFilename($file, $md)
+	function CheckFilename($file, $md, &$msgs)
 	{
-		$ret = array();
-
 		$ext = File::ext($file);
 
 		# Filename related
@@ -309,25 +306,24 @@ class Movie extends MediaLibrary
 			$urlfix = "movie/fix?path=".urlencode($file);
 			$bn = basename($file);
 
-			$ret['File Name Compliance'][] = <<<EOD
+			$msgs['Movie/Filename Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 File "$bn" should be "$target"
 EOD;
+			return 1;
 		}
 
-		return $ret;
+		return 0;
 	}
 
 	function CheckMedia($file, $md)
 	{
 		global $_d;
 
-		$ret = array();
-
 		$ext = File::ext($file);
 		$next = basename($file, '.'.$ext);
 		$mp = $_d['config']['paths']['movie-meta'];
-		if (!empty($md->Part)) return $ret;
+		if (!empty($md->Part)) return 0;
 
 		#TODO: We don't check TMDB media here.
 		# Look for cover or backdrop.
@@ -349,7 +345,7 @@ EOD;
 EOD;
 		}*/
 
-		return $ret;
+		return 0;
 	}
 
 	/**
@@ -395,13 +391,10 @@ EOD;
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS) as $f)
+		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS) as $f)
 		{
-			$path = str_replace('\\', '/', $f->GetPathname());
-			#TODO: Windows NEEDS this, not sure about nix, we may need to do an
-			# OS check.
-			$path = iconv('ISO-8859-1', 'UTF-8', $path);
-			$ret[$path] = new MovieEntry($f->GetPathname(), $pregs);
+			$path = $f->GetPathname();
+			$ret[$path] = new MovieEntry($path, $pregs);
 		}
 
 		return $ret;
