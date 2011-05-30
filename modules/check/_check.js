@@ -18,7 +18,8 @@ $(function () {
 		return false;
 	});
 
-	$('.a-fixall').click(function () {
+	$('.a-fixthese').click(function () {
+		window.fixparent = '#fg-'+$(this).attr('href');
 		window.hitall = true;
 		stepFix();
 		return false;
@@ -32,5 +33,5 @@ $(function () {
 
 function stepFix()
 {
-	$('.a-fix:first').click();
+	$(window.fixparent).find('.a-fix:first').click();
 }

@@ -2,8 +2,8 @@
 <script type="text/javascript" src="modules/check/_check.js"></script>
 <style type="text/css">@import url('modules/check/css.css')</style>
 <group>
-<div class="group">
-<a href="{{id}}" class="a-fixall">[{{_d.i18n.Fix_All}}]</a>
+<div id="fg-{{id}}" class="group">
+<a href="{{id}}" class="a-fixthese">[{{_d.i18n.Fix_These}}]</a>
 	<a href="{{id}}" title="{{title}}" class="aCheckCat">+ {{title}}</a> ({{count}})
 <div id="grp-{{id}}" style="display: none">
 {{msgs}}
