@@ -14,18 +14,28 @@ class ModFilter extends Module
 	{
 		global $_d;
 
-		if (@$_d['q'][1] == 'filter')
+		if (!$this->Active) return;
+
+		if ($_d['q'][1] == 'set')
 		{
-			SetVar('date.min', $_d['q'][2]);
-			SetVar('date.max', $_d['q'][3]);
-			$_d['movie.skipfs'] = true;
+			$mask = Server::GetVar('mask');
+			$_SESSION['filter.mask'] = $mask;
 		}
+
+		/*SetVar('date.min', $_d['q'][2]);
+		SetVar('date.max', $_d['q'][3]);
+		$_d['movie.skipfs'] = true;*/
 	}
 
 	function Link()
 	{
 		global $_d;
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
+
+		if (!empty($_SESSION['filter.mask']))
+			$_d['movie.cb.query']['match']['$or'][] = $_SESSION['filter.mask'];
+
+		if (!$this->Active) return;
 
 		$type = Server::GetVar('filter.type');
 
@@ -65,12 +75,14 @@ class ModFilter extends Module
 	{
 		global $_d;
 
-		if ($this->Active && $_d['q'][1] == 'content')
+		if (!$this->Active) return;
+
+		if (@$_d['q'][1] == 'content')
 		{
 			$t = new Template();
 			die($t->ParseFile(Module::L('filter/content.xml')));
 		}
-		else if ($this->Active && $_d['q'][1] == 'get')
+		else if (@$_d['q'][1] == 'get')
 		{
 			$type = Server::GetVar('filter.type', 'date');
 
@@ -115,7 +127,7 @@ class ModFilter extends Module
 			$item['source'] = $type;
 			die(json_encode($item));
 		}
-		else if ($this->Active && $_d['q'][1] == 'set')
+		/*else if (@$_d['q'][1] == 'set')
 		{
 			$type = $_SESSION['filter.type'] = $_d['q'][2];
 			if ($type == 'cert')
@@ -126,7 +138,7 @@ class ModFilter extends Module
 				$_SESSION['filter.max'] = isset($_d['q'][4]) ? $_d['q'][4] : 0;
 			}
 			die(session_write_close());
-		}
+		}*/
 	}
 }
 

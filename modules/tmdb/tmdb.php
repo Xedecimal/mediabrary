@@ -31,6 +31,8 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']['details.TMDB.released'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.certification'] = 1;
 		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
+		
+		$_d['filter.cb.filters'][] = array(&$this, 'filter_cb_filters');
 	}
 
 	function Prepare()
@@ -301,6 +303,42 @@ EOD;
 			new MongoRegex("/$q/i");
 		$ret['$or'][]['details.TMDB.name'] = new MongoRegex("/$q/i");
 		return $ret;
+	}
+	
+	function filter_cb_filters()
+	{
+		global $_d;
+
+		$cols = array('details.TMDB.categories.category.@attributes.name' => 1);
+		
+		foreach ($_d['entry.ds']->find(array(), $cols) as $i)
+		{
+			if (!empty($i['details']['TMDB']['categories']['category']))
+				foreach ($i['details']['TMDB']['categories']['category'] as $c)
+					if (isset($c['@attributes']))
+					{
+						$n = $c['@attributes']['name'];
+						isset($cats[$n]) ? $cats[$n]++ : $cats[$n] = 0;
+					}
+		}
+
+		$curcat = Server::GetVar('category');
+
+		$sizes = Math::RespectiveSize($cats);
+
+		$g = <<<EOF
+	<a href="{{app_abs}}/filter/set?mask[details.TMDB.categories.category.@attributes.name]={{cat_name}}" class="{{cat_class}}"
+		style="font-size: {{cat_size}}px">{{cat_name}}</a>
+EOF;
+
+		foreach ($cats as $n => $c)
+		{
+			$d['cat_name'] = $n;
+			$d['cat_size'] = $sizes[$n];
+			$items[] = $d;
+		}
+
+		return 'TMDB/Categories '.VarParser::Concat($g, $items);
 	}
 
 	# Static Methods
