@@ -87,7 +87,7 @@ class TV extends MediaLibrary
 		{
 			$series = Server::GetVar('name');
 			$m = new ModTVEpisode();
-			$m->_vars['med_path'] = $series;
+			$m->_vars['Path'] = $series;
 			$m->_vars['med_title'] = basename($series);
 			$m->Series = $series;
 			die($m->Get());
