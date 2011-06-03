@@ -1,7 +1,7 @@
 $(function () {
 	$('#a-scrape-find').live('click', movie_find);
 	//TODO: Do we need this source/attr data?
-	$('#but-scrape-find').live('click', { source: '#inTitle', attr: 'value' }, movie_find);
+	$('.but-scrape-research').live('click', { source: '#inTitle', attr: 'value' }, movie_find);
 
 	// A found result has been selected (not yet chosen).
 	$('.find-result').live('click', function () {

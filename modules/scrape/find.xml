@@ -7,6 +7,9 @@ you dislike all of them.</p>
 
 <p>Original Filename: '{{Path}}'</p>
 
+<p><input type="text" id="inTitle" />
+	<input type="button" class="but-scrape-research" value="Manual Search" /></p>
+
 <scraper>
 <fieldset class="scrape-set" id="scrape-{{Name}}">
 <legend><a href="{{Link}}" target="_blank"><img src="{{Icon}}"
