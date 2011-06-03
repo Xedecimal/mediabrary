@@ -31,7 +31,7 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']['details.TMDB.released'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.certification'] = 1;
 		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
-		
+
 		$_d['filter.cb.filters'][] = array(&$this, 'filter_cb_filters');
 	}
 
@@ -304,13 +304,13 @@ EOD;
 		$ret['$or'][]['details.TMDB.name'] = new MongoRegex("/$q/i");
 		return $ret;
 	}
-	
+
 	function filter_cb_filters()
 	{
 		global $_d;
 
 		$cols = array('details.TMDB.categories.category.@attributes.name' => 1);
-		
+
 		foreach ($_d['entry.ds']->find(array(), $cols) as $i)
 		{
 			if (!empty($i['details']['TMDB']['categories']['category']))
@@ -338,7 +338,9 @@ EOF;
 			$items[] = $d;
 		}
 
-		return 'TMDB/Categories '.VarParser::Concat($g, $items);
+		$ret = '<p>TMDB/Categories: '.VarParser::Concat($g, $items);
+		$ret .= '<p>TMDB/Misc <a href="{{app_abs}}/filter/set?mask[details.TMDB]=null">Missing TMDB Metadata</a></p>';
+		return $ret;
 	}
 
 	# Static Methods
