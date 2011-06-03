@@ -19,7 +19,10 @@ class ModFilter extends Module
 		if ($_d['q'][1] == 'set')
 		{
 			$mask = Server::GetVar('mask');
+			foreach ($mask as $k => $v)
+				if ($v == 'null') $mask[$k] = null;
 			$_SESSION['filter.mask'] = $mask;
+			var_dump($_SESSION['filter.mask']);
 		}
 
 		/*SetVar('date.min', $_d['q'][2]);
@@ -127,18 +130,6 @@ class ModFilter extends Module
 			$item['source'] = $type;
 			die(json_encode($item));
 		}
-		/*else if (@$_d['q'][1] == 'set')
-		{
-			$type = $_SESSION['filter.type'] = $_d['q'][2];
-			if ($type == 'cert')
-				$_SESSION['filter.checks'] = Server::GetVar('checks');
-			else // Date
-			{
-				$_SESSION['filter.min'] = isset($_d['q'][3]) ? $_d['q'][3] : 0;
-				$_SESSION['filter.max'] = isset($_d['q'][4]) ? $_d['q'][4] : 0;
-			}
-			die(session_write_close());
-		}*/
 	}
 }
 
