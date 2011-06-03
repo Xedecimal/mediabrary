@@ -79,7 +79,7 @@ class Movie extends MediaLibrary
 			$item['fs_filename'] = basename($item['fs_path']);
 
 			# Rename covers and backdrops as well.
-			
+
 			$md = $_d['config']['paths']['movie-meta'];
 			$cover = "$md/thm_".File::GetFile($m[2]);
 			$backd = "$md/bd_".File::GetFile($m[2]);
@@ -94,7 +94,7 @@ class Movie extends MediaLibrary
 
 			die('Fixed');
 		}
-		
+
 		else if (@$_d['q'][1] == 'rename')
 		{
 			$path = Server::GetVar('path');
@@ -187,24 +187,27 @@ class Movie extends MediaLibrary
 		# Collect database information
 		$this->_ds = array();
 		foreach ($_d['entry.ds']->find(array(), $_d['movie.cb.query']['columns']) as $dr)
-		foreach ($dr['paths'] as $p)
 		{
-			# Remove missing items
-			if (empty($p) || !isset($this->_files[$p]))
+			if (!empty($dr['paths']))
+			foreach ($dr['paths'] as $p)
 			{
-				$ret['cleanup'][] = "Removed database entry for non-existing '"
-					.$p."'";
-				$_d['entry.ds']->remove(array('_id' => $dr['_id']));
-			}
+				# Remove missing items
+				if (empty($p) || !isset($this->_files[$p]))
+				{
+					$ret['cleanup'][] = "Removed database entry for non-existing '"
+						.$p."'";
+					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
+				}
 
-			# This one is already clean, skip it.
-			if (!empty($dr['clean']))
-			{
-				unset($this->_files[$p]);
-				continue;
-			}
+				# This one is already clean, skip it.
+				if (!empty($dr['clean']))
+				{
+					unset($this->_files[$p]);
+					continue;
+				}
 
-			$this->_ds[$p] = $dr;
+				$this->_ds[$p] = $dr;
+			}
 		}
 
 		# Make sure our entry cache is up to date.
@@ -277,7 +280,7 @@ class Movie extends MediaLibrary
 
 		# Title Related
 		$title = Movie::CleanTitleForFile($md->Title);
-		
+
 		# Validate strict naming conventions.
 
 		$next = basename($file, $ext);
@@ -417,7 +420,9 @@ EOD;
 		$query = array();
 		$ret = array();
 
-		$m = !empty($_d['movie.cb.query']['match']) ? $_d['movie.cb.query']['match'] : array();
+		$m = !empty($_d['movie.cb.query']['match']) ?
+			$_d['movie.cb.query']['match'] : array();
+
 		$cur = $_d['entry.ds']->find($m, $_d['movie.cb.query']['columns']);
 		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))
@@ -430,6 +435,7 @@ EOD;
 			$cur->sort($_d['movie.cb.query']['order']);
 		foreach ($cur as $i)
 		{
+			if (empty($i['paths'])) continue;
 			$add = new MovieEntry($i['paths'][0]);
 			$add->Data = $i;
 			$ret[$i['paths'][0]] = $add;
