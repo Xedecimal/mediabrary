@@ -12,5 +12,8 @@ $(function () {
 		$(this).addClass('selected');
 		$.get('filter/set', {mask: $(this).attr('href')}, function () {
 			window.refreshAll();
+		});
+
+		return false;
 	});
 });
