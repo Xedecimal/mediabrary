@@ -21,7 +21,6 @@ class ModDetail extends Module
 		}
 
 		#$_d['movie.cb.detail']['detail'] = array(&$this, 'cb_movie_detail');
-		$_d['filter.cb.filters']['detail'] = array(&$this, 'cb_filter_filters');
 		$_d['scrape.cb.scrape']['detail'] = array(&$this, 'cb_scrape_scrape');
 	}
 
