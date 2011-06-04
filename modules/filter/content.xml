@@ -12,5 +12,5 @@ Filter:
 </select>
 <div id="date-value"></div>
 <div id="date-slider"></div>
-<script type="text/javascript" src="filter/js.js"></script>
+<script type="text/javascript" src="filter/filter.js"></script>
 </null>
