@@ -78,14 +78,12 @@ class ModFilter extends Module
 	{
 		global $_d;
 
-		if (!$this->Active) return;
+		$r['head'] = '<link type="text/css" rel="stylesheet"
+			href="'.Module::P('filter/filter.css').'" />';
 
-		if (@$_d['q'][1] == 'content')
-		{
-			$t = new Template();
-			die($t->ParseFile(Module::L('filter/content.xml')));
-		}
-		else if (@$_d['q'][1] == 'get')
+		if (!$this->Active) return $r;
+
+		if (@$_d['q'][1] == 'get')
 		{
 			$type = Server::GetVar('filter.type', 'date');
 

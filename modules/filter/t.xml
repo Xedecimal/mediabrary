@@ -1,6 +1,5 @@
 <div class="filter">
-<style type="text/css">#date-slider { width: 50%; }</style>
-<script type="text/javascript" src="filter/js.js"></script>
+<script type="text/javascript" src="filter/filter.js"></script>
 
 <block name="filters" />
 
