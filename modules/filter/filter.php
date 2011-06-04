@@ -4,6 +4,8 @@ require_once('h_main.php');
 
 class ModFilter extends Module
 {
+	public static $Name = 'filter';
+
 	function __construct()
 	{
 		$this->Filters[] = new FilterReleased();
@@ -16,18 +18,24 @@ class ModFilter extends Module
 
 		if (!$this->Active) return;
 
-		if ($_d['q'][1] == 'set')
+		if (@$_d['q'][1] == 'set')
 		{
-			$mask = Server::GetVar('mask');
-			foreach ($mask as $k => $v)
-				if ($v == 'null') $mask[$k] = null;
-			$_SESSION['filter.mask'] = $mask;
-			var_dump($_SESSION['filter.mask']);
+			$mask = json_decode(Server::GetVar('mask'), true);
+			var_dump($mask);
+			if ($mask == null) unset($_SESSION['filter.mask']);
+			else
+			{
+				$fm = @$_SESSION['filter.mask'];
+				$_SESSION['filter.mask'] = is_array($fm) ? array_merge($fm, $mask) : $mask;
+			}
+			session_write_close();
+			die(json_encode($_SESSION['filter.mask']));
 		}
 
-		/*SetVar('date.min', $_d['q'][2]);
-		SetVar('date.max', $_d['q'][3]);
-		$_d['movie.skipfs'] = true;*/
+		if (@$_d['q'][1] == 'get')
+		{
+			die(json_encode($_SESSION['filter.mask']));
+		}
 	}
 
 	function Link()
@@ -71,6 +79,7 @@ class ModFilter extends Module
 	function cb_movie_head()
 	{
 		$t = new Template();
+		$t->Rewrite('filter', array(&$this, 'TagFilter'));
 		return $t->ParseFile(Module::L('filter/t.xml'));
 	}
 
@@ -128,6 +137,22 @@ class ModFilter extends Module
 			$item['source'] = $type;
 			die(json_encode($item));
 		}
+	}
+
+	function TagFilter($t, $g)
+	{
+		global $_d;
+
+		$filters = U::RunCallbacks($_d['filter.cb.filters']);
+		foreach ($filters as $n => &$v)
+		{
+			if (is_string($v)) $v = array('href' => $v, 'class' => 'a-filter');
+			if (is_array($v) && isset($v['class']))
+				$v['class'] .= ' a-filter';
+			$v['class'] = 'a-filter';
+		}
+		return ModNav::GetLinks(ModNav::LinkTree($filters));
+		return VarParser::Concat($g, $filters);
 	}
 }
 

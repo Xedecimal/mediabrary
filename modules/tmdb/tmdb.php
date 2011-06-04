@@ -32,7 +32,7 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']['details.TMDB.certification'] = 1;
 		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
 
-		$_d['filter.cb.filters'][] = array(&$this, 'filter_cb_filters');
+		$_d['filter.cb.filters']['tmdb'] = array(&$this, 'filter_cb_filters');
 	}
 
 	function Prepare()
@@ -158,7 +158,7 @@ class TMDB extends Module implements Scraper
 	{
 		global $_d;
 
-		// Process all cached media
+		# Process all cached media
 
 		$fi = new finfo(FILEINFO_MIME);
 		foreach (glob($_d['config']['paths']['movie-meta'].'/*') as $f)
@@ -326,11 +326,6 @@ EOD;
 
 		$sizes = Math::RespectiveSize($cats);
 
-		$g = <<<EOF
-	<a href="{{app_abs}}/filter/set?mask[details.TMDB.categories.category.@attributes.name]={{cat_name}}" class="{{cat_class}}"
-		style="font-size: {{cat_size}}px">{{cat_name}}</a>
-EOF;
-
 		foreach ($cats as $n => $c)
 		{
 			$d['cat_name'] = $n;
@@ -338,8 +333,15 @@ EOF;
 			$items[] = $d;
 		}
 
-		$ret = '<p>TMDB/Categories: '.VarParser::Concat($g, $items);
-		$ret .= '<p>TMDB/Misc <a href="{{app_abs}}/filter/set?mask[details.TMDB]=null">Missing TMDB Metadata</a></p>';
+		foreach ($items as $i)
+		{
+			$ret['TMDB/Categories/'.$i['cat_name']] = array('href' =>
+				'{"details.TMDB.categories.category.@attributes.name": "'.
+				$i['cat_name'].'"}', 'style' => "font-size: {$sizes[$i['cat_name']]}px");
+		}
+
+		#$ret['TMDB/Categories'] = array('raw' => VarParser::Concat($g, $items));
+		$ret['TMDB/Missing'] = '{"details.TMDB": null}';
 		return $ret;
 	}
 

@@ -69,7 +69,7 @@ class OFDB extends Module implements Scraper
 
 		return $ret;
 	}
-	
+
 	static function Details($id)
 	{
 		return file_get_contents(OFDB_DETAIL.$id);
@@ -81,7 +81,7 @@ class OFDB extends Module implements Scraper
 		$item['details'][self::$Name] = $data['ofdbgw']['resultat'];
 		return $item;
 	}
-	
+
 	static function GetDetails($details, $item)
 	{
 		return $details;
