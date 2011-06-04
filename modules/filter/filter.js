@@ -8,10 +8,9 @@ $(function () {
 		}
 	}, 'json');
 
-	$('#selFilterType').change(function () {
-		$.get('filter/set/'+$(this).val(), function () {
+	$('.a-filter').click(function () {
+		$(this).addClass('selected');
+		$.get('filter/set', {mask: $(this).attr('href')}, function () {
 			window.refreshAll();
-		});
-		return false;
 	});
 });
