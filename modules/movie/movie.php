@@ -13,6 +13,8 @@ class Movie extends MediaLibrary
 		$_d['movie.cb.query']['columns']['path'] = 1;
 		$_d['movie.cb.query']['columns']['paths'] = 1;
 
+		$_d['movie.cb.query']['match'] = array();
+
 		$this->_items = array();
 		$this->_class = 'movie';
 		$this->_thumb_path = $_d['config']['paths']['movie-meta'];

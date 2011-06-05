@@ -44,7 +44,7 @@ class ModFilter extends Module
 		$_d['movie.cb.head'][] = array(&$this, 'cb_movie_head');
 
 		if (!empty($_SESSION['filter.mask']))
-			$_d['movie.cb.query']['match']['$or'][] = $_SESSION['filter.mask'];
+			$_d['movie.cb.query']['match'] = array_merge($_d['movie.cb.query']['match'], $_SESSION['filter.mask']);
 
 		if (!$this->Active) return;
 
