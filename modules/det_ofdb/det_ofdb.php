@@ -49,7 +49,14 @@ class OFDB extends Module implements Scraper
 
 	static function Find($title, $date)
 	{
-		$xml = file_get_contents(OFDB_FIND.rawurlencode($title));
+		$ctx = stream_context_create(array(
+			'http' => array(
+				'timeout' => 5
+				)
+			)
+		);
+		$xml = @file_get_contents(OFDB_FIND.rawurlencode($title), false, $ctx);
+		if (empty($xml)) return array();
 
 		$sx = simplexml_load_string($xml);
 		$sx_movies = $sx->xpath('//resultat/eintrag');
