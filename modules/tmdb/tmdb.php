@@ -25,6 +25,7 @@ class TMDB extends Module implements Scraper
 	function Link()
 	{
 		global $_d;
+		$_d['movie.cb.query']['columns']['details.TMDB.id'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.name'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.url'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.imdb_id'] = 1;
@@ -152,76 +153,6 @@ class TMDB extends Module implements Scraper
 		return $r;
 	}
 
-	# Check Extension
-
-	function Check2()
-	{
-		global $_d;
-
-		# Process all cached media
-
-		$fi = new finfo(FILEINFO_MIME);
-		foreach (glob($_d['config']['paths']['movie-meta'].'/*') as $f)
-		{
-			if ($fi)
-			switch ($mt = $fi->file($f))
-			{
-				case 'image/jpeg; charset=binary':
-					$ext = 'jpg';
-					break;
-				case 'image/png; charset=binary':
-					$ext = 'png';
-					break;
-				case 'image/gif; charset=binary':
-					$ext = 'gif';
-					break;
-				case 'application/x-empty; charset=binary':
-					unlink($f);
-					$ret['cleanup'][] = "Empty image {$f}, deleted.";
-					break;
-				default:
-					varinfo($mt);
-			}
-
-			$fname = basename($f);
-
-			// Backdrop
-			if (preg_match('#(.*bd_)([^/]+)\.(.*)$#', $fname, $m))
-			{
-				if ($m[3] != $ext)
-				{
-					rename($f, dirname($f).'/'.$m[1].$m[2].'.'.$ext);
-					varinfo("Renamed {$f}: invalid extension {$m[2]} now {$ext}");
-				}
-				if (count(glob($_d['config']['movie_path'].'/'.$m[2].'*')) < 1)
-				{
-					unlink($f);
-					varinfo("Removed backdrop for missing movie: $f");
-				}
-			}
-			else if (preg_match('#(.*thm_)([^/]+)\.(.*)$#', $fname, $m))
-			{
-				if ($m[3] != $ext)
-				{
-					rename($f, dirname($f).'/'.$m[1].$m[2].'.'.$ext);
-					$ret['cleanup'][] = "Renamed {$f}: invalid extension {$m[2]} should be {$ext}";
-				}
-				if (count(glob($_d['config']['movie_path'].'/'.$m[2].'*')) < 1)
-				{
-					unlink($f);
-					$ret['cleanup'][] = 'Removed thumbnail for missing movie: '.$f;
-				}
-			}
-			else
-			{
-				unlink($f);
-				$ret['cleanup'][] = 'Removed unassociated file: '.$f;
-			}
-		}
-
-		return $ret;
-	}
-
 	function movie_cb_check($md, &$msgs)
 	{
 		# Check for TMDB metadata.
@@ -294,6 +225,30 @@ File "$bn" should be "$target".
 EOD;
 		}
 
+		# Check for cover or cover.
+
+		global $_d;
+
+		$mp = $_d['config']['paths']['movie-meta'];
+		$next = basename($md->Filename, '.'.$md->Ext);
+
+		if (!file_exists("$mp/thm_$next"))
+		{
+			$urlunfix = "tmdb/remove?id={$md->Data['_id']}";
+			$msgs['TMDB/Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md->Path}
+- <a href="http://www.themoviedb.org/movie/{$md->Data['details']['TMDB']['id']}"
+target="_blank">Reference</a>
+EOD;
+		}
+
+		/*if (!file_exists("$mp/bd_$next"))
+		{
+				$urlunfix = "tmdb/remove?id={$md['_id']}";
+				$ret['Media'][] = <<<EOD
+<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
+EOD;
+		}*/
 		return $errors;
 	}
 
@@ -417,6 +372,8 @@ EOD;
 	{
 		if (!isset($item->Data['details'][self::$Name])) return $details;
 
+		$details['TMDB/URL'] = '<a href="'.
+			$item->Data['details'][self::$Name]['url'].'" target="_blank">Visit</a>';
 		$trailer = $item->Data['details'][self::$Name]['trailer'];
 		if (!empty($trailer))
 		{
@@ -426,6 +383,7 @@ EOD;
 <object width="580" height="360"><param name="movie" value="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="580" height="360"></embed></object>
 EOF;
 		}
+		$details['TMDB Oveview'] = $item->Data['details'][self::$Name]['overview'];
 		return $details;
 	}
 

@@ -178,12 +178,13 @@ class Movie extends MediaLibrary
 		# Collect known filesystem data
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS) as $fsi)
+		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS |
+			FilesystemIterator::UNIX_PATHS) as $fsi)
 		{
 			$f = $fsi->GetPathname();
 			$this->_files[$f] = new MovieEntry($f, Movie::GetFSPregs());
 			$ext = File::ext($f);
-			$filelist[] = basename($f, '.'.$ext);
+			$this->_filelist[] = basename($f, '.'.$ext);
 		}
 
 		# Collect database information
@@ -229,7 +230,6 @@ class Movie extends MediaLibrary
 				$md = $this->_files[$p];
 				$md->Data = $this->_ds[$p];
 				$errors += $this->CheckFilename($p, $md, $msgs);
-				$errors += $this->CheckMedia($p, $md, $msgs);
 				foreach ($_d['movie.cb.check'] as $cb)
 					$errors += call_user_func_array($cb, array(&$md, &$msgs));
 			}
@@ -243,7 +243,7 @@ class Movie extends MediaLibrary
 			}
 		}
 
-		$ret = array_merge_recursive($ret, $this->CheckOrphanMedia($filelist));
+		$ret = array_merge_recursive($ret, $this->CheckOrphanMedia());
 
 		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
 
@@ -321,42 +321,10 @@ EOD;
 		return 0;
 	}
 
-	function CheckMedia($file, $md)
-	{
-		global $_d;
-
-		$ext = File::ext($file);
-		$next = basename($file, '.'.$ext);
-		$mp = $_d['config']['paths']['movie-meta'];
-		if (!empty($md->Part)) return 0;
-
-		#TODO: We don't check TMDB media here.
-		# Look for cover or backdrop.
-		/*if (!file_exists("$mp/thm_$next"))
-		{
-			$urlunfix = "tmdb/remove?id={$md['_id']}";
-			$ret['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md['fs_path']}
-- <a href="http://www.themoviedb.org/movie/{$md['tmdbid']}"
-target="_blank">Reference</a>
-EOD;
-		}
-
-		if (!file_exists("$mp/bd_$next"))
-		{
-				$urlunfix = "tmdb/remove?id={$md['_id']}";
-				$ret['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
-EOD;
-		}*/
-
-		return 0;
-	}
-
 	/**
 	 * Check for orphaned meta images.
 	 */
-	function CheckOrphanMedia($filelist)
+	function CheckOrphanMedia()
 	{
 		global $_d;
 
