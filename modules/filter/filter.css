@@ -1,3 +1,5 @@
 #date-slider { width: 50%; }
 
 .selected { color: #FF0000; }
+
+#filters ul li ul { display: none; }

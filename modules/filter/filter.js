@@ -16,4 +16,9 @@ $(function () {
 
 		return false;
 	});
+
+	$('.filter li').click(function () {
+		$(this).children().toggle(500);
+		return false;
+	});
 });

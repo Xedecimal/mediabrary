@@ -1,9 +1,10 @@
 <div class="filter">
 <script type="text/javascript" src="filter/filter.js"></script>
 
-<fieldset><legend>Filters</legend>
-<filter>{{name}}: {{value}}</filter>
+<div id="filters">
+<p>Filters</p>
+<filter />
 
 <a class="a-filter" href="filter/set">Reset Filters</a>
-</fieldset>
+</div>
 </div>

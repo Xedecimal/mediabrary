@@ -151,7 +151,7 @@ class ModFilter extends Module
 				$v['class'] .= ' a-filter';
 			$v['class'] = 'a-filter';
 		}
-		return ModNav::GetLinks(ModNav::LinkTree($filters));
+		return ModNav::GetLinks(ModNav::LinkTree($filters), 'filter');
 		return VarParser::Concat($g, $filters);
 	}
 }
