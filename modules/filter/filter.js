@@ -9,10 +9,20 @@ $(function () {
 	}, 'json');
 
 	$('.a-filter').click(function () {
-		$(this).addClass('selected');
-		$.get('filter/set', {mask: $(this).attr('href')}, function () {
-			window.refreshAll();
-		});
+		if ($(this).hasClass('selected'))
+		{
+			$(this).removeClass('selected');
+			$.get('filter/unset', {mask: $(this).attr('href')}, function () {
+				window.refreshAll();
+			});
+		}
+		else
+		{
+			$(this).addClass('selected');
+			$.get('filter/set', {mask: $(this).attr('href')}, function () {
+				window.refreshAll();
+			});
+		}
 
 		return false;
 	});

@@ -21,13 +21,21 @@ class ModFilter extends Module
 		if (@$_d['q'][1] == 'set')
 		{
 			$mask = json_decode(Server::GetVar('mask'), true);
-			var_dump($mask);
 			if ($mask == null) unset($_SESSION['filter.mask']);
 			else
 			{
 				$fm = @$_SESSION['filter.mask'];
 				$_SESSION['filter.mask'] = is_array($fm) ? array_merge($fm, $mask) : $mask;
 			}
+			session_write_close();
+			die(json_encode($_SESSION['filter.mask']));
+		}
+
+		if (@$_d['q'][1] == 'unset')
+		{
+			$target = json_decode(Server::GetVar('mask'), true);
+			foreach (array_keys($target) as $key)
+				unset($_SESSION['filter.mask'][$key]);
 			session_write_close();
 			die(json_encode($_SESSION['filter.mask']));
 		}
