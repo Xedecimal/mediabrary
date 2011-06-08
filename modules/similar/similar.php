@@ -5,7 +5,7 @@ class ModSimilar extends Module
 	function __construct()
 	{
 		$this->CheckActive('similar');
-		
+
 		if (!$this->Active) return;
 
 		$this->finders[] = 'TasteKid';
@@ -42,9 +42,9 @@ EOF;
 
 	function cb_buttons_similar($t)
 	{
-		if (!isset($t->vars['_id'])) return;
+		//var_dump($t->vars);
 		$icon = Module::P('similar/img/icon.png');
-		return '<a href="{{title}}" id="a-similar"><img src="'.
+		return '<a href="{{Title}}" id="a-similar"><img src="'.
 			$icon.'" alt="icon" /></a>';
 	}
 
