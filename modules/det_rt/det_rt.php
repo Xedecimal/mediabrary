@@ -90,8 +90,8 @@ class RottenTomatoes extends Module implements Scraper
 	{
 		if (!isset($item->Data['details'][self::$Name])) return $details;
 
-		$details['Rotten Tomatoes'] =
-			$item->Data['details'][self::$Name]['critics_consensus'];
+		$cc = @$item->Data['details'][self::$Name]['critics_consensus'];
+		if (!empty($cc)) $details['Rotten Tomatoes'] = $cc;
 
 		return $details;
 	}
