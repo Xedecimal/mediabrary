@@ -25,6 +25,7 @@ class TMDB extends Module implements Scraper
 	function Link()
 	{
 		global $_d;
+
 		$_d['movie.cb.query']['columns']['details.TMDB.id'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.name'] = 1;
 		$_d['movie.cb.query']['columns']['details.TMDB.url'] = 1;
@@ -33,14 +34,73 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']['details.TMDB.certification'] = 1;
 		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
 
+		$_d['movie.cb.query']['order']['details.TMDB.score'] = -1;
+
 		$_d['filter.cb.filters']['tmdb'] = array(&$this, 'filter_cb_filters');
 	}
 
 	function Prepare()
 	{
-		if (!$this->Active) return;
+		# Precompile stats
+		$map = <<<EOF
+function () {
+	var e = {
+		voteAvg: 0,
+		rateAvg: 0,
+		votes: this.details.TMDB ? parseInt(this.details.TMDB.votes) : 0,
+		rating: this.details.TMDB ? parseFloat(this.details.TMDB.rating) : 0
+	}
+
+	emit(0, e);
+}
+EOF;
+		$reduce = <<<EOF
+function (k, vs) {
+	var ix = 0;
+	var ravg = 0;
+	var vavg = 0;
+
+	vs.forEach(function (v) {
+		ravg = (ravg + v.rating) / 2;
+		vavg = (vavg + v.votes) / 2;
+	});
+
+	return {
+		rateAvg: ravg,
+		voteAvg: vavg,
+		votes: vs.votes,
+		rating: vs.rating
+	};
+}
+EOF;
 
 		global $_d;
+
+		$_d['db']->command(array(
+			'mapreduce' => 'entry',
+			'out' => 'tmdbcache',
+			'map' => new MongoCode($map),
+			'reduce' => new MongoCode($reduce),
+		));
+
+		$obj = $_d['db']->tmdbcache->findOne();
+		$ra = $obj['value']['rateAvg'];
+		$va = $obj['value']['voteAvg'];
+
+		$ds = $_d['entry.ds'];
+		$all = $ds->find();
+		foreach ($all as $ent)
+		{
+			if (empty($ent['details']['TMDB'])) continue;
+
+			$v = $ent['details']['TMDB']['votes'];
+			$r = $ent['details']['TMDB']['rating'];
+			$ent['details']['TMDB']['score'] = (($va * $ra) + ($v * $r) / ($va + $v));
+			#$ds->save($ent);
+		}
+
+		if (!$this->Active) return;
+
 		if (@$_d['q'][1] == 'covers')
 		{
 			$id = Server::GetVar('id');
@@ -365,6 +425,19 @@ EOD;
 		$data = Arr::FromXML(self::Details($id));
 		$item['details'][self::$Name] = $data['movies']['movie'];
 
+		global $_d;
+
+		$obj = $_d['db']->tmdbcache->findOne();
+		$ra = $obj['value']['rateAvg'];
+		$va = $obj['value']['voteAvg'];
+
+		$v = $item['details'][self::$Name]['votes'];
+		$r = $item['details'][self::$Name]['rating'];
+
+		# Badass algorithm here.
+		$item['details'][self::$Name]['score'] =
+			(($va * $ra) + ($v * $r) / ($va + $v));
+
 		return $item;
 	}
 
@@ -372,9 +445,11 @@ EOD;
 	{
 		if (!isset($item->Data['details'][self::$Name])) return $details;
 
+		$td = &$item->Data['details'][self::$Name];
+
 		$details['TMDB/URL'] = '<a href="'.
-			$item->Data['details'][self::$Name]['url'].'" target="_blank">Visit</a>';
-		$trailer = $item->Data['details'][self::$Name]['trailer'];
+			$td['url'].'" target="_blank">Visit</a>';
+		$trailer = $td['trailer'];
 		if (!empty($trailer))
 		{
 			preg_match('/\?v=([^&]+)/', $trailer, $m);
@@ -383,7 +458,10 @@ EOD;
 <object width="580" height="360"><param name="movie" value="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="580" height="360"></embed></object>
 EOF;
 		}
-		$details['TMDB Oveview'] = $item->Data['details'][self::$Name]['overview'];
+		$details['TMDB/Oveview'] = $td['overview'];
+		$details['TMDB/Score'] = $td['votes'].' votes to '.$td['rating']
+			.' rating scores '.$td['score'];
+
 		return $details;
 	}
 
@@ -427,4 +505,3 @@ Module::Register('TMDB');
 Scrape::RegisterScraper('TMDB');
 
 ?>
-
