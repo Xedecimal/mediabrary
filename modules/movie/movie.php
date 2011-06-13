@@ -379,7 +379,8 @@ EOD;
 
 		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
 			$_d['movie.cb.query']['limit'] = 50;
-		if (empty($_d['movie.cb.query']['match']))
+
+		if (empty($_d['movie.cb.query']['order']))
 			$_d['movie.cb.query']['order'] = array('obtained' => -1);
 
 		$query = $_d['movie.cb.query'];
@@ -390,10 +391,17 @@ EOD;
 		$query = array();
 		$ret = array();
 
+		# Filtration
 		$m = !empty($_d['movie.cb.query']['match']) ?
 			$_d['movie.cb.query']['match'] : array();
 
 		$cur = $_d['entry.ds']->find($m, $_d['movie.cb.query']['columns']);
+
+		# Sort Order
+		if (!empty($_d['movie.cb.query']['order']))
+			$cur->sort($_d['movie.cb.query']['order']);
+
+		# Amount of results
 		$p = Server::GetVar('page');
 		if (!empty($_d['movie.cb.query']['limit']))
 		{
@@ -401,8 +409,7 @@ EOD;
 			if (!empty($p)) $cur->skip($p*$l);
 			$cur->limit($l);
 		}
-		if (!empty($_d['movie.cb.query']['order']))
-			$cur->sort($_d['movie.cb.query']['order']);
+
 		foreach ($cur as $i)
 		{
 			if (empty($i['paths'])) continue;
