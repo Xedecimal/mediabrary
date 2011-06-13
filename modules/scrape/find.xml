@@ -17,7 +17,7 @@ you dislike all of them.</p>
 <div class="results">
 <result>
 <label><input type="radio" class="find-result" id="sel-{{Name}}"
-name="{{Name}}" value="{{id}}" /> {{title}} - {{date}}</label> <a href="{{ref}}" target="_blank">[ref]</a> <br /></result>
+name="{{Name}}" value="{{id}}" /> {{date}} - {{title}}</label> <a href="{{ref}}" target="_blank">[ref]</a> <br /></result>
 </div> <!-- .results -->
 </fieldset>
 </scraper>
