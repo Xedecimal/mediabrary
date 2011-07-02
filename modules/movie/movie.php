@@ -101,6 +101,28 @@ class Movie extends MediaLibrary
 		{
 			$path = Server::GetVar('path');
 			$targ = Server::GetVar('target');
+
+			# Update stored paths.
+
+			$item = $_d['entry.ds']->findOne(array('path' => $path));
+			foreach ($item['paths'] as $ix => $p) if ($p == $path)
+				$item['paths'][$ix] = $targ;
+			$item['path'] = $targ;
+
+			$_d['entry.ds']->save($item);
+
+			# Update covers or backdrops.
+
+			$pisrc = pathinfo($path);
+			$pidst = pathinfo($targ);
+			$md = $_d['config']['paths']['movie-meta'];
+
+			$cover = "$md/thm_".$pisrc['filename'];
+			$backd = "$md/bd_".$pisrc['filename'];
+
+			if (file_exists($cover)) rename($cover, "$md/thm_{$pidst['filename']}");
+			if (file_exists($backd)) rename($backd, "$md/bd_{$pidst['filename']}");
+
 			rename($path, $targ);
 			die('Fixed');
 		}

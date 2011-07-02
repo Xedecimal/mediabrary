@@ -42,7 +42,8 @@ class TMDB extends Module implements Scraper
 	function Prepare()
 	{
 		# Precompile stats
-		$map = <<<EOF
+
+		/*$map = <<<EOF
 function () {
 	var e = {
 		voteAvg: 0,
@@ -97,7 +98,7 @@ EOF;
 			$r = $ent['details']['TMDB']['rating'];
 			$ent['details']['TMDB']['score'] = (($va * $ra) + ($v * $r) / ($va + $v));
 			#$ds->save($ent);
-		}
+		}*/
 
 		if (!$this->Active) return;
 
@@ -124,7 +125,7 @@ EOF;
 		global $_d;
 
 		$r['head'] = '<script type="text/javascript" src="'.
-			Module::P('tmdb/tmdb.js').'"></script>';
+			Module::P('det_tmdb/tmdb.js').'"></script>';
 
 		if (@$_d['q'][1] == 'find2')
 		{
@@ -217,7 +218,8 @@ EOF;
 	{
 		# Check for TMDB metadata.
 
-		if (empty($md->Data['details']['TMDB']))
+		if (empty($md->Data['details']['TMDB'])
+		|| empty($md->Data['details']['TMDB']['released']))
 		{
 			$p = $md->Path;
 			$uep = rawurlencode($p);
@@ -249,6 +251,7 @@ EOD;
 		# Check filename compliance.
 
 		$filetitle = Movie::CleanTitleForFile($md->Data['details']['TMDB']['name']);
+
 		$date = substr($md->Data['details']['TMDB']['released'], 0, 4);
 		$file = $md->Path;
 		$ext = File::ext(basename($md->Path));
@@ -285,7 +288,7 @@ File "$bn" should be "$target".
 EOD;
 		}
 
-		# Check for cover or cover.
+		# Check for cover.
 
 		global $_d;
 
@@ -329,12 +332,12 @@ EOD;
 		foreach ($_d['entry.ds']->find(array(), $cols) as $i)
 		{
 			if (!empty($i['details']['TMDB']['categories']['category']))
-				foreach ($i['details']['TMDB']['categories']['category'] as $c)
-					if (isset($c['@attributes']))
-					{
-						$n = $c['@attributes']['name'];
-						isset($cats[$n]) ? $cats[$n]++ : $cats[$n] = 0;
-					}
+			foreach ($i['details']['TMDB']['categories']['category'] as $c)
+			if (isset($c['@attributes']))
+			{
+				$n = $c['@attributes']['name'];
+				isset($cats[$n]) ? $cats[$n]++ : $cats[$n] = 0;
+			}
 		}
 
 		$curcat = Server::GetVar('category');
@@ -348,14 +351,16 @@ EOD;
 			$items[] = $d;
 		}
 
+		usort($items, function (&$a, &$b)
+			{ return $a['cat_size'] < $b['cat_size']; });
+
 		foreach ($items as $i)
 		{
 			$ret['TMDB/Categories/'.$i['cat_name']] = array('href' =>
-				'{"details.TMDB.categories.category.@attributes.name": "'.
-				$i['cat_name'].'"}', 'style' => "font-size: {$sizes[$i['cat_name']]}px");
+				'{"details.TMDB.categories.category.@attributes.name": {"$all": ["'.
+				$i['cat_name'].'"]}}', 'style' => "font-size: {$sizes[$i['cat_name']]}px");
 		}
 
-		#$ret['TMDB/Categories'] = array('raw' => VarParser::Concat($g, $items));
 		$ret['TMDB/Missing'] = '{"details.TMDB": null}';
 		return $ret;
 	}

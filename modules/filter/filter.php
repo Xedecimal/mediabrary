@@ -25,7 +25,9 @@ class ModFilter extends Module
 			else
 			{
 				$fm = @$_SESSION['filter.mask'];
-				$_SESSION['filter.mask'] = is_array($fm) ? array_merge($fm, $mask) : $mask;
+				$_SESSION['filter.mask'] = is_array($fm)
+					? array_merge_recursive($fm, $mask) : $mask;
+				var_dump($_SESSION['filter.mask']);
 			}
 			session_write_close();
 			die(json_encode($_SESSION['filter.mask']));

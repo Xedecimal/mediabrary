@@ -96,7 +96,7 @@ class TV extends MediaLibrary
 		{
 			$ret = '';
 			session_write_close();
-			foreach (ModTVSeries::$scrapers as $s)
+			foreach (TV::$scrapers as $s)
 				$ret .= call_user_func(array($s, 'Find'), Server::GetVar('series'), true);
 			return $ret;
 			die();
