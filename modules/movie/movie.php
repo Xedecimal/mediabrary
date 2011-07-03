@@ -203,6 +203,8 @@ class Movie extends MediaLibrary
 		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS |
 			FilesystemIterator::UNIX_PATHS) as $fsi)
 		{
+			if ($fsi->isDir()) continue;
+
 			$f = $fsi->GetPathname();
 			$this->_files[$f] = new MovieEntry($f, Movie::GetFSPregs());
 			$ext = File::ext($f);
@@ -386,7 +388,8 @@ EOD;
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS) as $f)
+		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS
+			| FilesystemIterator::UNIX_PATHS) as $f)
 		{
 			$path = $f->GetPathname();
 			$ret[$path] = new MovieEntry($path, $pregs);
