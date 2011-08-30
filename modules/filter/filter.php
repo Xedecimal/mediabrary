@@ -4,12 +4,12 @@ require_once('h_main.php');
 
 class ModFilter extends Module
 {
-	public static $Name = 'filter';
+	public $Name = 'filter';
 
 	function __construct()
 	{
 		$this->Filters[] = new FilterReleased();
-		$this->CheckActive('filter');
+		$this->CheckActive($this->Name);
 	}
 
 	function Prepare()

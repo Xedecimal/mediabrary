@@ -15,13 +15,13 @@ define('OFDB_DETAIL', 'http://ofdbgw.home-of-root.de/movie_json/');
 class OFDB extends Module implements Scraper
 {
 	# Module Related
-	public static $Name = 'OFDB';
-	public static $Link = 'http://www.ofdb.de';
-	public static $Icon = '';
+	public $Name = 'OFDB';
+	public $Link = 'http://www.ofdb.de';
+	public $Icon = '';
 
 	function __construct()
 	{
-		$this->CheckActive(self::$Name);
+		$this->CheckActive($this->Name);
 	}
 
 	function Prepare()
@@ -37,7 +37,7 @@ class OFDB extends Module implements Scraper
 			$data = self::Details($id);
 			$res = json_decode($data, true);
 
-			$ret['id'] = self::$Name;
+			$ret['id'] = $this->Name;
 			$ret['covers'][] = $res['ofdbgw']['resultat']['bild'];
 
 			die(json_encode($ret));
@@ -85,11 +85,11 @@ class OFDB extends Module implements Scraper
 	static function Scrape($item, $id = null)
 	{
 		$data = json_decode(self::Details($id), true);
-		$item['details'][self::$Name] = $data['ofdbgw']['resultat'];
+		$item['details'][$this->Name] = $data['ofdbgw']['resultat'];
 		return $item;
 	}
 
-	static function GetDetails($details, $item)
+	function GetDetails($details, $item)
 	{
 		return $details;
 	}

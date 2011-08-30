@@ -17,11 +17,11 @@ define('det_rt_info', det_rt_url.'/');
 class RottenTomatoes extends Module implements Scraper
 {
 	# Module Related
-	public static $Name = 'RottenTomatoes';
+	public $Name = 'RottenTomatoes';
 
 	function __construct()
 	{
-		$this->CheckActive(self::$Name);
+		$this->CheckActive($this->Name);
 	}
 
 	function Prepare()
@@ -37,7 +37,7 @@ class RottenTomatoes extends Module implements Scraper
 			$data = self::Details($id);
 
 			$res = json_decode($data, true);
-			$ret['id'] = self::$Name;
+			$ret['id'] = $this->Name;
 			$ret['covers'][] = $res['posters']['detailed'];
 
 			die(json_encode($ret));
@@ -45,8 +45,8 @@ class RottenTomatoes extends Module implements Scraper
 	}
 
 	# Scraper Related
-	public static $Link = 'http://www.rottentomatoes.com';
-	public static $Icon = 'modules/det_rt/icon.png';
+	public $Link = 'http://www.rottentomatoes.com';
+	public $Icon = 'modules/det_rt/icon.png';
 
 	static function CanAuto() { return false; }
 
@@ -82,15 +82,15 @@ class RottenTomatoes extends Module implements Scraper
 
 	static function Scrape($item, $id = null)
 	{
-		$item['details'][self::$Name] = json_decode(self::Details($id), true);
+		$item['details'][$this->Name] = json_decode(self::Details($id), true);
 		return $item;
 	}
 
-	static function GetDetails($details, $item)
+	function GetDetails($details, $item)
 	{
-		if (!isset($item->Data['details'][self::$Name])) return $details;
+		if (!isset($item->Data['details'][$this->Name])) return $details;
 
-		$cc = @$item->Data['details'][self::$Name]['critics_consensus'];
+		$cc = @$item->Data['details'][$this->Name]['critics_consensus'];
 		if (!empty($cc)) $details['Rotten Tomatoes'] = $cc;
 
 		return $details;

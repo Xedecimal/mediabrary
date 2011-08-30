@@ -8,15 +8,15 @@ define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_K
 
 class TMDB extends Module implements Scraper
 {
-	public static $Name = 'TMDB';
-	public static $Link = 'http://www.themoviedb.org/';
-	public static $Icon = 'modules/tmdb/icon.png';
+	public $Name = 'TMDB';
+	public $Link = 'http://www.themoviedb.org/';
+	public $Icon = 'modules/det_tmdb/icon.png';
 
 	function __construct()
 	{
 		global $_d;
 
-		$this->CheckActive(self::$Name);
+		$this->CheckActive($this->Name);
 		$_d['search.cb.query'][] = array(&$this, 'cb_search_query');
 	}
 
@@ -102,6 +102,8 @@ EOF;
 
 		if (!$this->Active) return;
 
+		global $_d;
+
 		if (@$_d['q'][1] == 'covers')
 		{
 			$id = Server::GetVar('id');
@@ -112,7 +114,7 @@ EOF;
 			$covers = $sx->xpath('//movies/movie/images/image[@size="cover"]');
 
 			# Process Information
-			$ret = array('id' => self::$Name);
+			$ret = array('id' => $this->Name);
 			foreach ($covers as $c)
 				$ret['covers'][] = (string)$c['url'];
 
@@ -428,7 +430,7 @@ EOD;
 		}
 		# Collect remote data
 		$data = Arr::FromXML(self::Details($id));
-		$item['details'][self::$Name] = $data['movies']['movie'];
+		$item['details'][$this->Name] = $data['movies']['movie'];
 
 		global $_d;
 
@@ -436,21 +438,21 @@ EOD;
 		$ra = $obj['value']['rateAvg'];
 		$va = $obj['value']['voteAvg'];
 
-		$v = $item['details'][self::$Name]['votes'];
-		$r = $item['details'][self::$Name]['rating'];
+		$v = $item['details'][$this->Name]['votes'];
+		$r = $item['details'][$this->Name]['rating'];
 
 		# Badass algorithm here.
-		$item['details'][self::$Name]['score'] =
+		$item['details'][$this->Name]['score'] =
 			(($va * $ra) + ($v * $r) / ($va + $v));
 
 		return $item;
 	}
 
-	static function GetDetails($details, $item)
+	function GetDetails($details, $item)
 	{
-		if (!isset($item->Data['details'][self::$Name])) return $details;
+		if (!isset($item->Data['details'][$this->Name])) return $details;
 
-		$td = &$item->Data['details'][self::$Name];
+		$td = &$item->Data['details'][$this->Name];
 
 		$details['TMDB/URL'] = '<a href="'.
 			$td['url'].'" target="_blank">Visit</a>';
@@ -468,41 +470,6 @@ EOF;
 			.' rating scores '.$td['score'];
 
 		return $details;
-	}
-
-	# DEPRECATED OLD SYSTEM
-
-	static function FixCover($p)
-	{
-		global $_d;
-
-		$md = $_d['movie.ds']->Get(array('match' => array('fs_path' => $p)));
-		$covers = TMDB::GetCovers($md[0]['tmdbid']);
-		foreach ($covers as $c)
-		{
-			if (!$data = @file_get_contents($c)) continue;
-			$src_pinfo = pathinfo($c);
-			$dst_pinfo = pathinfo($p);
-			$dst_pinfo['filename'] = File::GetFile($dst_pinfo['basename']);
-			$dst = $_d['config']['paths']['movie-meta'].'/thm_'
-				.$dst_pinfo['filename'].'.'.$src_pinfo['extension'];
-			varinfo("Writing cover: '{$dst}'.");
-			file_put_contents($dst, $data);
-			break;
-		}
-		if (empty($data)) varinfo("No data on any covers were found for"
-			." <a href=\"http://www.themoviedb.org/movie/{$md[0]['tmdbid']}\">"
-			."this</a>, sorry.\n");
-		return 1;
-	}
-
-	static function GetCovers($id)
-	{
-		$xml = file_get_contents(TMDB_INFO.$id);
-		$sx = simplexml_load_string($xml);
-		$xp_thumb = '//movies/movie/images/image[@type="poster"][@size="cover"]';
-		$el = $sx->xpath($xp_thumb);
-		return (string)$el['url'];
 	}
 }
 

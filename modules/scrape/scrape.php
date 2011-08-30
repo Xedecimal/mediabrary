@@ -110,7 +110,7 @@ EOF;
 		global $_d;
 
 		foreach ($_d['scrape.scrapers'] as $s)
-			$details = $s::GetDetails($details, $item);
+			$details = $s->GetDetails($details, $item);
 
 		return $details;
 	}
@@ -127,9 +127,9 @@ EOF;
 		foreach ($_d['scrape.scrapers'] as $s)
 		{
 			$this->_scraper = $s;
-			$t->Set('Name', $s::$Name);
-			$t->Set('Link', $s::$Link);
-			$t->Set('Icon', $s::$Icon);
+			$t->Set('Name', $s->Name);
+			$t->Set('Link', $s->Link);
+			$t->Set('Icon', $s->Icon);
 			$ret .= $t->GetString($g);
 		}
 
@@ -148,7 +148,7 @@ EOF;
 	static function RegisterScraper($class)
 	{
 		global $_d;
-		$_d['scrape.scrapers'][$class] = $class;
+		$_d['scrape.scrapers'][$class] = new $class;
 	}
 }
 
@@ -159,7 +159,7 @@ interface Scraper
 	static function Find($title, $date);
 	static function Details($id);
 	static function Scrape($item, $id = null);
-	static function GetDetails($details, $item);
+	function GetDetails($details, $item);
 }
 
 Module::Register('Scrape');

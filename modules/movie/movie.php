@@ -417,7 +417,7 @@ EOD;
 		$ret = array();
 
 		# Filtration
-		$m = !empty($_d['movie.cb.query']['match']) ?
+		$m = is_array($_d['movie.cb.query']['match']) ?
 			$_d['movie.cb.query']['match'] : array();
 
 		$cur = $_d['entry.ds']->find($m, $_d['movie.cb.query']['columns']);
