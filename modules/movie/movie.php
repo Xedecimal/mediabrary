@@ -193,6 +193,10 @@ class Movie extends MediaLibrary
 
 		$ret = array();
 
+		# General Cleanup
+
+		$_d['entry.ds']->remove(array('path' => null));
+
 		# This will be used later to hunt for things that a file doesn't exist
 		# for.
 		$filelist = array();
@@ -221,6 +225,7 @@ class Movie extends MediaLibrary
 				# Remove missing items
 				if (empty($p) || !isset($this->_files[$p]))
 				{
+					var_dump('Test?');
 					$ret['cleanup'][] = "Removed database entry for non-existing '"
 						.$p."'";
 					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
@@ -289,7 +294,9 @@ class Movie extends MediaLibrary
 		if (!empty($movie->Part)) return $ret;
 
 		if (!isset($this->_ds[$movie->Path]))
-			$_d['entry.ds']->save($movie->Data);
+		{
+			$_d['entry.ds']->save($movie->Data, array('safe' => 1));
+		}
 
 		return $ret;
 	}

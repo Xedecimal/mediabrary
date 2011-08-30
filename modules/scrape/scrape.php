@@ -47,16 +47,19 @@ class Scrape extends Module
 				$auto = true;
 				$mov = new MovieEntry($path, Movie::GetFSPregs());
 				foreach ($_d['scrape.scrapers'] as $s)
-					if ($s::CanAuto()) $ids[$s] = null;
+					if ($s->CanAuto()) $ids[$s] = null;
 			}
 
 			# Collect generic information
 			$q['path'] = $path;
 			$item = new MovieEntry($path, Movie::GetFSPregs());
-			$item->Data = $_d['entry.ds']->findOne($q);
+			$ds = $_d['entry.ds']->findOne($q);
+			if (!empty($ds)) $item->Data += $ds;
 
 			# Collect scraper information
-			foreach ($ids as $sc => $ix) $item->Data = $sc::Scrape($item->Data, $ix);
+			foreach ($ids as $sc => $id)
+				$item->Data = $_d['scrape.scrapers'][$sc]->Scrape($item->Data,
+					$id);
 
 			# Save details
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));
@@ -138,8 +141,8 @@ EOF;
 
 	function TagFindResult($t, $g)
 	{
-		$s = $this->_scraper;
-		$res = $s::Find(Server::GetVar('title'), Server::GetVar('date'));
+		$res = $this->_scraper->Find(Server::GetVar('title'),
+			Server::GetVar('date'));
 		return VarParser::Concat($g, $res);
 	}
 
@@ -154,11 +157,11 @@ EOF;
 
 interface Scraper
 {
-	static function GetName();
-	static function CanAuto();
-	static function Find($title, $date);
-	static function Details($id);
-	static function Scrape($item, $id = null);
+	function GetName();
+	function CanAuto();
+	function Find($title, $date);
+	function Details($id);
+	function Scrape($item, $id = null);
 	function GetDetails($details, $item);
 }
 

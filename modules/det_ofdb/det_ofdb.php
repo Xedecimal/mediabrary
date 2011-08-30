@@ -44,10 +44,12 @@ class OFDB extends Module implements Scraper
 		}
 	}
 
-	static function CanAuto() { return false; }
-	static function GetName() { return 'OFDB'; }
+	# Scraper Implementation
 
-	static function Find($title, $date)
+	function CanAuto() { return false; }
+	function GetName() { return 'OFDB'; }
+
+	function Find($title, $date)
 	{
 		$ctx = stream_context_create(array(
 			'http' => array(
@@ -77,12 +79,12 @@ class OFDB extends Module implements Scraper
 		return $ret;
 	}
 
-	static function Details($id)
+	function Details($id)
 	{
 		return file_get_contents(OFDB_DETAIL.$id);
 	}
 
-	static function Scrape($item, $id = null)
+	function Scrape($item, $id = null)
 	{
 		$data = json_decode(self::Details($id), true);
 		$item['details'][$this->Name] = $data['ofdbgw']['resultat'];

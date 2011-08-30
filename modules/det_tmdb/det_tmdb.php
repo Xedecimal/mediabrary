@@ -367,12 +367,12 @@ EOD;
 		return $ret;
 	}
 
-	# Static Methods
+	# Scraper Implementation
 
-	static function GetName() { return 'The Movie DB'; }
-	static function CanAuto() { return true; }
+	function GetName() { return 'The Movie DB'; }
+	function CanAuto() { return true; }
 
-	static function FindXML($title)
+	function FindXML($title)
 	{
 		$title = urlencode(trim($title));
 		$xml = @file_get_contents(TMDB_FIND.$title);
@@ -384,7 +384,7 @@ EOD;
 		return $sx_movies;
 	}
 
-	static function Find($title, $date)
+	function Find($title, $date)
 	{
 		$url = TMDB_FIND.rawurlencode($title);
 		if (!empty($date)) $url .= '+'.$date;
@@ -399,6 +399,7 @@ EOD;
 		if (!empty($sx_movies))
 		foreach ($sx_movies as $sx_movie)
 		{
+			$covers = array();
 			foreach ($sx_movie->xpath('images/image[@size="cover"]') as $c)
 				$covers[] = (string)$c['url'];
 
@@ -415,12 +416,12 @@ EOD;
 		return $ret;
 	}
 
-	static function Details($id)
+	function Details($id)
 	{
 		return file_get_contents(TMDB_INFO.$id);
 	}
 
-	static function Scrape($item, $id = null)
+	function Scrape($item, $id = null)
 	{
 		if ($id == null)
 		{

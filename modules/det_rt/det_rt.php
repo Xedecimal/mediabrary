@@ -48,11 +48,11 @@ class RottenTomatoes extends Module implements Scraper
 	public $Link = 'http://www.rottentomatoes.com';
 	public $Icon = 'modules/det_rt/icon.png';
 
-	static function CanAuto() { return false; }
+	function CanAuto() { return false; }
 
-	static function GetName() { return 'Rotten Tomatoes'; }
+	function GetName() { return 'Rotten Tomatoes'; }
 
-	static function Find($title, $date)
+	function Find($title, $date)
 	{
 		$title = MediaLibrary::SearchTitle($title);
 
@@ -74,13 +74,13 @@ class RottenTomatoes extends Module implements Scraper
 		return $ret;
 	}
 
-	static function Details($id)
+	function Details($id)
 	{
 		# Collect Information
 		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key);
 	}
 
-	static function Scrape($item, $id = null)
+	function Scrape($item, $id = null)
 	{
 		$item['details'][$this->Name] = json_decode(self::Details($id), true);
 		return $item;
