@@ -1,5 +1,5 @@
 <div id="tv-series">
-<a href="{{med_path}}" id="scrape-tv-link"><img src="img/find.png" alt="Grab Latest Information" /></a>
+<a href="{{Path}}" id="scrape-tv-link"><img src="img/find.png" alt="Grab Latest Information" /></a>
 <callback ds="_d" name="tv.cb.buttons" />
 
 <div id="tv-details">

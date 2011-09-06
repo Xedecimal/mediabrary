@@ -18,9 +18,7 @@ class ModScrapeTVDB
 		$dst = $path.'/.info.zip';
 		$src = "http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip";
 		if (!@file_put_contents($dst, file_get_contents($src)))
-		{
-			$ret .= 'Unable to write tvdb metadata.';
-		}
+			return 'Unable to write tvdb metadata.';
 
 		$za = new ZipArchive;
 		$za->open($dst);
@@ -35,7 +33,7 @@ class ModScrapeTVDB
 		file_put_contents($_d['config']['paths']['tv-meta']."/thm_$series",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
-		return $ret."Grabbed";
+		die($ret."Grabbed");
 	}
 
 	static function GetSID($path)
