@@ -460,7 +460,7 @@ class ModTVEpisode extends MediaLibrary
 					$ser = rawurlencode($series);
 					$aired = date('m/d/Y', $ep['aired']);
 					$rout = "$series S{$snp}E{$enp} - {$aired}";
-					$rout .= ' - <a href="http://www.torrentz.com/search?q='.$query.'" target=\"_blank\">TZ</a>';
+					$rout .= ' - <a href="http://www.torrentz.eu/search?q='.$query.'" target=\"_blank\">TZ</a>';
 					$rout .= ' - <a href="http://www.kat.ph/search/'.$query.'/" target=\"_blank\">KT</a>';
 					$rout .= ' - <a href="http://www.google.com/search?q=filetype%3Atorrent+'.$query.'" target=\"_blank\">G</a>';
 					if (!empty($ep['links']))
