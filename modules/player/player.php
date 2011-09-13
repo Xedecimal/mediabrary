@@ -58,7 +58,7 @@ class ModPlayer extends Module
 			# Translate a path to a faster source
 
 			$np = ModPlayer::GetTrans($p);
-			
+
 			# Locate an use any regioning data
 
 			$regions = ModPlayer::GetRegions($d);
@@ -140,21 +140,8 @@ EOF;
 	{
 		$regions = array();
 
-		if (file_exists($p.'/.regions.xml'))
-		{
-			$sx = simplexml_load_file($p.'/.regions.xml');
-			foreach ($sx->media as $m)
-			{
-				foreach ($m->region as $r)
-				{
-					$reg[(string)$r->attributes()->title] = array(
-						(int)$r->attributes()->start,
-						(int)$r->attributes()->end
-					);
-				}
-				$regions[(string)$m->attributes()->match] = $reg;
-			}
-		}
+		if (file_exists($p.'/.regions.yml'))
+			$regions = spyc_load_file($p.'/.regions.yml');
 
 		return $regions;
 	}
@@ -172,7 +159,7 @@ EOF;
 				if (preg_match($t['agent'], $_SERVER['HTTP_USER_AGENT']))
 					return str_replace($t['source'], $t['target'], $p);
 		}
-		
+
 		return $p;
 	}
 }
