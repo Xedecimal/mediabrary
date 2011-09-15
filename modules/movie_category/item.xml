@@ -1,4 +1,0 @@
-<category>
-	<a href="{{app_abs}}/category/{{cat_name}}" class="aCategory {{cat_class}}"
-		style="font-size: {{cat_size}}px">{{cat_name}}</a>
-</category>
