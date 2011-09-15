@@ -9,7 +9,6 @@ class Movie extends MediaLibrary
 		global $_d;
 
 		$_d['movie.source'] = 'file';
-		$_d['movie.cb.query'] = array();
 		$_d['movie.cb.query']['columns']['path'] = 1;
 		$_d['movie.cb.query']['columns']['paths'] = 1;
 
