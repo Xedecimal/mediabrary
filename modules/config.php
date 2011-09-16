@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__).'/../xedlib/classes/present/Form.php');
+require_once(dirname(__FILE__).'/../xedlib/classes/present/form.php');
 
 class Config extends Module
 {
