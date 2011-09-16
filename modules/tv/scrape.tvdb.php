@@ -93,8 +93,9 @@ class ModScrapeTVDB
 		{
 			$sn = (int)$ep->SeasonNumber;
 			$en = (int)$ep->EpisodeNumber;
-			$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
-			if (empty($ret['eps'][$sn][$en]['title']))
+			if (!empty($ep->FirstAired))
+				$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
+			if (!empty($ep->EpisodeName))
 				$ret['eps'][$sn][$en]['title'] = MediaLibrary::CleanString((string)$ep->EpisodeName);
 			$eid = (string)$ep->id;
 			$snid = (string)$ep->seasonid;

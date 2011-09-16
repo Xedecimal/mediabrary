@@ -5,7 +5,7 @@ require_once(Module::L('tv/scrape.tvrage.php'));
 
 class TV extends MediaLibrary
 {
-	static $scrapers = array('ModScrapeTVDB', 'ModScrapeTVRage');
+	static $scrapers = array('ModScrapeTVRage', 'ModScrapeTVDB');
 
 	function __construct()
 	{
@@ -149,8 +149,17 @@ class TV extends MediaLibrary
 		FilesystemIterator::SKIP_DOTS) as $fser)
 		{
 			$series = $fser->GetPathname();
+			$eps = array();
 			foreach (TV::$scrapers as $s)
-				$eps = call_user_func(array($s, 'GetInfo'), $series);
+			{
+				$data = call_user_func(array($s, 'GetInfo'), $series);
+				//if ($series == '/data/nas/TV/Breaking Bad')
+				//	var_dump($data);
+				$eps = Arr::MergeRecursive($eps, $data);
+			}
+
+			//if ($series == '/data/nas/TV/Stephen King\'s The Stand')
+			//	var_dump($eps);
 
 			foreach (new FilesystemIterator($series,
 			FilesystemIterator::SKIP_DOTS) as $fep)

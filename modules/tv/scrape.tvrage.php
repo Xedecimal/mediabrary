@@ -70,11 +70,9 @@ class ModScrapeTVRage
 			foreach ($s->xpath('episode') as $ep)
 			{
 				// Blank date.
-				if ($ep->airdate == '0000-00-00' || preg_match('/\d{4}-00-00/', $ep->airdate))
-					$eout['aired'] = null;
-				else
+				if ($ep->airdate != '0000-00-00' && !preg_match('/\d{4}-00-00/', $ep->airdate))
 					$eout['aired'] = Database::MyDateTimestamp($ep->airdate);
-				$eout['title'] = (string)$ep->title;
+				if (!empty($ep->title)) $eout['title'] = (string)$ep->title;
 				$eout['links']['TVRage'] = (string)$ep->link;
 				$en = (int)$ep->seasonnum;
 				$ret['eps'][$sn][$en] = $eout;
