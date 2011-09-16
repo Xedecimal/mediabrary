@@ -224,7 +224,6 @@ class Movie extends MediaLibrary
 				# Remove missing items
 				if (empty($p) || !isset($this->_files[$p]))
 				{
-					var_dump('Test?');
 					$ret['cleanup'][] = "Removed database entry for non-existing '"
 						.$p."'";
 					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
