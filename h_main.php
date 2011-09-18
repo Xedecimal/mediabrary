@@ -2,6 +2,8 @@
 
 session_start();
 
+setlocale(LC_ALL, 'en_US.utf8');
+
 # Libraries
 require_once('xedlib/classes/server.php');
 Server::HandleErrors();
@@ -28,8 +30,6 @@ if (!file_exists('config/config.yml'))
 $_d['config'] = spyc_load_file('config/config.yml');
 $lang = !empty($_d['config']['lang']) ? $_d['config']['lang'] : 'en';
 $_d['i18n'] = spyc_load_file("lang/{$lang}.yml");
-
-$_d['module.disable']['MediaInfo'] = 1;
 
 $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;

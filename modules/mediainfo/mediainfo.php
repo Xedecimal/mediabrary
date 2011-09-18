@@ -116,15 +116,17 @@ EOF;
 		global $_d;
 
 		# Collect lump sum of all cached data.
-		$dr = $_d['medinfo.ds']->Get();
+		$q['codec']['$exists'] = true;
+		$cols['path'] = 1;
+		$cols['codec'] = 1;
+		$dr = $_d['entry.ds']->find($q, $cols);
 
 		# Catalog data by path into local var.
 		if (!empty($dr))
 		foreach ($dr as $r)
 		{
-			$stats[$r['cod_path']][$r['cod_name']] = $r['cod_value'];
-			$stats[$r['cod_path']]['path'] = $r['cod_path'];
-			$stats[$r['cod_path']]['fsize'] = filesize($r['cod_path']);
+			$stats[$r['path']] = $r['codec'];
+			$stats[$r['path']]['path'] = $r['path'];
 		}
 
 		# Catalog data we will colorize into it's own arrays.
@@ -178,12 +180,12 @@ EOF;
 		return $ret;
 	}
 
-	function Check()
+	function Check($a)
 	{
 		global $_d;
 		$ret = array();
 
-		# Collect all modified times of movie files.
+		# Collect all mtime values of movie files.
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie'] as $p)
@@ -193,14 +195,14 @@ EOF;
 			$mtimes[$f] = filemtime($f);
 		}
 
-		# Collect all cached mtimes.
+		# Collect all database mtime values.
 
 		$dbtimes = array();
-		$q['match']['cod_name'] = 'mtime';
-		$q['columns']['value'] = 'cod_value';
-		$q['columns']['path'] = 'cod_path';
-		foreach ($_d['medinfo.ds']->find($q['match'], $q['columns']) as $r)
-			$dbtimes[$r['path']] = $r['value'];
+		$q['codec.mtime']['$exists'] = 1;
+		$cols['codec.mtime'] = 1;
+		$cols['path'] = 1;
+		foreach ($_d['entry.ds']->find($q, $cols) as $r)
+			$dbtimes[$r['path']] = $r['codec']['mtime'];
 
 		if (!empty($mtimes))
 		foreach ($mtimes as $p => $t)
@@ -210,16 +212,6 @@ EOF;
 			MediaInfo::Process($p);
 		}
 
-		# Clean up any excess cache entries.
-
-		$cols = array('path' => Database::SqlUnquote('DISTINCT cod_path'));
-		$dr = $_d['medinfo.ds']->Get(array('columns' => $cols));
-		foreach ($dr as $r)
-		if (!file_exists($r['path']))
-		{
-			$_d['medinfo.ds']->Remove(array('cod_path' => $r['path']));
-			$ret['cleanup'][] = "Removed codec information for missing movie: {$r['path']}";
-		}
 		return $ret;
 	}
 
@@ -233,12 +225,15 @@ EOF;
 	{
 		global $_d;
 
-		$cmd_path = str_replace('*', '\\*', $path);
-		$out = `mediainfo --Output=XML '{$cmd_path}'`;
-		if (empty($out)) return "Error loading media info.";
+		$cmd_path = escapeshellarg($path);
+		$out = `mediainfo --Output=XML {$cmd_path}`;
+		if (empty($out)) { var_dump('Error loading media info.'); return; }
 		$sx = simplexml_load_string(preg_replace('/|/', '', $out));
 
 		$tracks = $sx->File->track;
+
+		$q['path'] = $path;
+		$item = $_d['entry.ds']->findOne($q);
 
 		if (!empty($tracks))
 		{
@@ -246,7 +241,6 @@ EOF;
 			{
 				$type = $t['type'];
 
-				# TODO: Do not rely on details, this should be gotten on the fly.
 				switch ($type)
 				{
 					case 'Video':
@@ -261,13 +255,11 @@ EOF;
 						break;
 				}
 
-				$_d['medinfo.ds']->Begin();
 				foreach ($t as $n => $v)
 				{
-					$cod['cod_path'] = $path;
-					$cod['cod_name'] = $type.'.'.$n;
-					if (!array_key_exists($cod['cod_name'], $this->cols)) continue;
-					switch ($cod['cod_name'])
+					$name = $type.'.'.$n;
+					if (!array_key_exists($name, $this->cols)) continue;
+					switch ($name)
 					{
 						case 'General.Overall_bit_rate':
 						case 'Video.Bit_rate':
@@ -277,18 +269,17 @@ EOF;
 						case 'Video.Resolution':
 						case 'Audio.Bit_rate':
 						case 'Audio.Channel_s_':
-							$cod['cod_value'] = preg_replace('#(\s*|kbps|pixels|bits|fps|channels|channel)#i', '', $v);
+							$value = preg_replace('#(\s*|kbps|pixels|bits|fps|channels|channel)#i', '', $v);
 							break;
-						default: $cod['cod_value'] = (string)$v;
+						default: $value = (string)$v;
 					}
-					$_d['medinfo.ds']->Add($cod, true);
+					$item['codec'][$name] = $value;
 				}
-				$_d['medinfo.ds']->End();
 			}
-			$add['cod_path'] = $path;
-			$add['cod_name'] = 'mtime';
-			$add['cod_value'] = filemtime($path);
-			$_d['medinfo.ds']->Add($add, true);
+			$item['codec']['mtime'] = filemtime($path);
+			$item['codec']['fsize'] = filesize($path);
+			var_dump($item);
+			$_d['entry.ds']->save($item, array('safe' => 1));
 		}
 	}
 }
