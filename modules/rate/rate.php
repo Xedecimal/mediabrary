@@ -64,8 +64,8 @@ class ModRate extends Module
 		$ip = sprintf('%u', ip2long(Server::GetVar('REMOTE_ADDR')));
 		$liked = $seen = '';
 		if (empty($item->Data['rates'][$ip])) $liked = $seen = '';
-		else if ($item['rates'][$ip] > 1) $liked = ' checked="checked"';
-		else if ($item['rates'][$ip] > 0) $seen = ' checked="checked"';
+		else if ($item->Data['rates'][$ip] > 1) $liked = ' checked="checked"';
+		else if ($item->Data['rates'][$ip] > 0) $seen = ' checked="checked"';
 		$details['Seen'] = '<input type="checkbox" id="chk-seen"'.$seen.' />';
 		$details['Liked'] = '<input type="checkbox" id="chk-liked"'.$liked.' />';
 		return $details;
