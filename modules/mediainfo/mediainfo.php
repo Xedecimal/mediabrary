@@ -278,7 +278,6 @@ EOF;
 			}
 			$item['codec']['mtime'] = filemtime($path);
 			$item['codec']['fsize'] = filesize($path);
-			var_dump($item);
 			$_d['entry.ds']->save($item, array('safe' => 1));
 		}
 	}
