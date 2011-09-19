@@ -234,8 +234,9 @@ class TV extends MediaLibrary
 		foreach ($_d['config']['paths']['tv'] as $p)
 			foreach (new FilesystemIterator($p,
 				FilesystemIterator::SKIP_DOTS) as $f)
-				$ret[] = new SeriesEntry($f->GetPathname());
+				$ret[$f->GetPathname()] = new SeriesEntry($f->GetPathname());
 
+		ksort($ret);
 		return $ret;
 	}
 
