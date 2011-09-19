@@ -15,7 +15,9 @@ var app_abs = '{{app_abs}}';
 <block name="head" />
 </head>
 <body>
+<div id="main-nav">
 <block name="nav" />
+</div>
 <block name="default" />
 <div class="vbreak"></div>
 <block name="foot" />

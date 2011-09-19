@@ -1,5 +1,5 @@
 body {  margin: auto; font-family: Verdana; }
-.hidden { display: hidden; }
+.hidden { display: none; }
 .main-link
 {
 	float: left;
@@ -16,4 +16,6 @@ body {  margin: auto; font-family: Verdana; }
 	height: 260px;
 	padding: 20px;
 }
-ul.nav { clear: both; padding: 0; list-style: none; display: block; }
+#main-nav { height: 3em; }
+ul.nav { padding: 0; list-style: none; }
+ul.nav li { float: left; padding: 5px; border: 1px solid #888; }
