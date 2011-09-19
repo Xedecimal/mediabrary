@@ -88,7 +88,7 @@ class TV extends MediaLibrary
 			$series = Server::GetVar('name');
 			$m = new ModTVEpisode();
 			$m->_vars['Path'] = $series;
-			$m->_vars['med_title'] = basename($series);
+			$m->_vars['Title'] = basename($series);
 			$m->Series = $series;
 			die($m->Get());
 		}
@@ -125,7 +125,7 @@ class TV extends MediaLibrary
 
 			$needed = null;
 			foreach ($missings as $missing)
-				$needed .= "<div>Missing: $missing</div>";
+				$needed .= "<div>Missing: $missing</div>\r\n";
 
 			$this->_template = 'modules/tv/t_tv.xml';
 			$t = new Template();
@@ -470,9 +470,9 @@ class ModTVEpisode extends MediaLibrary
 					$ser = rawurlencode($series);
 					$aired = date('m/d/Y', $ep['aired']);
 					$rout = "$series S{$snp}E{$enp} - {$aired}";
-					$rout .= ' - <a href="http://www.torrentz.eu/search?q='.$query.'" target=\"_blank\">TZ</a>';
-					$rout .= ' - <a href="http://www.kat.ph/search/'.$query.'/" target=\"_blank\">KT</a>';
-					$rout .= ' - <a href="http://www.google.com/search?q=filetype%3Atorrent+'.$query.'" target=\"_blank\">G</a>';
+					$rout .= ' - <a href="http://www.torrentz.eu/search?q='.$query.'" target="_blank">TZ</a>';
+					$rout .= ' - <a href="http://www.kat.ph/search/'.$query.'/" target="_blank">KT</a>';
+					$rout .= ' - <a href="http://www.google.com/search?q=filetype%3Atorrent+'.$query.'" target="_blank">G</a>';
 					if (!empty($ep['links']))
 					foreach ($ep['links'] as $n => $l)
 					{
