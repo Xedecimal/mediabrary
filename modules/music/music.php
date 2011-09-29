@@ -1,12 +1,14 @@
 <?php
 
-class ModMusic extends MediaLibrary
+class Music extends MediaLibrary
 {
+	public $Name = 'music';
+
 	function __construct()
 	{
 		parent::__construct();
-		$this->CheckActive('music');
-		
+		$this->CheckActive($this->Name);
+
 		global $_d;
 
 		$this->_thumb_path = $_d['config']['paths']['music-meta'];
@@ -14,11 +16,33 @@ class ModMusic extends MediaLibrary
 			'/modules/music/img/missing.jpg';
 	}
 
+	function Prepare()
+	{
+		if (!$this->Active) return;
+
+		global $_d;
+
+		if (@$_d['q'][1] == 'detail')
+		{
+			$p = $_GET['path'];
+			$ae = new ArtistEntry($p);
+			$t = new Template();
+			$t->Set($ae);
+			die($t->ParseFile(Module::L('music/detail.xml')));
+		}
+	}
+
 	function Get()
 	{
 		global $_d;
 
-		$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/music/css.css" />';
+		$url_css = Module::P('music/music.css');
+		$url_js = Module::P('music/music.js');
+
+		$r['head'] = <<<EOF
+<link type="text/css" rel="stylesheet" href="$url_css" />
+<script type="text/javascript" src="$url_js"></script>
+EOF;
 
 		if (empty($_d['q'][0]))
 		{
@@ -28,7 +52,7 @@ class ModMusic extends MediaLibrary
 
 		if (!$this->Active) return;
 
-		$this->_items = ModMusic::CollectFS();
+		$this->_items = $this->CollectFS();
 
 		if (@$_d['q'][1] == 'items')
 		{
@@ -36,24 +60,26 @@ class ModMusic extends MediaLibrary
 			die(parent::Get());
 		}
 
-		$this->_template = Module::L('music/template.xml');
+		$this->_template = Module::L('music/music.xml');
 		$t = new Template();
 		$r['default'] = $t->ParseFile($this->_template);
-		
+
 		return $r;
 	}
-	
+
 	static function CollectFS()
 	{
 		global $_d;
-		
+
 		//$pregs = self::GetFSPregs();
 
 		$ret = array();
 		foreach ($_d['config']['paths']['music'] as $p)
-			foreach (new FilesystemIterator($p,
-				FilesystemIterator::SKIP_DOTS) as $f)
-				$ret[] = new ArtistEntry($f->GetPathname());
+		foreach (new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $f)
+		{
+			if (!$f->isDir()) continue;
+			$ret[] = new ArtistEntry($f->GetPathname());
+		}
 		return $ret;
 	}
 
@@ -74,10 +100,14 @@ class ModMusic extends MediaLibrary
 class ArtistEntry extends MediaEntry
 {
 	public $Albums = array();
-	
+
 	function __construct($path)
 	{
 		parent::__construct($path);
+
+		# Collect Albums
+		foreach (new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS) as $f)
+			$ret[] = new AlbumEntry($f->GetPathname());
 	}
 }
 
@@ -90,6 +120,6 @@ class TrackEntry extends MediaEntry
 {
 }
 
-Module::Register('ModMusic');
+Module::Register('Music');
 
 ?>

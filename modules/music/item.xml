@@ -1,3 +1,5 @@
 <item>
-<div class="music-item" style="background: url('{{Image}}')">{{Title}}</div>
+<div class="music-item" style="background: url('{{Image}}')">
+	<a href="music/detail?path={{PathEncoded}}" class="a-music-item">{{Title}}</a>
+</div>
 </item>
