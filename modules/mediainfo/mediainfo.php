@@ -2,7 +2,8 @@
 
 class MediaInfo extends Module
 {
-	var $Block = 'foot';
+	public $Name = 'mediainfo';
+	public $Block = 'foot';
 
 	function __construct()
 	{
@@ -74,11 +75,16 @@ class MediaInfo extends Module
 			'Video.Height',
 			'Video.Frame_rate',
 			'Audio.Bit_rate',
-			'Audio.Channel_s_'
+			'Audio.Channel_s_',
+			'General.Overall_bit_rate',
+			'Video.Display_aspect_ratio',
+			'Video.Bits__Pixel_Frame_'
 		);
 
 		$ix = 0;
 		foreach ($this->cols as &$i) $i['index'] = $ix++;
+
+		$this->CheckActive($this->Name);
 	}
 
 	function Link()
@@ -89,11 +95,27 @@ class MediaInfo extends Module
 			$_d['nav.links']['Video and Audio Statistics'] = 'mediainfo';
 	}
 
+	function Prepare()
+	{
+		if (!$this->Active) return;
+
+		global $_d;
+
+		if (@$_d['q'][1] == 'process')
+		{
+			var_dump($_d['q'][2]);
+			$q['_id'] = new MongoId($_d['q'][2]);
+			$res = $_d['entry.ds']->findone($q);
+			$this->Process($res['path']);
+			die();
+		}
+	}
+
 	function Get()
 	{
 		global $_d;
 
-		if (empty($_d['q'][0]) || $_d['q'][0] == 'mediainfo')
+		if (empty($_d['q'][0]) || $this->Active)
 		{
 			$r['head'] = <<<EOF
 <link type="text/css" rel="stylesheet" href="modules/mediainfo/css.css" />
@@ -102,7 +124,7 @@ class MediaInfo extends Module
 EOF;
 		}
 
-		if ($_d['q'][0] != 'mediainfo') return;
+		if (!$this->Active) return;
 
 		$t = new Template();
 		$t->ReWrite('column', array(&$this, 'TagColumn'));
@@ -125,8 +147,11 @@ EOF;
 		if (!empty($dr))
 		foreach ($dr as $r)
 		{
-			$stats[$r['path']] = $r['codec'];
-			$stats[$r['path']]['path'] = $r['path'];
+			$stat = $r['codec'];
+			$stat['path'] = $r['path'];
+			$stat['_id'] = $r['_id'];
+
+			$stats[$r['path']] = $stat;
 		}
 
 		# Catalog data we will colorize into it's own arrays.
@@ -149,6 +174,7 @@ EOF;
 		$ret = '';
 		foreach ($stats as $p => $stat)
 		{
+			$t2->Set($stat);
 			$this->curitem = $stat;
 			$ret .= $t2->GetString($g);
 		}

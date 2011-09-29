@@ -1,20 +1,27 @@
 <div id="mediainfo">
+
 <fieldset><legend>Hide Columns</legend>
 <column>
 	<label title="{{title}}"><input type="checkbox" class="hider"
-		value="mit-col{{index}}" /> {{short}}</label>
+		value="mit-col{{index}}" />{{short}}</label>
 </column>
 </fieldset>
+
 <table id="mediainfo-table">
-	<thead><tr>
-		<column><th class="mit-col{{index}}" title="{{title}}">{{short}}</th></column>
-	</tr></thead>
+
+<thead><tr>
+	<th>Action</th>
+	<column><th class="mit-col{{index}}" title="{{title}}">{{short}}</th></column>
+</tr></thead>
+
 <tbody>
 <item>
 	<tr>
+		<td><a href="mediainfo/process/{{_id}}" class="a-process">Refresh</a></td>
 		<icol><td class="{{class}}">{{data}}</td></icol>
 	</tr>
 </item>
 </tbody>
+
 </table>
 </div>
