@@ -2,6 +2,8 @@
 
 class Movie extends MediaLibrary
 {
+	public $Name = 'movie';
+
 	function __construct()
 	{
 		parent::__construct();
@@ -40,8 +42,9 @@ class Movie extends MediaLibrary
 					new MongoID($_d['q'][2])));
 
 			$this->details = array();
-			foreach ($_d['movie.cb.detail'] as $cb)
-				$this->details = call_user_func_array($cb, array($this->details, $item));
+			foreach ($_d['cb.detail'] as $cb)
+				$this->details = call_user_func_array($cb, array($this->Name,
+					$this->details, $item));
 
 			$t->Set($item);
 			$this->_item = $item;

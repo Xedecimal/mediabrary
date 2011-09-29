@@ -384,8 +384,21 @@ EOD;
 		return $sx_movies;
 	}
 
-	function Find($title, $date)
+	function Find($path)
 	{
+		global $_d;
+
+		$item = $_d['entry.ds']->findOne(array('path' => $path));
+		if (!empty($item['details']['TMDB']['name']))
+			$title = $item['details']['TMDB']['name'];
+		else if (!empty($item['title']))
+			$title = $item['title'];
+		else
+		{
+			$fs = MediaLibrary::ScrapeFS($path, Movie::GetFSPregs());
+			var_dump($fs);
+		}
+
 		$url = TMDB_FIND.rawurlencode($title);
 		if (!empty($date)) $url .= '+'.$date;
 		$xml = file_get_contents($url);
@@ -475,6 +488,6 @@ EOF;
 }
 
 Module::Register('TMDB');
-Scrape::RegisterScraper('TMDB');
+Scrape::RegisterScraper('movie', 'TMDB');
 
 ?>

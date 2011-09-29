@@ -1,7 +1,8 @@
 $(function () {
-	$('#a-scrape-find').live('click', movie_find);
-	//TODO: Do we need this source/attr data?
-	$('.but-scrape-research').live('click', { source: '#inTitle', attr: 'value' }, movie_find);
+	$('#a-scrape-find').live('click', scape_find);
+
+	// @TODO: Do we need this source/attr data?
+	$('.but-scrape-research').live('click', { source: '#inTitle', attr: 'value' }, scape_find);
 
 	// A found result has been selected (not yet chosen).
 	$('.find-result').live('click', function () {
@@ -44,8 +45,13 @@ $(function () {
 	});
 });
 
-function movie_find(event) {
-	dat = { path: $('#movie_path').val() };
+function scape_find(event) {
+	dat = {
+		type: $('#detail-type').val(),
+		path: $('#detail-path').val()
+	};
+
+	// @TODO: Movie specific, move to the movie side of things.
 
 	// Re-searching manually.
 	if ($('#inTitle').val())
@@ -53,6 +59,7 @@ function movie_find(event) {
 		dat['manual'] = 1;
 		dat['title'] = $('#inTitle').val();
 	}
+
 	// Initial automatic search.
 	else
 	{
@@ -61,7 +68,7 @@ function movie_find(event) {
 	}
 
 	$.get('scrape/find', dat, function (data) {
-		$('#movie-details').html(data);
+		$('#details').html(data);
 	}, 'html');
 
 	return false;

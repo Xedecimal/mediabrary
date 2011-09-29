@@ -1,12 +1,11 @@
-<div id="movie-detail">
+<div id="details">
 	<div class="movie-buttons"><a
 		href="movie/down/{{fs_filename}}"><img src="movie/img/save_as.png"
-		alt="Download" /></a><callback ds="_d" name="movie.cb.buttons" /></div>
+		alt="Download" /></a><callback ds="_d" name="cb.detail.buttons" type="movie" /></div>
 
-	<input type="hidden" id="movie-id" value="{{Data._id}}" />
-	<input type="hidden" id="movie_path" value="{{Path}}" />
-	<input type="hidden" id="movie_title" value="{{Title}}" />
-	<input type="hidden" id="movie_released" value="{{Released}}" />
+	<input type="hidden" id="detail-type" value="movie" />
+	<input type="hidden" id="detail-id" value="{{Data._id}}" />
+	<input type="hidden" id="detail-path" value="{{Path}}" />
 
 	<div id="movie-details">
 		<table>

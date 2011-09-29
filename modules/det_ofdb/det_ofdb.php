@@ -49,7 +49,7 @@ class OFDB extends Module implements Scraper
 	function CanAuto() { return false; }
 	function GetName() { return 'OFDB'; }
 
-	function Find($title, $date)
+	function Find($path)
 	{
 		$ctx = stream_context_create(array(
 			'http' => array(
@@ -98,6 +98,6 @@ class OFDB extends Module implements Scraper
 }
 
 Module::Register('OFDB');
-Scrape::RegisterScraper('OFDB');
+Scrape::RegisterScraper('movie', 'OFDB');
 
 ?>

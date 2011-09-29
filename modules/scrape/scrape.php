@@ -4,12 +4,14 @@ if (empty($_d['scrape.scrapers'])) $_d['scrape.scrapers'] = array();
 
 class Scrape extends Module
 {
+	public $Name = 'Scrape';
+
 	function Link()
 	{
 		global $_d;
 
-		$_d['movie.cb.buttons']['scrape'] = array(&$this, 'movie_cb_buttons');
-		$_d['movie.cb.detail']['scrape'] = array(&$this, 'movie_cb_details');
+		$_d['cb.detail.buttons']['scrape'] = array(&$this, 'cb_detail_buttons');
+		$_d['cb.detail']['scrape'] = array(&$this, 'cb_detail');
 	}
 
 	function Prepare()
@@ -24,13 +26,18 @@ class Scrape extends Module
 		{
 			$t = new Template;
 			$t->ReWrite('scraper', array(&$this, 'TagFindScraper'));
-			$p = Server::GetVar('path');
-			$item = new MovieEntry($p);
 
-			$q['fs_path'] = $p;
-			$item->Data = $_d['entry.ds']->findOne($q);
+			$this->path = $_GET['path'];
+			$this->type = $_GET['type'];
 
-			$t->Set($item);
+			# @TODO: Move this stuff elsewhere!
+
+			//$item = new MovieEntry($p);
+
+			//$q['fs_path'] = $p;
+			//$item->Data = $_d['entry.ds']->findOne($q);
+
+			//$t->Set($item);
 			die($t->ParseFile(Module::L('scrape/find.xml')));
 		}
 
@@ -41,6 +48,7 @@ class Scrape extends Module
 
 			$auto = false;
 
+			# @TODO: Move this to MovieScrape.
 			# This is automated
 			if (empty($ids))
 			{
@@ -90,12 +98,13 @@ EOF;
 
 	# Callbacks
 
-	function movie_cb_buttons($t)
+	function cb_detail_buttons($t, $a)
 	{
 		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="img/find.png"
 			alt="Find" /></a>';
 
-		if (!empty($t->vars['date']))
+		# @TODO: Remove TMDB reference.
+		if (!empty($t->vars['details']))
 		{
 			$ret .= <<<EOF
 <a href="{{_id}}" id="a-scrape-remove"><img src="img/database_delete.png"
@@ -108,11 +117,11 @@ EOF;
 		return $ret;
 	}
 
-	function movie_cb_details($details, $item)
+	function cb_detail($type, $details, $item)
 	{
 		global $_d;
 
-		foreach ($_d['scrape.scrapers'] as $s)
+		foreach ($_d['scrape.scrapers'][$type] as $s)
 			$details = $s->GetDetails($details, $item);
 
 		return $details;
@@ -127,7 +136,7 @@ EOF;
 		$t->ReWrite('result', array(&$this, 'TagFindResult'));
 
 		$ret = '';
-		foreach ($_d['scrape.scrapers'] as $s)
+		foreach ($_d['scrape.scrapers'][$this->type] as $s)
 		{
 			$this->_scraper = $s;
 			$t->Set('Name', $s->Name);
@@ -141,30 +150,29 @@ EOF;
 
 	function TagFindResult($t, $g)
 	{
-		$res = $this->_scraper->Find(Server::GetVar('title'),
-			Server::GetVar('date'));
+		$res = $this->_scraper->Find($this->path);
 		return VarParser::Concat($g, $res);
 	}
 
 	# Static Tooling
 
-	static function RegisterScraper($class)
+	static function RegisterScraper($type, $class)
 	{
 		global $_d;
-		$_d['scrape.scrapers'][$class] = new $class;
+		$_d['scrape.scrapers'][$type][$class] = new $class;
 	}
 }
+
+Module::Register('Scrape');
 
 interface Scraper
 {
 	function GetName();
 	function CanAuto();
-	function Find($title, $date);
+	function Find($path);
 	function Details($id);
 	function Scrape($item, $id = null);
 	function GetDetails($details, $item);
 }
-
-Module::Register('Scrape');
 
 ?>

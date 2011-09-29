@@ -52,8 +52,18 @@ class RottenTomatoes extends Module implements Scraper
 
 	function GetName() { return 'Rotten Tomatoes'; }
 
-	function Find($title, $date)
+	function Find($path)
 	{
+		global $_d;
+
+		$item = $_d['entry.ds']->findOne(array('path' => $path));
+		if (!empty($item['title'])) $title = $item['title'];
+		else
+		{
+			$fs = MediaLibrary::ScrapeFS($path, Movie::GetFSPregs());
+			var_dump($fs);
+		}
+
 		$title = MediaLibrary::SearchTitle($title);
 
 		# Collect data.
@@ -98,6 +108,6 @@ class RottenTomatoes extends Module implements Scraper
 }
 
 Module::Register('RottenTomatoes');
-Scrape::RegisterScraper('RottenTomatoes');
+Scrape::RegisterScraper('movie', 'RottenTomatoes');
 
 ?>
