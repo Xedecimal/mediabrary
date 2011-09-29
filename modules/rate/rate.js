@@ -19,7 +19,7 @@ $(function () {
 		return false;
 	});
 
-	$('#rate-hide').click(function () {
+	$('#rate-hide').live('click', function () {
 		if ($('#rate-hide').attr('checked'))
 			$.get('rate/hide');
 		else $.get('rate/show');

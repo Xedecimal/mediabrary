@@ -1,7 +1,5 @@
 <?php
 
-require_once('h_main.php');
-
 class MediaLibrary extends Module
 {
 	function __construct() { $this->_vars = array(); }

@@ -6,5 +6,8 @@ window.refreshAll = function() {
 
 $(function () {
 	window.refreshAll();
-	$('.date').datepicker();
+	$('.nav a').click(function () {
+		$('#content').load($(this).attr('href'));
+		return false;
+	});
 });

@@ -80,10 +80,7 @@ class ModPlayer extends Module
 
 	function Get()
 	{
-		$ret['head'] = '<script type="text/javascript"
-			src="{{app_abs}}/player/js"></script>';
-		$ret['default'] = '<div id="player-dialog"></div>';
-		return $ret;
+		return '<script type="text/javascript" src="{{app_abs}}/player/js"></script>';
 	}
 
 	/**

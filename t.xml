@@ -8,19 +8,21 @@ var app_abs = '{{app_abs}}';
 <script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.js"></script>
 <script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.ui.js"></script>
 <script type="text/javascript" src="{{app_abs}}/main.js"></script>
+
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/dot-luv/jquery.ui.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/xedlib/css/form.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/css.css" />
+<link rel="stylesheet" type="text/css" href="{{app_abs}}/css/_main.css" />
+
 <callback ds="_d" name="cb.head" />
 <block name="head" />
 </head>
 <body>
-<div id="main-nav">
-<block name="nav" />
+<div id="left">
+	<img src="{{app_abs}}/img/logo.png" alt="Mediabrary" />
+	<block name="nav" />
 </div>
-<block name="default" />
-<div class="vbreak"></div>
-<block name="foot" />
-
+<div id="content"><block name="default" /></div>
+<!-- <block name="foot" /> -->
 </body>
 </html>

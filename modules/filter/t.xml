@@ -2,7 +2,7 @@
 <script type="text/javascript" src="filter/filter.js"></script>
 
 <div id="filters">
-<p>Filters</p>
+Filters
 <filter />
 
 <a class="a-filter" href="filter/set">Reset Filters</a>

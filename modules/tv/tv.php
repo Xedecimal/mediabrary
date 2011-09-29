@@ -29,6 +29,13 @@ class TV extends MediaLibrary
 		);
 	}
 
+	function Link()
+	{
+		global $_d;
+
+		$_d['nav.links']['Media/TV'] = '{{app_abs}}/tv';
+	}
+
 	function Prepare()
 	{
 		if (!$this->Active) return;
@@ -62,9 +69,9 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		if (empty($_d['q'][0]))
+		/*if (empty($_d['q'][0]))
 		{
-			$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
+			$ret = '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
 
 			$series = $size = $total = 0;
 
@@ -75,9 +82,9 @@ class TV extends MediaLibrary
 			$size = File::SizeToString($size);
 			$text = "{$size} of {$series} Series in {$total} Episodes";
 
-			$r['default'] = '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
-			return $r;
-		}
+			$ret .= '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
+			return die($ret);
+		}*/
 
 		if (@$_d['q'][0] != 'tv') return;
 
@@ -131,7 +138,7 @@ class TV extends MediaLibrary
 			$t = new Template();
 			$t->Set($this->_vars);
 			$t->Set('needed', $needed);
-			return $t->ParseFile($this->_template);
+			die($t->ParseFile($this->_template));
 		}
 	}
 

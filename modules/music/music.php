@@ -16,6 +16,13 @@ class Music extends MediaLibrary
 			'/modules/music/img/missing.jpg';
 	}
 
+	function Link()
+	{
+		global $_d;
+
+		$_d['nav.links']['Media/Music'] = '{{app_abs}}/music';
+	}
+
 	function Prepare()
 	{
 		if (!$this->Active) return;
@@ -39,16 +46,10 @@ class Music extends MediaLibrary
 		$url_css = Module::P('music/music.css');
 		$url_js = Module::P('music/music.js');
 
-		$r['head'] = <<<EOF
+		$ret = <<<EOF
 <link type="text/css" rel="stylesheet" href="$url_css" />
 <script type="text/javascript" src="$url_js"></script>
 EOF;
-
-		if (empty($_d['q'][0]))
-		{
-			$r['default'] = '<div id="divMainMusic" class="main-link"><a href="{{app_abs}}/music">Music</a></div>';
-			return $r;
-		}
 
 		if (!$this->Active) return;
 
@@ -62,9 +63,9 @@ EOF;
 
 		$this->_template = Module::L('music/music.xml');
 		$t = new Template();
-		$r['default'] = $t->ParseFile($this->_template);
+		$ret .= $t->ParseFile($this->_template);
 
-		return $r;
+		die($ret);
 	}
 
 	static function CollectFS()

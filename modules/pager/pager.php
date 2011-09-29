@@ -2,17 +2,14 @@
 
 class Pager extends Module
 {
-	function Get()
+	function Link()
 	{
 		global $_d;
 
-		# TODO: Add pagination for other sections as well.
-		if (@$_d['q'][0] == 'movie')
-		{
-			$r['head'] = '<script type="text/javascript"
-				src="{{app_abs}}/modules/pager/pager.js" ></script>';
-			return $r;
-		}
+		if (empty($_d['movie.add'])) $_d['movie.add'] = '';
+
+		# @TODO: Add pagination for other sections as well.
+		$_d['movie.add'] .= '<script type="text/javascript" src="modules/pager/pager.js" ></script>';
 	}
 }
 

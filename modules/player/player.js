@@ -3,9 +3,8 @@ var remote_ip = '{{REMOTE_ADDR}}';
 
 $(function () {
 	$('.a-play').live('click', function () {
-
 		// Present options for playing this file.
-		$('#player-dialog').load('player/select?path='+$(this).attr('href')).dialog();
+		$('<div title="Choose Player" />').load('player/select?path='+$(this).attr('href')).dialog();
 		return false;
 	});
 

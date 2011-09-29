@@ -92,7 +92,7 @@ class MediaInfo extends Module
 		global $_d;
 
 		if (empty($_d['q'][0]))
-			$_d['nav.links']['Video and Audio Statistics'] = 'mediainfo';
+			$_d['nav.links']['Tools/Stats'] = 'mediainfo';
 	}
 
 	function Prepare()

@@ -1,7 +1,5 @@
 <?php
 
-require_once('h_main.php');
-
 class ModFilter extends Module
 {
 	public $Name = 'filter';

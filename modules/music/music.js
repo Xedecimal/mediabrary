@@ -1,22 +1,16 @@
 $(function () {
-	$('#dialog-music').dialog({
-		autoOpen: false,
-		width: '80%',
-		height: 500,
-		position: 'top',
-
-		beforeclose: function () {
-			$('#music-items a').css('opacity', 1);
-		}
-	});
+	$('#dialog-music');
 
 	$('.a-music-item').live('click', function () {
-		$('#dialog-music').dialog('option', 'title', 'Artist Details');
-
-		$('#dialog-music').load($(this).attr('href'),
-			function () { $('#dialog-music').dialog('open'); }
-		);
+		$('<div />').dialog({
+			width: '80%',
+			height: 500,
+			position: 'top',
+			title: 'Artist Details'})
+			.load($(this).attr('href'));
 
 		return false;
 	});
+
+	$('#music-items').load('music/items');
 });

@@ -13,7 +13,7 @@ class Config extends Module
 	{
 		global $_d;
 
-		$_d['nav.links'][t('Configuration')] = '{{app_abs}}/configuration';
+		$_d['nav.links'][t('Tools').'/'.t('Configuration')] = '{{app_abs}}/configuration';
 	}
 
 	function Prepare()

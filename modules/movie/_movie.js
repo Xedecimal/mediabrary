@@ -1,15 +1,4 @@
 $(function () {
-	$('#dialog-movie').dialog({
-		autoOpen: false,
-		width: '80%',
-		height: 500,
-		position: 'top',
-
-		beforeclose: function () {
-			$('#movie-items a').css('opacity', 1);
-		}
-	});
-
 	$('.movie-item').live('hover', function (e) {
 		if (e.type == 'mouseenter')
 		{
@@ -20,12 +9,15 @@ $(function () {
 	});
 
 	$('.a-movie-item').live('click', function () {
-		$('#dialog-movie').dialog('option', 'title', 'Movie Details');
-
-		$('#dialog-movie').load($(this).attr('href'),
-			function () { $('#dialog-movie').dialog('open'); }
-		);
+		$('<div />').dialog({
+			width: '80%',
+			height: 500,
+			position: 'top',
+			title: 'Movie Details'
+		}).load($(this).attr('href'));
 
 		return false;
 	});
+
+	$('#movie-items').load('movie/items');
 });

@@ -25,6 +25,13 @@ class Movie extends MediaLibrary
 		$this->CheckActive('movie');
 	}
 
+	function Link()
+	{
+		global $_d;
+
+		$_d['nav.links']['Media/Movies'] = '{{app_abs}}/movie';
+	}
+
 	function Prepare()
 	{
 		global $_d;
@@ -136,17 +143,7 @@ class Movie extends MediaLibrary
 
 		# Main Page
 
-		$r['head'] = '<link type="text/css" rel="stylesheet"
-			href="modules/movie/css.css" />';
-
-		if (empty($_d['q'][0]))
-		{
-			$text = "Movies";
-
-			$r['default'] = '<div class="main-link" id="divMainMovies"><a
-				href="{{app_abs}}/movie" id="a-movie">'.$text.'</a></div>';
-			return $r;
-		}
+		$ret = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
 
 		if (!$this->Active) return;
 
@@ -174,8 +171,10 @@ class Movie extends MediaLibrary
 
 		$this->_template = 'modules/movie/t_movie.xml';
 		$t = new Template();
-		$r['default'] = $t->ParseFile($this->_template);
-		return $r;
+		$ret .= $t->ParseFile($this->_template);
+		$ret .= $_d['movie.add'];
+
+		die($ret);
 	}
 
 	function TagDetailItem($t, $g, $a)

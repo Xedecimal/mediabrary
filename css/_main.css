@@ -1,4 +1,4 @@
-body {  margin: auto; font-family: Verdana; }
+body { height: 100%; }
 .hidden { display: none; }
 .main-link
 {
@@ -16,6 +16,10 @@ body {  margin: auto; font-family: Verdana; }
 	height: 260px;
 	padding: 20px;
 }
-#main-nav { height: 3em; }
-ul.nav { padding: 0; list-style: none; }
-ul.nav li { float: left; padding: 5px; border: 1px solid #888; }
+
+/* Left Navigation */
+#left { width: 200px; height: 100%; position: fixed; font-size: 12px; border-right: 1px dashed #888; }
+ul.nav { list-style: none; margin: 0; padding: 5px 10px; }
+
+/* Center Area */
+#content { padding-left: 210px; height: 100%; }

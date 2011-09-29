@@ -2,6 +2,13 @@
 
 class ModPics extends MediaLibrary
 {
+	function Link()
+	{
+		global $_d;
+
+		$_d['nav.links']['Media/Pictures'] = '{{app_abs}}/pics';
+	}
+
 	function Get()
 	{
 		global $_d;

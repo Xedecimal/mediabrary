@@ -1,7 +1,3 @@
 <div id="music">
-<div id="dialog-music" class="hidden"></div>
-
-<a href="{{app_abs}}/music/items" target="music-items" class="refresh" />
-
 <div id="music-items"></div>
 </div>
