@@ -44,6 +44,8 @@ class ModFilter extends Module
 
 		if (@$_d['q'][1] == 'get')
 		{
+			if (empty($_SESSION['filter.mask']))
+				$_SESSION['filter.mask'] = array();
 			die(json_encode($_SESSION['filter.mask']));
 		}
 	}
