@@ -1,0 +1,10 @@
+<div>
+<div class="name">Name</div>
+<item>
+	<div class="movie-item movie-item-list"><div class="name"><a
+		href="{{app_abs}}/movie/detail/{{Data._id}}?path={{PathEncoded}}"
+		class="a-movie-item">{{Title}}</a></div>
+		<div>{{Released}}</div>
+	</div>
+</item>
+</div>

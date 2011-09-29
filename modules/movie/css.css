@@ -1,6 +1,6 @@
 #divMainMovies { background: url('img/main-movies.jpg'); }
 
-.movie-item
+.movie-item-grid
 {
 	position: relative;
 	float: left;
@@ -11,11 +11,19 @@
 	background-size: 100% 100%;
 }
 
-.movie-image
+.movie-image-grid
 {
 	position: absolute;
 	width: 185px;
 	height: 275px;
+}
+
+.movie-item-list .name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 200px;
+	float: left;
 }
 
 #movie-detail
@@ -25,7 +33,6 @@
 }
 
 .movie-buttons img { height: 32px; }
-
 .quick-buttons img { height: 32px; }
 
 .quick-buttons { background: #000; text-align: center; }

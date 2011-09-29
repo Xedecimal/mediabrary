@@ -1,7 +1,7 @@
 <null>
 <item>
 	<div id="{{Data._id}}" style="background: url('{{ImageCSS}}') no-repeat;" title="{{Path}}"
-		class="movie-item">
+		class="movie-item movie-item-grid">
 		<div class="movie-details" style="display: none">
 		<div class="quick-buttons">
 			<a href="{{app_abs}}/movie/detail/{{Data._id}}?path={{PathEncoded}}"
