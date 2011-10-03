@@ -124,9 +124,9 @@ EOF;
 	{
 		global $_d;
 
-		$details = array();
+		$details = '';
 		foreach ($_d['scrape.scrapers'][$a['TYPE']] as $s)
-			$details = $s->GetDetails($details, $t->vars['Data']);
+			$details .= $s->GetDetails($details, $t->vars['Data']);
 
 		return $details;
 	}
@@ -155,7 +155,7 @@ EOF;
 	function TagFindResult($t, $g)
 	{
 		$res = $this->_scraper->Find($this->path);
-		return VarParser::Concat($g, $res);
+		if (!empty($res)) return VarParser::Concat($g, $res);
 	}
 
 	# Static Tooling

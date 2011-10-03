@@ -34,8 +34,8 @@ $_d['i18n'] = spyc_load_file("lang/{$lang}.yml");
 $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
-$_d['entry.ds']->ensureIndex(array('path' => 1),
-	array('unique' => true, 'dropDups' => true));
+$_d['entry.ds']->ensureIndex(array('path' => 1, 'parent' => 1, 'index' => 1),
+	array('unique' => true));
 $_d['entry.ds']->ensureIndex(array('obtained' => 1));
 
 require_once('xedlib/modules/nav.php');

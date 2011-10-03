@@ -1,0 +1,17 @@
+<div id="view-list">
+
+<link type="text/css" rel="stylesheet" href="view_list/view_list.css" />
+
+<table><tr>
+	<th><input type="text" value="Name" /> AV</th>
+	<th><input type="text" value="Date" /> AV</th>
+	<th><input type="text" value="Parent" /> AV</th>
+	<th><input type="text" value="Sibling Index" /> AV</th>
+</tr>
+
+<item>
+	<tr class="tr-list-item"><td>{{title}}</td><td>{{released}}</td><td>{{parent}}</td><td>{{index}}</td></tr>
+</item>
+
+</table>
+</div> <!-- #view-list -->

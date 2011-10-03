@@ -6,6 +6,8 @@
 <callback ds="_d" name="movie.cb.head" />
 </div>
 
+<a href="movie/items" target="movie-items" class="refresh" />
+
 <div id="movie-items"></div>
 
 </div>

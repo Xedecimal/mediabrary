@@ -92,7 +92,9 @@ class Discogs extends Module implements Scraper
 
 	function GetDetails($details, $data)
 	{
-		var_dump($data);
+		return <<<EOF
+<p>Discogs Name: {$data['details'][$this->Name]['name']}</p>
+EOF;
 	}
 }
 

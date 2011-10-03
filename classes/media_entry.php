@@ -11,7 +11,6 @@ class MediaEntry
 
 	function __construct($path, $parses = null)
 	{
-		$this->Data = array('path' => $path);
 		$this->Path = $path;
 		$this->Filename = basename($path);
 		$this->Ext = File::ext($this->Filename);
@@ -32,6 +31,9 @@ class MediaEntry
 			if (!isset($this->DebugMatched)) $this->FailedFSPreg = 1;
 		}
 		else $this->Title = $this->Filename;
+
+		$this->Parent = 'Unknown';
+		$this->Data = array('path' => $path, 'title' => $this->Title);
 	}
 }
 

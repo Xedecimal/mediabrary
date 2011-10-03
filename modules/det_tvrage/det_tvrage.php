@@ -1,13 +1,20 @@
 <?php
 
-class ModScrapeTVRage
+class TVRage extends Module implements Scraper
 {
 	const _tvrage_key = 'ouF0qPaRHNf7MXPMrQZv';
 	const _tvrage_find = 'http://services.tvrage.com/myfeeds/search.php?key=ouF0qPaRHNf7MXPMrQZv&show=';
 	const _tvrage_info = 'http://services.tvrage.com/myfeeds/showinfo.php?key=ouF0qPaRHNf7MXPMrQZv&sid=';
 	const _tvrage_list = 'http://services.tvrage.com/myfeeds/episode_list.php?key=ouF0qPaRHNf7MXPMrQZv&sid=';
 
-	static function Find($path, $full = false)
+	function Link()
+	{
+		global $_d;
+
+		$_d['tv.cb.check'] = array(&$this, 'cb_tv_check');
+	}
+
+	function Find($path, $full = false)
 	{
 		$sid = ModScrapeTVRage::GetSID($path, $full);
 		if ($full)
@@ -81,6 +88,28 @@ class ModScrapeTVRage
 
 		return $ret;
 	}
+
+	public function CanAuto() {
+
+	}
+
+	public function Details($id) {
+
+	}
+
+	public function GetDetails($details, $item) {
+
+	}
+
+	public function GetName() {
+
+	}
+
+	public function Scrape($item, $id = null) {
+
+	}
 }
+
+Scrape::Reg('tv', 'TVRage');
 
 ?>

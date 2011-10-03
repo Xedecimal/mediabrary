@@ -59,6 +59,11 @@ class Music extends MediaLibrary
 		return $t->ParseFile($this->_template);
 	}
 
+	function Check(&$msgs)
+	{
+		$artists = Music::CollectFS();
+	}
+
 	static function CollectFS()
 	{
 		global $_d;
@@ -73,6 +78,11 @@ class Music extends MediaLibrary
 			$ret[] = new ArtistEntry($f->GetPathname());
 		}
 		return $ret;
+	}
+
+	static function CollectDS()
+	{
+
 	}
 
 	static function GetFSPregs()

@@ -18,9 +18,6 @@ class Movie extends MediaLibrary
 
 		$this->_items = array();
 		$this->_class = 'movie';
-		$this->_thumb_path = $_d['config']['paths']['movie']['meta'];
-		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
-			'/modules/movie/img/missing.jpg';
 
 		$this->CheckActive('movie');
 	}
@@ -200,7 +197,7 @@ class Movie extends MediaLibrary
 
 		# Collect known filesystem data
 		if (!empty($_d['config']['paths']['movie']))
-		foreach ($_d['config']['paths']['movie'] as $p)
+		foreach ($_d['config']['paths']['movie']['paths'] as $p)
 		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS |
 			FilesystemIterator::UNIX_PATHS) as $fsi)
 		{
@@ -357,7 +354,7 @@ EOD;
 
 		$ret = array();
 
-		$mp = $_d['config']['paths']['movie-meta'];
+		$mp = $_d['config']['paths']['movie']['meta'];
 		foreach (glob("$mp/movie/*") as $p)
 		{
 			$f = basename($p);
@@ -367,15 +364,15 @@ EOD;
 			{
 				if (array_search($m[2], $filelist) !== false) continue;
 
-				if (!unlink($p))
-					$ret['Media'][] = "Could not unlink: $p";
+				//if (!unlink($p))
+				//	$ret['Media'][] = "Could not unlink: $p";
 				else $ret['Media'][] = "Removed orphan cover $p";
 			}
 			else
 			{
-				if (!unlink($p))
-					$ret['Media'][] = "Could not unlink: $p";
-				else $ret['Media'][] = "Removed irrelevant cover: {$p}";
+				//if (!unlink($p))
+				//	$ret['Media'][] = "Could not unlink: $p";
+				//else $ret['Media'][] = "Removed irrelevant cover: {$p}";
 			}
 		}
 		return $ret;
@@ -423,6 +420,7 @@ EOD;
 		$m = is_array($_d['movie.cb.query']['match']) ?
 			$_d['movie.cb.query']['match'] : array();
 
+		# Collect our data
 		$cur = $_d['entry.ds']->find($m, $_d['movie.cb.query']['columns']);
 
 		# Sort Order
@@ -489,6 +487,8 @@ class MovieEntry extends MediaEntry
 	{
 		parent::__construct($path, $pregs);
 
+		global $_d;
+
 		# This is a part, lets try to find the rest of them.
 		if (!empty($this->Part))
 		{
@@ -506,6 +506,16 @@ class MovieEntry extends MediaEntry
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = $this->Path;
 		$this->Data['obtained'] = filemtime($this->Path);
+		$this->parent = 'Movie';
+
+		# Collect cover data
+		$this->NoExt = File::GetFile($this->Filename);
+		$thm_path = VarParser::Parse($_d['config']['paths']['movie']['meta'], $this);
+
+		if (file_exists($thm_path))
+			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
+		else
+			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
 	}
 }
 

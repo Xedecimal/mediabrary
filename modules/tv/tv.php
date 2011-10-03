@@ -1,12 +1,7 @@
 <?php
 
-require_once(Module::L('tv/scrape.tvdb.php'));
-require_once(Module::L('tv/scrape.tvrage.php'));
-
 class TV extends MediaLibrary
 {
-	static $scrapers = array('ModScrapeTVRage', 'ModScrapeTVDB');
-
 	function __construct()
 	{
 		parent::__construct();
@@ -14,7 +9,6 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$this->_class = 'tv';
-		$this->_thumb_path = $_d['config']['paths']['tv-meta'];
 
 		$this->CheckActive('tv');
 	}
@@ -150,28 +144,26 @@ class TV extends MediaLibrary
 
 		$pregs = ModTVEpisode::GetFSPregs();
 
-		if (!empty($_d['config']['paths']['tv']))
-		foreach ($_d['config']['paths']['tv'] as $p)
+		$fs = $this->CollectFS();
+		$ds = $this->CollectDS();
+
+		if (!empty($_d['config']['paths']['tv']['paths']))
+		foreach ($_d['config']['paths']['tv']['paths'] as $p)
 		foreach (new FilesystemIterator($p,
 		FilesystemIterator::SKIP_DOTS) as $fser)
 		{
 			$series = $fser->GetPathname();
 			$eps = array();
-			foreach (TV::$scrapers as $s)
-			{
-				$data = call_user_func(array($s, 'GetInfo'), $series);
-				//if ($series == '/data/nas/TV/Breaking Bad')
-				//	var_dump($data);
-				$eps = Arr::MergeRecursive($eps, $data);
-			}
 
-			//if ($series == '/data/nas/TV/Stephen King\'s The Stand')
-			//	var_dump($eps);
+			foreach ($_d['tv.cb.check'] as $cb)
+				$errors += call_user_func_array($cb, array(&$series, &$msgs));
+			#TODO: Run all cb.tv.check on each series.
 
 			foreach (new FilesystemIterator($series,
 			FilesystemIterator::SKIP_DOTS) as $fep)
 			{
 				if (substr($fep->GetFilename(), 0, 1) == '.') continue;
+
 				$episode = str_replace('\\', '/', $fep->GetPathname());
 
 				$info = MediaLibrary::ScrapeFS($episode, $pregs);
@@ -192,13 +184,13 @@ class TV extends MediaLibrary
 					$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
 
 				# <series> / <series> - S<season>E<episode> - <title>.avi
-				if (!preg_match("@([^/]+)/({$eps['series']}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
+				if (!preg_match("@([^/]+)/({$series}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
 				{
 					$ext = File::ext($episode);
 					$dir = dirname($episode);
 					$info['med_season'] = sprintf('%02d', $info['med_season']);
 					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
-					$fname = "{$eps['series']} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
+					$fname = "{$series} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
 					$url = Module::L('tv/rename?src='.urlencode($episode).'&amp;dst='.urlencode("$dir/$fname.$ext"));
 					$msgs['TV/Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
 					$errors++;
@@ -238,12 +230,31 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$ret = array();
-		foreach ($_d['config']['paths']['tv'] as $p)
+
+		# Existing series filesystem entries
+
+		foreach ($_d['config']['paths']['tv']['paths'] as $p)
 			foreach (new FilesystemIterator($p,
 				FilesystemIterator::SKIP_DOTS) as $f)
-				$ret[$f->GetPathname()] = new SeriesEntry($f->GetPathname());
+		{
+			$se = new SeriesEntry($f->GetPathname());
+			$ret[$f->GetPathname()] = $se;
+		}
 
 		ksort($ret);
+		return $ret;
+	}
+
+	static function CollectDS()
+	{
+		global $_d;
+
+		$cr = $_d['entry.ds']->find(array('type' => 'tv'));
+
+		$ret = array();
+
+		foreach ($cr as $i) { $ret[$i['path']] = $i; }
+
 		return $ret;
 	}
 
@@ -252,8 +263,8 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$ret = array();
-		if (!empty($_d['config']['paths']['tv']))
-		foreach ($_d['config']['paths']['tv'] as $p)
+		if (!empty($_d['config']['paths']['tv']['paths']))
+		foreach ($_d['config']['paths']['tv']['paths'] as $p)
 			foreach (glob($p.'/*') as $fx)
 				$ret[] = $fx;
 
@@ -275,6 +286,38 @@ class TV extends MediaLibrary
 Module::Register('TV');
 
 class SeriesEntry extends MediaEntry
+{
+	function __construct($path)
+	{
+		parent::__construct($path);
+
+		global $_d;
+
+		# Collect cover data
+		$this->NoExt = File::GetFile($this->Filename);
+		$thm_path = VarParser::Parse($_d['config']['paths']['tv']['meta'], $this);
+
+		if (file_exists($thm_path))
+			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
+		else
+			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/tv/img/missing.jpg';
+	}
+
+	function CollectEpisodes()
+	{
+		$ret = array();
+
+		foreach (new FilesystemIterator($this->Path,
+			FilesystemIterator::SKIP_DOTS) as $f)
+		{
+			$ret[$f] = new TVEpisodeEntry($f);
+		}
+
+		return $ret;
+	}
+}
+
+class TVEpisodeEntry extends MediaEntry
 {
 }
 

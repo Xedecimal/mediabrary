@@ -1,18 +1,49 @@
 <?php
 
-class ModScrapeTVDB
+class TVDB extends Module implements Scraper
 {
 	const _tvdb_key = '138419DAB0A9141D';
 	const _tvdb_find = 'http://www.thetvdb.com/api/GetSeries.php?seriesname=';
 
 	//http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/all/en.zip
 
-	static function Find($path, $full = false)
+	# Module extension
+
+	function Link()
 	{
 		global $_d;
 
-		$sid = ModScrapeTVDB::GetSID($path);
-		$key = ModScrapeTVDB::_tvdb_key;
+		$_d['tv.cb.check'][$this->Name] = array(&$this, 'cb_tv_check');
+	}
+
+	# Scraper implementation
+
+	public function CanAuto() {
+
+	}
+
+	public function Details($id) {
+
+	}
+
+	public function GetDetails($details, $item) {
+
+	}
+
+	public function GetName() {
+
+	}
+
+	public function Scrape($item, $id = null) {
+
+	}
+
+	function Find($path, $full = false)
+	{
+		global $_d;
+
+		$sid = TVDB::GetSID($path);
+		$key = TVDB::_tvdb_key;
 
 		$ret = '';
 		$dst = $path.'/.info.zip';
@@ -29,12 +60,53 @@ class ModScrapeTVDB
 		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
 		$pi = pathinfo($ban);
 		$series = basename($path);
-		File::MakeFullDir($_d['config']['paths']['tv-meta']);
-		file_put_contents($_d['config']['paths']['tv-meta']."/thm_$series",
+		File::MakeFullDir($_d['config']['paths']['tv']['meta']);
+		file_put_contents($_d['config']['paths']['tv']['meta']."/thm_$series",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 
 		die($ret."Grabbed");
 	}
+
+	# Callbacks
+
+	function cb_tv_check($series, &$msgs)
+	{
+		global $_d;
+
+		$se = new SeriesEntry($series);
+
+		$creps = $_d['entry.ds']->find(array('type' => 'tv-episode', 'parent' => $se->Title));
+		foreach ($creps as $ep)
+		{
+			$dbeps[$ep['season']][$ep['episode']] = $ep;
+		}
+
+		$tvdbeps = TVDB::GetInfo($series);
+
+		foreach ($tvdbeps['eps'] as $s => $eps)
+		{
+			foreach ($eps as $e => $ep)
+			{
+				if (!isset($dbeps[$s][$e]))
+				{
+					$msgs['TVDB/Metadata'][] = "Missing database entry for $series of $s $e.";
+					$tve = new TVEpisodeEntry(null, null);
+					$tve->Data = $ep;
+					$tve->Data['path'] = '';
+					$tve->Data['type'] = 'tv-episode';
+					$tve->Data['season'] = $s;
+					$tve->Data['episode'] = $e;
+					$tve->Data['parent'] = $se->Title;
+					$tve->Data['index'] = "S{$s}E{$e}";
+					$tve->Title = @$ep['title'];
+					$tve->Parent = $se->Title;
+					$_d['entry.ds']->save($tve->Data, array('safe' => 1));
+				}
+			}
+		}
+	}
+
+	# Statics
 
 	static function GetSID($path)
 	{
@@ -50,7 +122,7 @@ class ModScrapeTVDB
 		$file_title = "$path/.title.txt";
 		if (file_exists($file_title)) $realname = file_get_contents($file_title);
 		else $realname = basename($path);
-		$url = ModScrapeTVDB::_tvdb_find.rawurlencode($realname);
+		$url = TVDB::_tvdb_find.rawurlencode($realname);
 		$sx = simplexml_load_string(file_get_contents($url));
 		$sids = $sx->xpath('//Data/Series/seriesid');
 		if (empty($sids)) return -1;
@@ -65,7 +137,7 @@ class ModScrapeTVDB
 	{
 		global $_d;
 
-		$sid = ModScrapeTVDB::GetSID($series);
+		$sid = TVDB::GetSID($series);
 		if ($sid == -1) {
 			echo "Could not locate this series $series";
 			return null;
@@ -87,7 +159,7 @@ class ModScrapeTVDB
 
 	static function GetInfo($series)
 	{
-		$sx = ModScrapeTVDB::GetXML($series);
+		$sx = TVDB::GetXML($series);
 		if (empty($sx)) return array();
 		foreach ($sx->Episode as $ep)
 		{
@@ -105,5 +177,8 @@ class ModScrapeTVDB
 		return $ret;
 	}
 }
+
+Module::Register('TVDB');
+Scrape::Reg('tv', 'TVDB');
 
 ?>

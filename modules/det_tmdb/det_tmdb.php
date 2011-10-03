@@ -294,10 +294,7 @@ EOD;
 
 		global $_d;
 
-		$mp = $_d['config']['paths']['movie-meta'];
-		$next = basename($md->Filename, '.'.$md->Ext);
-
-		if (!file_exists("$mp/thm_$next"))
+		if (empty($md->Image))
 		{
 			$urlunfix = "tmdb/remove?id={$md->Data['_id']}";
 			$msgs['TMDB/Media'][] = <<<EOD

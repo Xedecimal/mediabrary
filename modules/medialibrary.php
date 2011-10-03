@@ -31,15 +31,7 @@ class MediaLibrary extends Module
 			$i->PathEncoded = rawurlencode($i->Path);
 
 			# Thumbnail
-			$i->NoExt = File::GetFile($i->Filename);
-			$thm_path = VarParser::Parse($this->_thumb_path, $i);
-
-			if (file_exists($thm_path))
-				$i->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
-			else
-				$i->Image = $this->_missing_image;
-
-			$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
+			//$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
 			$i->RuePath = rawurlencode($i->Path);
 			$ret .= $vp->ParseVars($g, $i);
 		}
