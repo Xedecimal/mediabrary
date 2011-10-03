@@ -147,17 +147,22 @@ class TV extends MediaLibrary
 		$fs = $this->CollectFS();
 		$ds = $this->CollectDS();
 
+		# Each Series
+
 		if (!empty($_d['config']['paths']['tv']['paths']))
 		foreach ($_d['config']['paths']['tv']['paths'] as $p)
 		foreach (new FilesystemIterator($p,
 		FilesystemIterator::SKIP_DOTS) as $fser)
 		{
 			$series = $fser->GetPathname();
+			$sname = $fser->GetFilename();
+
 			$eps = array();
 
 			foreach ($_d['tv.cb.check'] as $cb)
 				$errors += call_user_func_array($cb, array(&$series, &$msgs));
-			#TODO: Run all cb.tv.check on each series.
+
+			# Each Episode
 
 			foreach (new FilesystemIterator($series,
 			FilesystemIterator::SKIP_DOTS) as $fep)
@@ -171,29 +176,6 @@ class TV extends MediaLibrary
 				{
 					var_dump("Cannot recognize: $episode");
 					continue;
-				}
-
-				$sn = (int)$info['med_season'];
-				$en = (int)$info['med_episode'];
-				$epname = '';
-				if (!empty($eps['eps'][$sn][$en]['title']))
-					$epname = $eps['eps'][$sn][$en]['title'];
-				if (!empty($epname))
-					$epname = MediaLibrary::CleanTitleForFile($epname, false);
-				if (!empty($eps['series']))
-					$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
-
-				# <series> / <series> - S<season>E<episode> - <title>.avi
-				if (!preg_match("@([^/]+)/({$series}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
-				{
-					$ext = File::ext($episode);
-					$dir = dirname($episode);
-					$info['med_season'] = sprintf('%02d', $info['med_season']);
-					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
-					$fname = "{$series} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
-					$url = Module::L('tv/rename?src='.urlencode($episode).'&amp;dst='.urlencode("$dir/$fname.$ext"));
-					$msgs['TV/Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
-					$errors++;
 				}
 			}
 		}
@@ -249,7 +231,11 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		$cr = $_d['entry.ds']->find(array('type' => 'tv'));
+		$cr = $_d['entry.ds']->find(array('$or' => array(
+			array('type' => 'tv-series'),
+			array('type' => 'tv-episode'),
+			array('type' => 'tv-season')
+		)));
 
 		$ret = array();
 

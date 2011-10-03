@@ -10,7 +10,13 @@
 </tr>
 
 <item>
-	<tr class="tr-list-item"><td>{{title}}</td><td>{{released}}</td><td>{{parent}}</td><td>{{index}}</td></tr>
+	<tr class="tr-list-item">
+		<td>{{title}}</td>
+		<td>{{released}}</td>
+		<td>{{parent}}</td>
+		<td>{{index}}</td>
+		<td>{{warnings}}</td>
+	</tr>
 </item>
 
 </table>

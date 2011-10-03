@@ -1,1 +1,4 @@
-#view-list td { border-bottom: 1px solid #333; }
+#view-list td {
+	border-bottom: 1px solid #333;
+	font: 10px Verdana;
+}

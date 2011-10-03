@@ -61,28 +61,56 @@ class Music extends MediaLibrary
 
 	function Check(&$msgs)
 	{
-		$artists = Music::CollectFS();
+		global $_d;
+
+		$fs = Music::CollectFS();
+		$ds = Music::CollectDS();
+
+		foreach ($fs as $p => $e)
+		{
+			if (empty($ds[$p]))
+			{
+				$msgs['Music/Metadata'][] = "Adding missing metadata on {$p}";
+
+				$_d['entry.ds']->save($e->Data, array('safe' => 1));
+			}
+		}
 	}
 
 	static function CollectFS()
 	{
 		global $_d;
 
-		//$pregs = self::GetFSPregs();
-
 		$ret = array();
 		foreach ($_d['config']['paths']['music'] as $p)
 		foreach (new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $f)
 		{
 			if (!$f->isDir()) continue;
-			$ret[] = new ArtistEntry($f->GetPathname());
+
+			$ae = new ArtistEntry($f->GetPathname());
+			$ret[$ae->Path] = $ae;
+			$ret += $ae->CollectFS($f);
 		}
+
 		return $ret;
 	}
 
 	static function CollectDS()
 	{
+		global $_d;
 
+		$cr = $_d['entry.ds']->find(array('$or' => array(
+			array('type' => 'music-artist'),
+			array('type' => 'music-album'),
+			array('type' => 'music-track')
+		)));
+
+		foreach ($cr as $i)
+		{
+			$ret[$i['path']] = $i;
+		}
+
+		return $ret;
 	}
 
 	static function GetFSPregs()
@@ -105,26 +133,65 @@ class ArtistEntry extends MediaEntry
 
 	function __construct($path)
 	{
-		global $_d;
-
 		parent::__construct($path);
 
-		# Collect Albums
-		foreach (new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS) as $f)
-			$ret[] = new AlbumEntry($f->GetPathname());
+		$this->Data['type'] = 'music-artist';
+		$this->Data['parent'] = 'Music';
+	}
 
-		$ent = $_d['entry.ds']->findOne(array('path' => $path));
-		if (!empty($ent)) $this->Data += $ent;
+	function CollectFS($path)
+	{
+		# Collect Albums
+
+		$ret = array();
+		foreach (new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS) as $f)
+		{
+			if (!$f->isDir()) continue;
+
+			$ae = new AlbumEntry($f->getPathname());
+			$ae->Data['parent'] = $this->Title;
+			$ret[$ae->Path] = $ae;
+			$ret += $ae->CollectFS($ae->Path);
+		}
+
+		return $ret;
+	}
+
+	function CollectDS()
+	{
 	}
 }
 
 class AlbumEntry extends MediaEntry
 {
-	public $Tracks = array();
+	function __construct($path)
+	{
+		parent::__construct($path);
+
+		$this->Data['type'] = 'music-album';
+	}
+
+	function CollectFS($path)
+	{
+		$ret = array();
+		foreach (new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS) as $f)
+		{
+			$te = new TrackEntry($f->getPathname());
+			$te->Data['parent'] = $this->Title;
+			$ret[$te->Path] = $te;
+		}
+		return $ret;
+	}
 }
 
 class TrackEntry extends MediaEntry
 {
+	function __construct($path)
+	{
+		parent::__construct($path);
+
+		$this->Data['type'] = 'music-track';
+	}
 }
 
 Module::Register('Music');

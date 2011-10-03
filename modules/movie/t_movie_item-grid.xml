@@ -1,6 +1,6 @@
 <null>
 <item limit="10">
-	<div id="{{Data._id}}" style="background: url('{{ImageCSS}}') no-repeat;" title="{{Path}}"
+	<div id="{{Data._id}}" style="background: url('{{Image}}') no-repeat;" title="{{Path}}"
 		class="movie-item movie-item-grid">
 		<div class="movie-details" style="display: none">
 		<div class="quick-buttons">

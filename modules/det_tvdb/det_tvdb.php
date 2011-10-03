@@ -89,7 +89,7 @@ class TVDB extends Module implements Scraper
 			{
 				if (!isset($dbeps[$s][$e]))
 				{
-					$msgs['TVDB/Metadata'][] = "Missing database entry for $series of $s $e.";
+					$msgs['TVDB/Metadata'][] = "Adding missing database entry for $series of $s $e.";
 					$tve = new TVEpisodeEntry(null, null);
 					$tve->Data = $ep;
 					$tve->Data['path'] = '';
@@ -102,6 +102,28 @@ class TVDB extends Module implements Scraper
 					$tve->Parent = $se->Title;
 					$_d['entry.ds']->save($tve->Data, array('safe' => 1));
 				}
+
+				# Check out the filename.
+
+				/*$epname = '';
+				if (!empty($eps['eps'][$s][$e]['title']))
+					$epname = $eps['eps'][$s][$e]['title'];
+				if (!empty($epname))
+					$epname = MediaLibrary::CleanTitleForFile($epname, false);
+				if (!empty($eps['series']))
+					$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
+
+				# <series> / <series> - S<season>E<episode> - <title>.avi
+				if (!preg_match("@([^/]+)/({$se->Title}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
+				{
+					$dir = dirname($episode);
+					$info['med_season'] = sprintf('%02d', $info['med_season']);
+					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
+					$fname = "{$sname} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
+					$url = Module::L('tv/rename?src='.urlencode($episode).'&amp;dst='.urlencode("$dir/$fname.$ext"));
+					$msgs['TV/Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
+					$errors++;
+				}*/
 			}
 		}
 	}
