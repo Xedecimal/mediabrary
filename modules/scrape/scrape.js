@@ -10,7 +10,7 @@ $(function () {
 		$('.covers-'+name).hide(500, function () {$(this).remove()});
 
 		// Have the owning scraper get us some covers for this selection.
-		$.get(name+'/covers', {id: $(this).val()}, function (data, stat, d2) {
+		$.get(window.app_abs+'/'+name+'/covers', {id: $(this).val()}, function (data, stat, d2) {
 			$.each(data.covers, function (ix, url) {
 				var ins = $('<input type="image" src="'+url
 					+'" class="scrape-cover covers-'+data.id+'" width="185"'
@@ -22,7 +22,7 @@ $(function () {
 	});
 
 	$('.scrape-cover').live('click', function () {
-		var fs_path = $('#movie_path').val();
+		var fs_path = $('#detail-path').val();
 
 		var cov = $(this).attr('src');
 
@@ -36,8 +36,14 @@ $(function () {
 			ids[$(item).attr('name')] = $(item).val();
 		});
 
-		dat = { path: fs_path, cover: cov, 'ids': ids }
-		$.get('scrape/scrape', dat, function (data) {
+		dat = {
+			'type': $('#detail-type').val(),
+			path: fs_path,
+			cover: cov,
+			'ids': ids
+		};
+
+		$.get(window.app_abs+'/scrape/scrape', dat, function (data) {
 		}, 'json');
 
 		// Close movie dialog
@@ -67,7 +73,7 @@ function scape_find(event) {
 		dat['date'] = $('#movie_released').val();
 	}
 
-	$.get('scrape/find', dat, function (data) {
+	$.get(window.app_abs+'/scrape/find', dat, function (data) {
 		$('#details').html(data);
 	}, 'html');
 

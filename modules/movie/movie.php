@@ -18,7 +18,7 @@ class Movie extends MediaLibrary
 
 		$this->_items = array();
 		$this->_class = 'movie';
-		$this->_thumb_path = $_d['config']['paths']['movie-meta'];
+		$this->_thumb_path = $_d['config']['paths']['movie']['meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/movie/img/missing.jpg';
 
@@ -47,11 +47,6 @@ class Movie extends MediaLibrary
 			if (!empty($_d['q'][2]))
 				$item->Data = $_d['entry.ds']->findOne(array('_id' =>
 					new MongoID($_d['q'][2])));
-
-			$this->details = array();
-			foreach ($_d['cb.detail'] as $cb)
-				$this->details = call_user_func_array($cb, array($this->Name,
-					$this->details, $item));
 
 			$t->Set($item);
 			$this->_item = $item;
@@ -147,6 +142,7 @@ class Movie extends MediaLibrary
 
 		if (!$this->Active) return;
 
+		$_d['movie.cb.query']['limit'] = 50;
 		$query = $_d['movie.cb.query'];
 		$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
@@ -174,7 +170,7 @@ class Movie extends MediaLibrary
 		$ret .= $t->ParseFile($this->_template);
 		$ret .= $_d['movie.add'];
 
-		die($ret);
+		return $ret;
 	}
 
 	function TagDetailItem($t, $g, $a)
@@ -394,7 +390,7 @@ EOD;
 		$pregs = Movie::GetFSPregs();
 
 		if (!empty($_d['config']['paths']['movie']))
-		foreach ($_d['config']['paths']['movie'] as $p)
+		foreach ($_d['config']['paths']['movie']['paths'] as $p)
 		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS
 			| FilesystemIterator::UNIX_PATHS) as $f)
 		{
@@ -409,8 +405,8 @@ EOD;
 	{
 		global $_d;
 
-		if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
-			$_d['movie.cb.query']['limit'] = 50;
+		//if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
+		//	$_d['movie.cb.query']['limit'] = 50;
 
 		if (empty($_d['movie.cb.query']['order']))
 			$_d['movie.cb.query']['order'] = array('obtained' => -1);

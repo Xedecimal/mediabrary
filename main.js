@@ -5,13 +5,7 @@ window.refreshAll = function() {
 };
 
 $(function () {
-	window.refreshAll();
-	$('.nav a').click(function () {
-		$('#content').load($(this).attr('href'));
-		return false;
-	});
-
 	$('#left').animate({'marginLeft': -190});
-	$('#left').mouseenter(function () { $('#left').animate({'marginLeft': 0}); });
-	$('#left').mouseleave(function () { $('#left').animate({'marginLeft': -190}); });
+	$('#left').mouseenter(function () { $('#left').css({'marginLeft': 0}); });
+	$('#left').mouseleave(function () { $('#left').css({'marginLeft': -190}); });
 });

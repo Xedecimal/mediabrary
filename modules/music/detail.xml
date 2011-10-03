@@ -1,6 +1,10 @@
-<div id="details">
-<input type="hidden" id="detail-type" value="music" />
+<div id="detail-wrap">
+<input type="hidden" id="detail-type" value="music-artist" />
 <input type="hidden" id="detail-path" value="{{Path}}" />
-<callback ds="_d" name="cb.detail.buttons" type="music" />
+<callback ds="_d" name="cb.detail.buttons" type="music-artist" />
+<div id="details">
 Details for {{Path}}
+
+<callback ds="_d" name="cb.detail.entry" type="music-artist" />
 </div>
+</div> <!-- #detail-wrap -->

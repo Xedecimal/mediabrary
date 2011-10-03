@@ -11,7 +11,7 @@ class Music extends MediaLibrary
 
 		global $_d;
 
-		$this->_thumb_path = $_d['config']['paths']['music-meta'];
+		$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/music/img/missing.jpg';
 	}
@@ -20,7 +20,8 @@ class Music extends MediaLibrary
 	{
 		global $_d;
 
-		$_d['nav.links']['Media/Music'] = '{{app_abs}}/music';
+		$_d['nav.links']['Media/Music/Grid'] = '{{app_abs}}/music/grid';
+		$_d['nav.links']['Media/Music/List'] = '{{app_abs}}/music/list';
 	}
 
 	function Prepare()
@@ -43,29 +44,19 @@ class Music extends MediaLibrary
 	{
 		global $_d;
 
-		$url_css = Module::P('music/music.css');
-		$url_js = Module::P('music/music.js');
-
-		$ret = <<<EOF
-<link type="text/css" rel="stylesheet" href="$url_css" />
-<script type="text/javascript" src="$url_js"></script>
-EOF;
-
 		if (!$this->Active) return;
-
-		$this->_items = $this->CollectFS();
 
 		if (@$_d['q'][1] == 'items')
 		{
-			$this->_template = Module::L('music/item.xml');
+			$this->_items = $this->CollectFS();
+			$type = $_d['q'][2];
+			$this->_template = Module::L('music/item-'.$type.'.xml');
 			die(parent::Get());
 		}
 
 		$this->_template = Module::L('music/music.xml');
 		$t = new Template();
-		$ret .= $t->ParseFile($this->_template);
-
-		die($ret);
+		return $t->ParseFile($this->_template);
 	}
 
 	static function CollectFS()
@@ -104,11 +95,16 @@ class ArtistEntry extends MediaEntry
 
 	function __construct($path)
 	{
+		global $_d;
+
 		parent::__construct($path);
 
 		# Collect Albums
 		foreach (new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS) as $f)
 			$ret[] = new AlbumEntry($f->GetPathname());
+
+		$ent = $_d['entry.ds']->findOne(array('path' => $path));
+		if (!empty($ent)) $this->Data += $ent;
 	}
 }
 

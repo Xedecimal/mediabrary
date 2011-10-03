@@ -15,3 +15,8 @@
 	text-shadow: #000 2px 2px;
 	text-align: center;
 }
+
+.music-list .name
+{
+	width: 200px;
+}

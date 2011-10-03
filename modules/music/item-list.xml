@@ -1,0 +1,6 @@
+<div class="music-list">
+<div class="name">Name</div>
+<item>
+<div class="name"><a href="music/detail?path={{PathEncoded}}" class="a-music-item">{{Title}}</a></div>
+</item>
+</div>

@@ -12,5 +12,5 @@ $(function () {
 		return false;
 	});
 
-	$('#music-items').load('music/items');
+	$('#music-items').load('items/'+window.location.href.match(/([^\/]+)$/)[1]);
 });

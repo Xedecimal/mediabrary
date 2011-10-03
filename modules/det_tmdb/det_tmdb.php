@@ -468,8 +468,11 @@ EOD;
 
 		$td = &$item->Data['details'][$this->Name];
 
-		$details['TMDB/URL'] = '<a href="'.
+		$ret = "TMDB/URL: ".'<a href="'.
 			$td['url'].'" target="_blank">Visit</a>';
+
+		return $ret;
+
 		$trailer = $td['trailer'];
 		if (!empty($trailer))
 		{
@@ -488,6 +491,6 @@ EOF;
 }
 
 Module::Register('TMDB');
-Scrape::RegisterScraper('movie', 'TMDB');
+Scrape::Reg('movie', 'TMDB');
 
 ?>

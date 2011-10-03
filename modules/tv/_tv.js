@@ -43,5 +43,5 @@ $(function () {
 		});
 	});
 
-	$('#tv-items').load('tv/items');
+	$('#tv-items').load(window.app_abs+'/tv/items');
 });

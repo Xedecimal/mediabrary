@@ -3,10 +3,11 @@
 <meta charset="utf-8" />
 <title>Mediabrary</title>
 <script type="text/javascript">
-var app_abs = '{{app_abs}}';
+window.app_abs = '{{app_abs}}';
 </script>
 <script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.js"></script>
 <script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.ui.js"></script>
+<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.history.js"></script>
 <script type="text/javascript" src="{{app_abs}}/main.js"></script>
 
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/dot-luv/jquery.ui.css" />

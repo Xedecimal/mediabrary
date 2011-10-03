@@ -6,7 +6,35 @@ class Discogs extends Module implements Scraper
 	public $Link = 'http://www.discogs.com/';
 	public $Icon = 'modules/det_discogs/icon.png';
 
-	const URL_ARTIST = 'http://api.discogs.com/search?f=json&type=artists&q=';
+	const HTTP_HEADER = "User-Agent: Mediabrary/0.1 +http://code.google.com/p/mediabrary\r\nAccept-Encoding: gzip\r\n";
+	const URL_SEARCH = 'http://api.discogs.com/search?f=json&type=artists&q=';
+	const URL_ARTIST = 'http://api.discogs.com/artist/{{id}}?f=json';
+
+	function __construct()
+	{
+		$this->CheckActive($this->Name);
+	}
+
+	function Prepare()
+	{
+		global $_d;
+
+		if (!$this->Active) return;
+
+		if (@$_d['q'][1] == 'covers')
+		{
+			$id = Server::GetVar('id');
+
+			$data = self::Details($id);
+
+			$ret['id'] = $this->Name;
+
+			foreach ($data['images'] as $img)
+				$ret['covers'][] = $img['uri'];
+
+			die(json_encode($ret));
+		}
+	}
 
 	# Scraper Implementation
 
@@ -16,11 +44,10 @@ class Discogs extends Module implements Scraper
 	function Find($path)
 	{
 		$ae = new ArtistEntry($path);
-		$opts['http']['header'] = "User-Agent: Mediabrary/0.1 +http://code.google.com/p/mediabrary\r\nAccept-Encoding: gzip\r\n";
+		$opts['http']['header'] = Discogs::HTTP_HEADER;
 		$cx = stream_context_create($opts);
-		$data = file_get_contents(Discogs::URL_ARTIST.rawurlencode($ae->Title), null, $cx);
+		$data = file_get_contents(Discogs::URL_SEARCH.rawurlencode($ae->Title), null, $cx);
 		$data = json_decode($data);
-		//var_dump($data);
 
 		if (!empty($data->resp->search->exactresults))
 			$ress = $data->resp->search->exactresults;
@@ -43,18 +70,33 @@ class Discogs extends Module implements Scraper
 
 	function Details($id)
 	{
-		die('Ouch.');
+		//TODO: We need to cover music-artist, music-album and music-track here.
+
+		$url = VarParser::Parse(Discogs::URL_ARTIST, array('id' => rawurlencode($id)));
+
+		$opts['http']['header'] = Discogs::HTTP_HEADER;
+		$cx = stream_context_create($opts);
+		$res = json_decode(file_get_contents($url, null, $cx), true);
+
+		return $res['resp']['artist'];
 	}
-	function Scrape($item, $id = null)
+
+	function Scrape($data, $id = null)
 	{
-		die('Ouch.');
+		if ($data['type'] == 'music-artist')
+		{
+			$data['details'][$this->Name] = $this->Details($id);
+		}
+		return $data;
 	}
-	function GetDetails($details, $item)
+
+	function GetDetails($details, $data)
 	{
-		die('Ouch.');
+		var_dump($data);
 	}
 }
 
-Scrape::RegisterScraper('music', 'Discogs');
+Module::Register('Discogs');
+Scrape::Reg('music-artist', 'Discogs');
 
 ?>

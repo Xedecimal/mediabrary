@@ -11,7 +11,7 @@ class Scrape extends Module
 		global $_d;
 
 		$_d['cb.detail.buttons']['scrape'] = array(&$this, 'cb_detail_buttons');
-		$_d['cb.detail']['scrape'] = array(&$this, 'cb_detail');
+		$_d['cb.detail.entry']['scrape'] = array(&$this, 'cb_detail_entry');
 	}
 
 	function Prepare()
@@ -45,29 +45,31 @@ class Scrape extends Module
 		{
 			$ids = Server::GetVar('ids');
 			$path = Server::GetVar('path');
+			$type = Server::GetVar('type');
 
 			$auto = false;
 
-			# @TODO: Move this to MovieScrape.
+			# @TODO: Move elsewhere.
 			# This is automated
-			if (empty($ids))
+			/*if (empty($ids))
 			{
 				$auto = true;
 				$mov = new MovieEntry($path, Movie::GetFSPregs());
 				foreach ($_d['scrape.scrapers'] as $s)
 					if ($s->CanAuto()) $ids[$s] = null;
-			}
+			}*/
 
 			# Collect generic information
 			$q['path'] = $path;
-			$item = new MovieEntry($path, Movie::GetFSPregs());
+			$item = new MediaEntry($path);
 			$ds = $_d['entry.ds']->findOne($q);
+			$ds['type'] = $type;
 			if (!empty($ds)) $item->Data += $ds;
 
 			# Collect scraper information
 			foreach ($ids as $sc => $id)
-				$item->Data = $_d['scrape.scrapers'][$sc]->Scrape($item->Data,
-					$id);
+				$item->Data = $_d['scrape.scrapers'][$type][$sc]->Scrape(
+					$item->Data, $id);
 
 			# Save details
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));
@@ -75,9 +77,9 @@ class Scrape extends Module
 			# TODO: Save first cover on auto-scrape.
 			if (!$auto)
 			{
-				$filename = basename($item->Filename, '.'.$item->Ext);
-				$ct = "{$_d['config']['paths']['movie-meta']}/thm_{$filename}";
-				file_put_contents($ct, file_get_contents(Server::GetVar('cover')));
+				$item->NoExt = basename($item->Filename, '.'.$item->Ext);
+				$dst = VarParser::Parse($_d['config']['paths'][$type]['meta'], $item);
+				file_put_contents($dst, file_get_contents(Server::GetVar('cover')));
 			}
 
 			die(json_encode($item));
@@ -100,7 +102,8 @@ EOF;
 
 	function cb_detail_buttons($t, $a)
 	{
-		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="img/find.png"
+		$img = Module::P('img/find.png');
+		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="'.$img.'"
 			alt="Find" /></a>';
 
 		# @TODO: Remove TMDB reference.
@@ -117,12 +120,13 @@ EOF;
 		return $ret;
 	}
 
-	function cb_detail($type, $details, $item)
+	function cb_detail_entry($t, $a)
 	{
 		global $_d;
 
-		foreach ($_d['scrape.scrapers'][$type] as $s)
-			$details = $s->GetDetails($details, $item);
+		$details = array();
+		foreach ($_d['scrape.scrapers'][$a['TYPE']] as $s)
+			$details = $s->GetDetails($details, $t->vars['Data']);
 
 		return $details;
 	}
@@ -156,7 +160,7 @@ EOF;
 
 	# Static Tooling
 
-	static function RegisterScraper($type, $class)
+	static function Reg($type, $class)
 	{
 		global $_d;
 		$_d['scrape.scrapers'][$type][$class] = new $class;

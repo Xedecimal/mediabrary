@@ -7,7 +7,7 @@ class ModPlayer extends Module
 		global $_d;
 
 		$_d['tv.cb.buttons']['player'] = array(&$this, 'cb_buttons_player');
-		$_d['movie.cb.buttons']['player'] = array(&$this, 'cb_buttons_player');
+		$_d['cb.detail.buttons']['player'] = array(&$this, 'cb_buttons_player');
 		$_d['movie.cb.cover']['player'] = array(&$this, 'cb_buttons_cover');
 	}
 

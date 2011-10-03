@@ -101,13 +101,11 @@ class RottenTomatoes extends Module implements Scraper
 		if (!isset($item->Data['details'][$this->Name])) return $details;
 
 		$cc = @$item->Data['details'][$this->Name]['critics_consensus'];
-		if (!empty($cc)) $details['Rotten Tomatoes'] = $cc;
-
-		return $details;
+		if (!empty($cc)) return "Rotten Tomatoes: $cc";
 	}
 }
 
 Module::Register('RottenTomatoes');
-Scrape::RegisterScraper('movie', 'RottenTomatoes');
+Scrape::Reg('movie', 'RottenTomatoes');
 
 ?>

@@ -1,3 +1,5 @@
 <div id="music">
+<link type="text/css" rel="stylesheet" href="music/music.css" />
+<script type="text/javascript" src="music/music.js"></script>
 <div id="music-items"></div>
 </div>

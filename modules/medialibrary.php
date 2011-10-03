@@ -12,25 +12,30 @@ class MediaLibrary extends Module
 		return $t->Parsefile($this->_template);
 	}
 
-	function TagItem($t, $g)
+	function TagItem($t, $g, $a)
 	{
 		global $_d;
 
 		$vp = new VarParser();
 		$ret = '';
 
+		$ix = 0;
 		if (!empty($this->_items))
 		foreach ($this->_items as $i)
 		{
+			$ix++;
+
+			//if (!empty($a['LIMIT']) && $ix >= $a['LIMIT']) break;
+
 			# URL friendly path
 			$i->PathEncoded = rawurlencode($i->Path);
 
 			# Thumbnail
-			$thm_path = $this->_thumb_path.
-				'/thm_'.File::GetFile($i->Filename);
+			$i->NoExt = File::GetFile($i->Filename);
+			$thm_path = VarParser::Parse($this->_thumb_path, $i);
+
 			if (file_exists($thm_path))
-				$i->Image = $this->_thumb_path.
-					'/thm_'.File::GetFile($i->Filename);
+				$i->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
 			else
 				$i->Image = $this->_missing_image;
 

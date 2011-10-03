@@ -138,7 +138,7 @@ class TV extends MediaLibrary
 			$t = new Template();
 			$t->Set($this->_vars);
 			$t->Set('needed', $needed);
-			die($t->ParseFile($this->_template));
+			return $t->ParseFile($this->_template);
 		}
 	}
 
@@ -315,7 +315,7 @@ class ModTVEpisode extends MediaLibrary
 		return parent::Get();
 	}
 
-	function TagItem($t, $g)
+	function TagItem($t, $g, $a)
 	{
 		$vp = new VarParser();
 

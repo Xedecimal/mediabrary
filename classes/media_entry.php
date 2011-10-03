@@ -8,9 +8,10 @@ class MediaEntry
 
 	# Metadata
 	public $Title;
-	
+
 	function __construct($path, $parses = null)
 	{
+		$this->Data = array('path' => $path);
 		$this->Path = $path;
 		$this->Filename = basename($path);
 		$this->Ext = File::ext($this->Filename);
