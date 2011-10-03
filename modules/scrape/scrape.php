@@ -125,8 +125,11 @@ EOF;
 		global $_d;
 
 		$details = '';
-		foreach ($_d['scrape.scrapers'][$a['TYPE']] as $s)
-			$details .= $s->GetDetails($details, $t->vars['Data']);
+		foreach ($_d['scrape.scrapers'][$a['TYPE']] as $sn)
+		{
+			$s = new $sn;
+			$details .= $s->GetDetails($details, $t->vars);
+		}
 
 		return $details;
 	}

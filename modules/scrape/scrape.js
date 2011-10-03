@@ -46,8 +46,9 @@ $(function () {
 		$.get(window.app_abs+'/scrape/scrape', dat, function (data) {
 		}, 'json');
 
-		// Close movie dialog
-		$('#dialog-movie').dialog('close');
+		// Restore dialog contents.
+		$('#details-wrap').load(window.app_abs+'/'+dat['type']+'/detail/'
+			+$('#detail-id').val());
 	});
 });
 

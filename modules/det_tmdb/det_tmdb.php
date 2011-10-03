@@ -459,11 +459,11 @@ EOD;
 		return $item;
 	}
 
-	function GetDetails($details, $item)
+	function GetDetails($details, $data)
 	{
-		if (!isset($item->Data['details'][$this->Name])) return $details;
+		if (empty($data['Data']['details'][$this->Name])) return $details;
 
-		$td = &$item->Data['details'][$this->Name];
+		$td = &$data['Data']['details'][$this->Name];
 
 		$ret = "TMDB/URL: ".'<a href="'.
 			$td['url'].'" target="_blank">Visit</a>';

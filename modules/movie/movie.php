@@ -39,11 +39,14 @@ class Movie extends MediaLibrary
 		{
 			$t = new Template();
 
-			$item = new MovieEntry(Server::GetVar('path'), self::GetFSPregs());
+			$id = $_d['q'][2];
+			$data = $_d['entry.ds']->findOne(array('_id' => new MongoId($id)));
+			$item = new MovieEntry($data['path'], self::GetFSPregs());
+			$item->Data += $data;
 
-			if (!empty($_d['q'][2]))
+			/*if (!empty($_d['q'][2]))
 				$item->Data = $_d['entry.ds']->findOne(array('_id' =>
-					new MongoID($_d['q'][2])));
+					new MongoID($_d['q'][2])));*/
 
 			$t->Set($item);
 			$this->_item = $item;

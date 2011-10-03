@@ -1,17 +1,18 @@
 <div id="view-list">
 
 <link type="text/css" rel="stylesheet" href="view_list/view_list.css" />
+<script type="text/javascript" src="view_list/view_list.js"></script>
 
 <table><tr>
-	<th><input type="text" value="Name" /> AV</th>
-	<th><input type="text" value="Date" /> AV</th>
-	<th><input type="text" value="Parent" /> AV</th>
-	<th><input type="text" value="Sibling Index" /> AV</th>
+	<th><input type="text" value="Name" /> &uarr; &darr;</th>
+	<th><input type="text" value="Date" size="5" /> &uarr; &darr;</th>
+	<th><input type="text" value="Parent" /> &uarr; &darr;</th>
+	<th><input type="text" value="Sibling Index" /> &uarr; &darr;</th>
 </tr>
 
 <item>
 	<tr class="tr-list-item">
-		<td>{{title}}</td>
+		<td><a href="{{type}}/detail/{{_id}}" class="a-title">{{title}}</a></td>
 		<td>{{released}}</td>
 		<td>{{parent}}</td>
 		<td>{{index}}</td>

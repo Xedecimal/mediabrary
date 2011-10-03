@@ -219,7 +219,7 @@ class TV extends MediaLibrary
 			foreach (new FilesystemIterator($p,
 				FilesystemIterator::SKIP_DOTS) as $f)
 		{
-			$se = new SeriesEntry($f->GetPathname());
+			$se = new TVSeriesEntry($f->GetPathname());
 			$ret[$f->GetPathname()] = $se;
 		}
 
@@ -257,7 +257,7 @@ class TV extends MediaLibrary
 		return $ret;
 	}
 
-	static function GetInfo($series)
+	/*static function GetInfo($series)
 	{
 		$eps = array();
 		foreach (TV::$scrapers as $s)
@@ -266,12 +266,12 @@ class TV extends MediaLibrary
 			$eps = array_replace_recursive($eps, $neps);
 		}
 		return $eps;
-	}
+	}*/
 }
 
 Module::Register('TV');
 
-class SeriesEntry extends MediaEntry
+class TVSeriesEntry extends MediaEntry
 {
 	function __construct($path)
 	{
@@ -320,7 +320,7 @@ class ModTVEpisode extends MediaLibrary
 		global $_d;
 		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['Path']);
 
-		$sx = ModScrapeTVDB::GetXML($this->_vars['Path']);
+		/*$sx = ModScrapeTVDB::GetXML($this->_vars['Path']);
 		if (!empty($sx))
 		{
 			$elEps = $sx->xpath('//Episode');
@@ -335,7 +335,7 @@ class ModTVEpisode extends MediaLibrary
 				$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
 				$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
 			}
-		}
+		}*/
 
 		$t = new Template();
 		$t->ReWrite('item', array(&$this, 'TagItem'));
@@ -487,7 +487,8 @@ class ModTVEpisode extends MediaLibrary
 		$eps = ModTVEpisode::GetExistingEpisodes($series);
 
 		# All Episodes
-		$aeps = TV::GetInfo($series);
+		//$aeps = TV::GetInfo($series);
+		$aeps = array('eps' => array());
 
 		$ret = array();
 		foreach ($aeps['eps'] as $sn => $season)

@@ -75,6 +75,7 @@ class RottenTomatoes extends Module implements Scraper
 		foreach ($dat['movies'] as $m)
 		{
 			$ret[$m['id']] = array(
+				'id' => $m['id'],
 				'title' => $m['title'],
 				'date' => $m['year'],
 				'cover' => $m['posters']['detailed'],
