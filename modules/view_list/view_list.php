@@ -27,7 +27,6 @@ class ViewList extends Module
 		global $_d;
 
 		$cr = $_d['entry.ds']->find()->limit(100);
-		$cr->sort(array('index' => -1, 'title' => 1));
 
 		$res = array();
 		foreach ($cr as $i)

@@ -41,10 +41,10 @@ class TV extends MediaLibrary
 			if (@$_d['q'][1] == 'detail')
 			{
 				$ds = $_d['entry.ds']->findOne(array('_id' => new MongoId($_d['q'][2])));
-				var_dump($ds);
 				$i = new TVEpisodeEntry($ds['path']);
 				$t = new Template();
 				$t->Set($i);
+				$t->Set($ds);
 				die($t->ParseFile(Module::L('tv/tv-episode-detail.xml')));
 			}
 		}
@@ -486,33 +486,33 @@ class ModTVEpisode extends MediaLibrary
 			if (substr($f->GetFilename(), 0, 1) == '.') continue;
 
 			$p = $f->GetPathname();
-			$i = MediaLibrary::ScrapeFS($p, ModTVEpisode::GetFSPregs());
+			$i = MediaLibrary::ScrapeFS($p, TVEpisodeEntry::GetFSPregs());
 			#$i = $tvi->ScrapeFS($f);
 
-			if (!isset($i['med_episode']))
+			if (!isset($i['episode']))
 			{
 				U::VarInfo('Missing episode on this...');
 				U::VarInfo($i);
 				continue;
 			}
 			// Multi-episode file
-			if (preg_match('/([0-9]+)-([0-9]+)/', $i['med_episode'], $m))
+			if (preg_match('/([0-9]+)-([0-9]+)/', $i['episode'], $m))
 			{
 				for ($ix = $m[1]; $ix <= $m[2]; $ix++)
 				{
-					$i['med_episode'] = $ix;
-					$snf = number_format($i['med_season']);
-					$enf = number_format($i['med_episode']);
+					$i['episode'] = $ix;
+					$snf = number_format($i['season']);
+					$enf = number_format($i['episode']);
 					$ret[$snf][$enf] = $i;
 				}
 			}
 			else
 			{
 
-				$snf = isset($i['med_season'])
-					? number_format($i['med_season'])
+				$snf = isset($i['season'])
+					? number_format($i['season'])
 					: 1;
-				$enf = number_format($i['med_episode']);
+				$enf = number_format($i['episode']);
 				$ret[$snf][$enf] = $i;
 			}
 		}

@@ -98,8 +98,7 @@ class TVDB extends Module implements Scraper
 
 				$msgs['TVDB/Metadata'][] = "Adding missing database entry for $series of $s $e.";
 
-				if (!empty($dbeps[$s][$e]))
-					$tve->Data = $dbeps[$s][$e];
+				if (!empty($dbeps[$s][$e])) $tve->Data = $dbeps[$s][$e];
 
 				$tve->Data['details'][$this->Name] = $ep;
 
@@ -194,27 +193,32 @@ class TVDB extends Module implements Scraper
 		$za->open($infoloc);
 		$xml = $za->getFromName('en.xml');
 		$za->close();
-		return simplexml_load_string($xml);
+		return Arr::FromXML($xml);
 	}
 
 	static function GetInfo($series)
 	{
-		$sx = TVDB::GetXML($series);
-		if (empty($sx)) return array();
-		foreach ($sx->Episode as $ep)
+		$info = TVDB::GetXML($series);
+		if (empty($info)) return array();
+		foreach ($info['Episode'] as $ep)
 		{
-			$sn = (int)$ep->SeasonNumber;
-			$en = (int)$ep->EpisodeNumber;
-			if (!empty($ep->FirstAired))
-				$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
-			if (!empty($ep->EpisodeName))
-				$ret['eps'][$sn][$en]['title'] = MediaLibrary::CleanString((string)$ep->EpisodeName);
+			$sn = (int)$ep['SeasonNumber'];
+			$en = (int)$ep['EpisodeNumber'];
+
+			$item['details']['TVDB'] = $ep;
+
+			if (!empty($ep['FirstAired']))
+				$item['aired'] = Database::MyDateTimestamp($ep['FirstAired']);
+			if (!empty($ep['EpisodeName']))
+				$item['title'] = MediaLibrary::CleanString($ep['EpisodeName']);
 
 			# Build TVDB url
-			$eid = (string)$ep->id;
-			$snid = (string)$ep->seasonid;
-			$srid = (string)$ep->seriesid;
-			$ret['eps'][$sn][$en]['links']['TVDB'] = "http://thetvdb.com/index.php?tab=episode&amp;seriesid=$srid&amp;seasonid=$snid&amp;id=$eid";
+			$eid = $ep['id'];
+			$snid = $ep['seasonid'];
+			$srid = $ep['seriesid'];
+			$item['links']['TVDB'] = "http://thetvdb.com/index.php?tab=episode&amp;seriesid=$srid&amp;seasonid=$snid&amp;id=$eid";
+
+			$ret['eps'][$sn][$en] = $item;
 		}
 		return $ret;
 	}
