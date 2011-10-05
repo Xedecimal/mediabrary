@@ -32,8 +32,15 @@ class MediaEntry
 		}
 		else $this->Title = $this->Filename;
 
-		$this->Parent = 'Unknown';
-		$this->Data = array('path' => $path, 'title' => $this->Title);
+		if (!empty($path)) $this->Data['path'] = $path;
+		if (!empty($this->Title)) $this->Data['title'] = $this->Title;
+		if (!empty($this->Type)) $this->Data['type'] = $this->Type;
+	}
+
+	function save_to_db()
+	{
+		global $_d;
+		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
 	}
 }
 

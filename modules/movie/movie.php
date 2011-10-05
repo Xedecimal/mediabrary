@@ -486,6 +486,8 @@ EOD;
 
 class MovieEntry extends MediaEntry
 {
+	public $Type = 'movie';
+
 	function __construct($path, $pregs = null)
 	{
 		parent::__construct($path, $pregs);

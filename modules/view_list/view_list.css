@@ -1,2 +1,4 @@
 #view-list { font: 10px Verdana; }
 #view-list td { border-bottom: 1px solid #333; }
+#view-list .missing td { opacity: 0.5; }
+#view-list .unavail td { color: #FCC; }

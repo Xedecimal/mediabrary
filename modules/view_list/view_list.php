@@ -26,9 +26,33 @@ class ViewList extends Module
 	{
 		global $_d;
 
-		$cr = $_d['entry.ds']->find();
+		$cr = $_d['entry.ds']->find()->limit(100);
+		$cr->sort(array('index' => -1, 'title' => 1));
 
-		return VarParser::Concat($g, $cr);
+		$res = array();
+		foreach ($cr as $i)
+		{
+			# We do not have this item.
+			if (empty($i['path']))
+			{
+				# Release date is available.
+				if (!empty($i['released']))
+					# Has not yet been released, we can't get it.
+					if ($i['released']->sec > time())
+						$i['class'] = 'unavail';
+				# Should be available.
+				else $i['class'] = 'missing';
+			}
+			else $i['class'] = 'existing';
+
+			if (!empty($i['released']))
+				if (is_object($i['released']))
+					$i['released'] = date('Y-m-d', $i['released']->sec);
+
+			$res[] = $i;
+		}
+
+		return VarParser::Concat($g, $res);
 	}
 }
 

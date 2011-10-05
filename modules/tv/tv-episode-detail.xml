@@ -1,0 +1,7 @@
+<div id="detail-wrap">
+	<div class="tv-buttons"><callback ds="_d" name="cb.detail.buttons" type="tv-episode" /></div>
+
+	<input type="hidden" id="detail-type" value="{{Data.type}}" />
+	<input type="hidden" id="detail-id" value="{{Data._id}}" />
+	<input type="hidden" id="detail-path" value="{{Data.path}}" />
+</div>

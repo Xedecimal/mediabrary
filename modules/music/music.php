@@ -66,7 +66,8 @@ class Music extends MediaLibrary
 		$fs = Music::CollectFS();
 		$ds = Music::CollectDS();
 
-		foreach ($fs as $p => $e)
+		# @TODO: Bring this back when things are looking better.
+		/*foreach ($fs as $p => $e)
 		{
 			if (empty($ds[$p]))
 			{
@@ -74,7 +75,7 @@ class Music extends MediaLibrary
 
 				$_d['entry.ds']->save($e->Data, array('safe' => 1));
 			}
-		}
+		}*/
 	}
 
 	static function CollectFS()
@@ -129,6 +130,7 @@ class Music extends MediaLibrary
 
 class ArtistEntry extends MediaEntry
 {
+	public $Type = 'music-artist';
 	public $Albums = array();
 
 	function __construct($path)
@@ -164,6 +166,8 @@ class ArtistEntry extends MediaEntry
 
 class AlbumEntry extends MediaEntry
 {
+	public $Type = 'music-album';
+
 	function __construct($path)
 	{
 		parent::__construct($path);
@@ -186,6 +190,8 @@ class AlbumEntry extends MediaEntry
 
 class TrackEntry extends MediaEntry
 {
+	public $Type = 'music-track';
+
 	function __construct($path)
 	{
 		parent::__construct($path);

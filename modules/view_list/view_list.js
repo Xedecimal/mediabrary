@@ -4,7 +4,7 @@ $(function () {
 			width: '80%',
 			height: 500,
 			position: 'top',
-			title: 'Movie Details'
+			title: 'Item Details'
 		}).load($(this).attr('href'));
 
 		return false;

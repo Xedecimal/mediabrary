@@ -10,7 +10,7 @@ class TV extends MediaLibrary
 
 		$this->_class = 'tv';
 
-		$this->CheckActive('tv');
+		$this->CheckActive(array('tv', 'tv-episode'));
 	}
 
 	static function GetFSPregs()
@@ -35,6 +35,19 @@ class TV extends MediaLibrary
 		if (!$this->Active) return;
 
 		global $_d;
+
+		if (@$_d['q'][0] == 'tv-episode')
+		{
+			if (@$_d['q'][1] == 'detail')
+			{
+				$ds = $_d['entry.ds']->findOne(array('_id' => new MongoId($_d['q'][2])));
+				var_dump($ds);
+				$i = new TVEpisodeEntry($ds['path']);
+				$t = new Template();
+				$t->Set($i);
+				die($t->ParseFile(Module::L('tv/tv-episode-detail.xml')));
+			}
+		}
 
 		if (@$_d['q'][1] == 'getrss')
 		{
@@ -136,52 +149,64 @@ class TV extends MediaLibrary
 		}
 	}
 
+	# Checks
+
 	function Check(&$msgs)
 	{
 		global $_d;
 
 		$errors = 0;
 
-		$pregs = ModTVEpisode::GetFSPregs();
-
 		$fs = $this->CollectFS();
 		$ds = $this->CollectDS();
 
 		# Each Series
 
-		if (!empty($_d['config']['paths']['tv']['paths']))
-		foreach ($_d['config']['paths']['tv']['paths'] as $p)
-		foreach (new FilesystemIterator($p,
-		FilesystemIterator::SKIP_DOTS) as $fser)
+		foreach ($fs as $p => $s)
 		{
-			$series = $fser->GetPathname();
-			$sname = $fser->GetFilename();
-
 			$eps = array();
 
-			foreach ($_d['tv.cb.check'] as $cb)
-				$errors += call_user_func_array($cb, array(&$series, &$msgs));
+			$epfs = $s->CollectEpisodes();
 
 			# Each Episode
 
-			foreach (new FilesystemIterator($series,
+			foreach (new FilesystemIterator($p,
 			FilesystemIterator::SKIP_DOTS) as $fep)
 			{
 				if (substr($fep->GetFilename(), 0, 1) == '.') continue;
 
 				$episode = str_replace('\\', '/', $fep->GetPathname());
 
-				$info = MediaLibrary::ScrapeFS($episode, $pregs);
-				if (empty($info['med_season']))
+				$ep = new TVEpisodeEntry($fep->GetPathname());
+
+				#  Check Database Existence
+
+				if (empty($ds[$ep->Data['series']][$ep->Data['season']][$ep->Data['episode']]))
+				{
+					$msgs['TV/Metadata'][] = "Adding missing '{$ep->Path}' to database.";
+					$ep->save_to_db();
+				}
+
+				if (empty($ep->Data['index']))
 				{
 					var_dump("Cannot recognize: $episode");
 					continue;
 				}
+
+				if (!empty($_d['tv.cb.check.episode']))
+				foreach ($_d['tv.cb.check.episode'] as $cb)
+					$errors += call_user_func_array($cb, array(&$p, &$msgs));
 			}
+
+			if (!empty($_d['tv.cb.check.series']))
+			foreach ($_d['tv.cb.check.series'] as $cb)
+				$errors += call_user_func_array($cb, array(&$p, &$msgs));
 		}
 
 		return $errors;
 	}
+
+	# Others
 
 	function GetFeed($url, $stop_date)
 	{
@@ -239,7 +264,8 @@ class TV extends MediaLibrary
 
 		$ret = array();
 
-		foreach ($cr as $i) { $ret[$i['path']] = $i; }
+		foreach ($cr as $i)
+			$ret[$i['series']][$i['season']][$i['episode']] = $i;
 
 		return $ret;
 	}
@@ -256,23 +282,14 @@ class TV extends MediaLibrary
 
 		return $ret;
 	}
-
-	/*static function GetInfo($series)
-	{
-		$eps = array();
-		foreach (TV::$scrapers as $s)
-		{
-			$neps = call_user_func(array($s, 'GetInfo'), $series);
-			$eps = array_replace_recursive($eps, $neps);
-		}
-		return $eps;
-	}*/
 }
 
 Module::Register('TV');
 
 class TVSeriesEntry extends MediaEntry
 {
+	public $Type = 'tv-series';
+
 	function __construct($path)
 	{
 		parent::__construct($path);
@@ -293,10 +310,13 @@ class TVSeriesEntry extends MediaEntry
 	{
 		$ret = array();
 
+		/* @var $f FilesystemIterator */
 		foreach (new FilesystemIterator($this->Path,
 			FilesystemIterator::SKIP_DOTS) as $f)
 		{
-			$ret[$f] = new TVEpisodeEntry($f);
+			if (substr($f->getFilename(), 0, 1) == '.') continue;
+			$p = $f->GetPathname();
+			$ret[$p] = new TVEpisodeEntry($p);
 		}
 
 		return $ret;
@@ -305,6 +325,100 @@ class TVSeriesEntry extends MediaEntry
 
 class TVEpisodeEntry extends MediaEntry
 {
+	public $Type = 'tv-episode';
+
+	function __construct($path)
+	{
+		parent::__construct($path);
+
+		if (!empty($path))
+		{
+			$dat = MediaLibrary::ScrapeFS($path, TVEpisodeEntry::GetFSPregs());
+			if (!empty($dat['title']))
+				$this->Data['title'] = $dat['title'];
+			if (!empty($dat['series']))
+				$this->Data['series'] = $dat['series'];
+			if (!empty($dat['season']))
+				$this->Data['season'] = (int)$dat['season'];
+			if (!empty($dat['episode']))
+				$this->Data['episode'] = (int)$dat['episode'];
+			$this->Data['parent'] = $dat['series'];
+			$this->Data['index'] = 'S'.(int)$dat['season'].'E'.(int)$dat['episode'];
+		}
+	}
+
+	static function GetFSPregs()
+	{
+		return array(
+			# path/{series}/{series} Season {season} - {episode} - {title}.ext
+			'#/([^/]+)/([^/-]+)\s*Season ([0-9]+)\s+-\s+([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'series',
+				3 => 'season',
+				4 => 'episode',
+				5 => 'title'),
+			# path/{series}/{series} - S{season}E{episode} - {title}.ext
+			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'series',
+				3 => 'season',
+				4 => 'episode',
+				5 => 'title'),
+			# path/{series}/{title} - S{season}E{episode}.ext
+			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9]+)\..*$#i' => array(
+				1 => 'series',
+				2 => 'title',
+				3 => 'season',
+				4 => 'episode'),
+			# path/{series}/S{season}E{episode} - {title}.ext
+			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s(.+)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'title'),
+			//path/{series}/S{season}E{episode}.ext
+			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#i' => array(
+				0 => 'title', # Substituted as filename
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode'),
+			//path/{series}/{season}{episode} - {title}.ext
+			'#/([^/]+)/(\d+)(\d{2})\s*-\s*(.+)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'title'),
+			//path/{series}/{title}S{season}E{episode}
+			'#/([^/]+)/([^/]+)S(\d+)E(\d+)(.*)#i' => array(
+				1 => 'series',
+				2 => 'title',
+				3 => 'season',
+				4 => 'episode'),
+			//path/{series}/{title}{S+}{EE}
+			'#/([^/]+)/([^/]+)(\d+)(\d{2}).*#' => array(
+				1 => 'series',
+				2 => 'title',
+				3 => 'season',
+				4 => 'episode'),
+			# path/{series}/{S}{EE} {title}.ext
+			'#/([^/]+)/(\d+)(\d{2}) (.*)\..*$#' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'title'),
+			# path/{series}/{Season}x{Episode}
+			'#/([^/]+)/[^/]+(\d+)x(\d+).*#' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode'),
+			# path/{series}/{series} - {episode} - {title}.ext
+			'#/([^/]+)/[^-]+\s*-\s*(\d+)\s*-\s*(.*)\.([^.]+)$#' => array(
+				1 => 'series',
+				2 => 'episode',
+				3 => 'title',
+				4 => 'extension')
+		);
+	}
 }
 
 class ModTVEpisode extends MediaLibrary
@@ -358,81 +472,6 @@ class ModTVEpisode extends MediaLibrary
 			}
 
 		return $ret;
-	}
-
-	static function GetFSPregs()
-	{
-		return array(
-			# path/{series}/{series} Season {season} - {episode} - {title}.ext
-			'#/([^/]+)/([^/-]+)\s*Season ([0-9]+)\s+-\s+([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
-				1 => 'med_series',
-				2 => 'med_series',
-				3 => 'med_season',
-				4 => 'med_episode',
-				5 => 'med_title'),
-			# path/{series}/{series} - S{season}E{episode} - {title}.ext
-			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
-				1 => 'med_series',
-				2 => 'med_series',
-				3 => 'med_season',
-				4 => 'med_episode',
-				5 => 'med_title'),
-			# path/{series}/{title} - S{season}E{episode}.ext
-			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9]+)\..*$#i' => array(
-				1 => 'med_series',
-				2 => 'med_title',
-				3 => 'med_season',
-				4 => 'med_episode'),
-			# path/{series}/S{season}E{episode} - {title}.ext
-			'#/([^/]+)/S([0-9]+)E([0-9]+)\s-\s(.+)\.[^.]+$#i' => array(
-				1 => 'med_series',
-				2 => 'med_season',
-				3 => 'med_episode',
-				4 => 'med_title'),
-			//path/{series}/S{season}E{episode}.ext
-			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#i' => array(
-				0 => 'med_title', # Substituted as filename
-				1 => 'med_series',
-				2 => 'med_season',
-				3 => 'med_episode'),
-			//path/{series}/{season}{episode} - {title}.ext
-			'#/([^/]+)/(\d+)(\d{2})\s*-\s*(.+)\.[^.]+$#i' => array(
-				1 => 'med_series',
-				2 => 'med_season',
-				3 => 'med_episode',
-				4 => 'med_title'),
-			//path/{series}/{title}S{season}E{episode}
-			'#/([^/]+)/([^/]+)S(\d+)E(\d+)(.*)#i' => array(
-				1 => 'med_series',
-				2 => 'med_title',
-				3 => 'med_season',
-				4 => 'med_episode'),
-			//path/{series}/{title}{S+}{EE}
-			'#/([^/]+)/([^/]+)(\d+)(\d{2}).*#' => array(
-				1 => 'med_series',
-				2 => 'med_title',
-				3 => 'med_season',
-				4 => 'med_episode'),
-			# path/{series}/{S}{EE} {title}.ext
-			'#/([^/]+)/(\d+)(\d{2}) (.*)\..*$#' => array(
-				1 => 'med_series',
-				2 => 'med_season',
-				3 => 'med_episode',
-				4 => 'med_title',
-			),
-			# path/{series}/{Season}x{Episode}
-			'#/([^/]+)/[^/]+(\d+)x(\d+).*#' => array(
-				1 => 'med_series',
-				2 => 'med_season',
-				3 => 'med_episode'),
-			# path/{series}/{series} - {episode} - {title}.ext
-			'#/([^/]+)/[^-]+\s*-\s*(\d+)\s*-\s*(.*)\.([^.]+)$#' => array(
-				1 => 'med_series',
-				2 => 'med_episode',
-				3 => 'med_title',
-				4 => 'med_extension'
-			)
-		);
 	}
 
 	static function GetExistingEpisodes($series)

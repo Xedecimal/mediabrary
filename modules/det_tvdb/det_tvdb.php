@@ -2,6 +2,8 @@
 
 class TVDB extends Module implements Scraper
 {
+	public $Name = 'TVDB';
+
 	const _tvdb_key = '138419DAB0A9141D';
 	const _tvdb_find = 'http://www.thetvdb.com/api/GetSeries.php?seriesname=';
 
@@ -13,7 +15,7 @@ class TVDB extends Module implements Scraper
 	{
 		global $_d;
 
-		$_d['tv.cb.check'][$this->Name] = array(&$this, 'cb_tv_check');
+		$_d['tv.cb.check.series'][$this->Name] = array(&$this, 'cb_tv_check_series');
 	}
 
 	# Scraper implementation
@@ -69,17 +71,19 @@ class TVDB extends Module implements Scraper
 
 	# Callbacks
 
-	function cb_tv_check($series, &$msgs)
+	function cb_tv_check_series($series, &$msgs)
 	{
 		global $_d;
 
-		$se = new SeriesEntry($series);
+		$se = new TVSeriesEntry($series);
 
-		$creps = $_d['entry.ds']->find(array('type' => 'tv-episode', 'parent' => $se->Title));
+		$creps = $_d['entry.ds']->find(array(
+			'type' => 'tv-episode',
+			'parent' => $se->Title
+		));
+
 		foreach ($creps as $ep)
-		{
 			$dbeps[$ep['season']][$ep['episode']] = $ep;
-		}
 
 		$tvdbeps = TVDB::GetInfo($series);
 
@@ -87,21 +91,35 @@ class TVDB extends Module implements Scraper
 		{
 			foreach ($eps as $e => $ep)
 			{
-				if (!isset($dbeps[$s][$e]))
+				# TVDB is already appended to this.
+				if (isset($dbeps[$s][$e]['details'][$this->Name])) continue;
+
+				$tve = new TVEpisodeEntry(null);
+
+				$msgs['TVDB/Metadata'][] = "Adding missing database entry for $series of $s $e.";
+
+				if (!empty($dbeps[$s][$e]))
+					$tve->Data = $dbeps[$s][$e];
+
+				$tve->Data['details'][$this->Name] = $ep;
+
+				if (!empty($ep['aired']))
 				{
-					$msgs['TVDB/Metadata'][] = "Adding missing database entry for $series of $s $e.";
-					$tve = new TVEpisodeEntry(null, null);
-					$tve->Data = $ep;
-					$tve->Data['path'] = '';
-					$tve->Data['type'] = 'tv-episode';
-					$tve->Data['season'] = $s;
-					$tve->Data['episode'] = $e;
-					$tve->Data['parent'] = $se->Title;
-					$tve->Data['index'] = "S{$s}E{$e}";
-					$tve->Title = @$ep['title'];
-					$tve->Parent = $se->Title;
-					$_d['entry.ds']->save($tve->Data, array('safe' => 1));
+					$tve->Data['released'] = new MongoDate($ep['aired']);
 				}
+
+				if (!empty($ep['title'])) $tve->Data['title'] = $ep['title'];
+				if (empty($tve->Data['path'])) $tve->Data['path'] = '';
+				$tve->Data['type'] = 'tv-episode';
+				$tve->Data['series'] = $se->Title;
+				$tve->Data['season'] = $s;
+				$tve->Data['episode'] = $e;
+				$tve->Data['parent'] = $se->Title;
+				$tve->Data['index'] = "S{$s}E{$e}";
+				$tve->Title = @$ep['title'];
+				$tve->Parent = $se->Title;
+
+				$tve->save_to_db();
 
 				# Check out the filename.
 
@@ -191,6 +209,8 @@ class TVDB extends Module implements Scraper
 				$ret['eps'][$sn][$en]['aired'] = Database::MyDateTimestamp($ep->FirstAired);
 			if (!empty($ep->EpisodeName))
 				$ret['eps'][$sn][$en]['title'] = MediaLibrary::CleanString((string)$ep->EpisodeName);
+
+			# Build TVDB url
 			$eid = (string)$ep->id;
 			$snid = (string)$ep->seasonid;
 			$srid = (string)$ep->seriesid;
