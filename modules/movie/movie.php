@@ -41,7 +41,7 @@ class Movie extends MediaLibrary
 
 			$id = $_d['q'][2];
 			$data = $_d['entry.ds']->findOne(array('_id' => new MongoId($id)));
-			$item = new MovieEntry($data['path'], self::GetFSPregs());
+			$item = new MovieEntry($data['path'], MovieEntry::GetFSPregs());
 			$item->Data += $data;
 
 			/*if (!empty($_d['q'][2]))
