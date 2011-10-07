@@ -1,0 +1,6 @@
+<tr class="tr-list-item {{class}}">
+	<td><a href="{{type}}/detail/{{_id}}" class="a-title">{{title}}</a></td>
+	<td>{{released}}</td>
+	<td>{{parent}}</td>
+	<td>{{index}}</td>
+</tr>

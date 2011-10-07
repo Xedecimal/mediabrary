@@ -43,6 +43,7 @@ class TMDB extends Module implements Scraper
 	{
 		# Precompile stats
 
+		# @TODO: Bring this back!
 		/*$map = <<<EOF
 function () {
 	var e = {

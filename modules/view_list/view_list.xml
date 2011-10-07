@@ -6,20 +6,17 @@
 <script type="text/javascript" src="view_list/view_list.js"></script>
 
 <table id="table-list"><thead><tr>
-	<th><input type="text" value="Name" /></th>
-	<th><input type="text" value="Date" size="5" /></th>
-	<th><input type="text" value="Parent" /></th>
-	<th><input type="text" value="Sibling Index" /></th>
+	<th><input type="hidden" class="dbname" value="title" />
+		<input type="text" value="Name" /></th>
+	<th><input type="hidden" class="dbname" value="released" />
+		<input type="text" value="Date" size="5" /></th>
+	<th><input type="hidden" class="dbname" value="parent" />
+		<input type="text" value="Parent" /></th>
+	<th><input type="hidden" class="dbname" value="index" />
+		<input type="text" value="Sibling Index" /></th>
 </tr></thead>
 
-<item>
-	<tr class="tr-list-item {{class}}">
-		<td><a href="{{type}}/detail/{{_id}}" class="a-title">{{title}}</a></td>
-		<td>{{released}}</td>
-		<td>{{parent}}</td>
-		<td>{{index}}</td>
-	</tr>
-</item>
+<callback ds="_d" name="cb.list.item" />
 
 </table>
 </div> <!-- #view-list -->

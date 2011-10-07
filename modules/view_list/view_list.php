@@ -4,6 +4,10 @@ class ViewList extends Module
 {
 	public $Name = 'view_list';
 
+	private $_limit = 500;
+	private $_page = 0;
+	private $_sort = array();
+
 	function __construct() { $this->CheckActive($this->Name); }
 
 	function Link()
@@ -11,6 +15,21 @@ class ViewList extends Module
 		global $_d;
 
 		$_d['nav.links']['Everything/List'] = 'view_list';
+		$_d['cb.list.item']['list'] = array(&$this, 'cb_list_item');
+	}
+
+	function Prepare()
+	{
+		if (!$this->Active) return;
+
+		global $_d;
+
+		if (@$_d['q'][1] == 'items')
+		{
+			$this->_page = Server::GetVar('page', 0);
+			$this->_sort = Server::GetVar('sort', array());
+			die($this->cb_list_item());
+		}
 	}
 
 	function Get()
@@ -18,15 +37,19 @@ class ViewList extends Module
 		if (!$this->Active) return;
 
 		$t = new Template();
-		$t->Rewrite('item', array(&$this, 'TagItem'));
 		return $t->ParseFile(Module::L('view_list/view_list.xml'));
 	}
 
-	function TagItem($t, $g)
+	function cb_list_item($t = null)
 	{
 		global $_d;
 
-		$cr = $_d['entry.ds']->find()->limit(500);
+		$g = file_get_contents(Module::L('view_list/view_list_item.xml'));
+
+		$cr = $_d['entry.ds']->find()
+			->sort($this->_sort)
+			->skip($this->_page*$this->_limit)
+			->limit($this->_limit);
 
 		$res = array();
 		foreach ($cr as $i)
