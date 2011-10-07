@@ -181,6 +181,7 @@ class TV extends MediaLibrary
 
 				#  Check Database Existence
 
+				if (!empty($ep->Data['series']))
 				if (empty($ds[$ep->Data['series']][$ep->Data['season']][$ep->Data['episode']]))
 				{
 					$msgs['TV/Metadata'][] = "Adding missing '{$ep->Path}' to database.";
@@ -265,7 +266,10 @@ class TV extends MediaLibrary
 		$ret = array();
 
 		foreach ($cr as $i)
-			$ret[$i['series']][$i['season']][$i['episode']] = $i;
+		{
+			if (!empty($i['series']) || !empty($i['season']) || !empty($i['episode']))
+				$ret[$i['series']][$i['season']][$i['episode']] = $i;
+		}
 
 		return $ret;
 	}
@@ -342,8 +346,10 @@ class TVEpisodeEntry extends MediaEntry
 				$this->Data['season'] = (int)$dat['season'];
 			if (!empty($dat['episode']))
 				$this->Data['episode'] = (int)$dat['episode'];
-			$this->Data['parent'] = $dat['series'];
-			$this->Data['index'] = 'S'.(int)$dat['season'].'E'.(int)$dat['episode'];
+			$this->Data['parent'] = @$dat['series'];
+			if (!empty($dat['season']) && !empty($dat['episode']))
+				$this->Data['index'] = 'S'.(int)$dat['season'].'E'
+					.(int)$dat['episode'];
 		}
 	}
 
