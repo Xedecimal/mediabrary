@@ -119,7 +119,7 @@ class Movie extends MediaLibrary
 
 			$pisrc = pathinfo($path);
 			$pidst = pathinfo($targ);
-			$md = $_d['config']['paths']['movie-meta'];
+			$md = $_d['config']['paths']['movie']['meta'];
 
 			$cover = "$md/thm_".$pisrc['filename'];
 			$backd = "$md/bd_".$pisrc['filename'];
