@@ -5,15 +5,17 @@
 <script type="text/javascript" src="xedlib/js/jquery.tablesorter.js"></script>
 <script type="text/javascript" src="view_list/view_list.js"></script>
 
-<table id="table-list"><thead><tr>
-	<th><input type="hidden" class="dbname" value="title" />
-		<input type="text" value="Name" /></th>
-	<th><input type="hidden" class="dbname" value="released" />
-		<input type="text" value="Date" size="5" /></th>
-	<th><input type="hidden" class="dbname" value="parent" />
-		<input type="text" value="Parent" /></th>
-	<th><input type="hidden" class="dbname" value="index" />
-		<input type="text" value="Sibling Index" /></th>
+<table id="table-list">
+	<thead><tr>
+	<th data-col="title">Name</th>
+	<th data-col="released">Date</th>
+	<th data-col="parent">Parent</th>
+	<th data-col="index">Sibling Index</th>
+</tr><tr>
+	<td><input type="text" class="in-list-filter" data-col="title" /></td>
+	<td><input type="text" class="in-list-filter" data-col="released" size="5" /></td>
+	<td><input type="text" class="in-list-filter" data-col="parent" /></td>
+	<td><input type="text" class="in-list-filter" data-col="index" /></td>
 </tr></thead>
 
 <callback ds="_d" name="cb.list.item" />

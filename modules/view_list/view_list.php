@@ -7,6 +7,7 @@ class ViewList extends Module
 	private $_limit = 500;
 	private $_page = 0;
 	private $_sort = array();
+	private $_q = array();
 
 	function __construct() { $this->CheckActive($this->Name); }
 
@@ -26,6 +27,7 @@ class ViewList extends Module
 
 		if (@$_d['q'][1] == 'items')
 		{
+			$this->_q = Server::GetVar('q');
 			$this->_page = Server::GetVar('page', 0);
 			$this->_sort = Server::GetVar('sort', array());
 			die($this->cb_list_item());
@@ -46,7 +48,14 @@ class ViewList extends Module
 
 		$g = file_get_contents(Module::L('view_list/view_list_item.xml'));
 
-		$cr = $_d['entry.ds']->find()
+		foreach ($this->_sort as &$v) $v = (int)$v;
+
+		$m = array();
+		foreach ($this->_q as $col => $q)
+			if (!empty($q))
+				$m[$col] = new MongoRegex('/'.preg_quote($q).'/i');
+
+		$cr = $_d['entry.ds']->find($m)
 			->sort($this->_sort)
 			->skip($this->_page*$this->_limit)
 			->limit($this->_limit);
