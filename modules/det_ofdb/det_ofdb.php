@@ -91,10 +91,7 @@ class OFDB extends Module implements Scraper
 		return $item;
 	}
 
-	function GetDetails($details, $item)
-	{
-		return $details;
-	}
+	function GetDetails($t, $g, $a) { }
 }
 
 Module::Register('OFDB');

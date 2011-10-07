@@ -120,7 +120,7 @@ EOF;
 		return $ret;
 	}
 
-	function cb_detail_entry($t, $a)
+	function cb_detail_entry($t, $g, $a)
 	{
 		global $_d;
 
@@ -128,7 +128,7 @@ EOF;
 		foreach ($_d['scrape.scrapers'][$a['TYPE']] as $sn)
 		{
 			$s = new $sn;
-			$details .= $s->GetDetails($details, $t->vars);
+			$details .= $s->GetDetails($t, $g, $a);
 		}
 
 		return $details;
@@ -168,6 +168,16 @@ EOF;
 		global $_d;
 		$_d['scrape.scrapers'][$type][$class] = new $class;
 	}
+
+	static function FormatDetail($details)
+	{
+		foreach ($details as $n => $v)
+		{
+			$ret .= "<p>$n: $v</p>";
+		}
+
+		return $ret;
+	}
 }
 
 Module::Register('Scrape');
@@ -179,7 +189,7 @@ interface Scraper
 	function Find($path);
 	function Details($id);
 	function Scrape($item, $id = null);
-	function GetDetails($details, $item);
+	function GetDetails($t, $g, $a);
 }
 
 ?>

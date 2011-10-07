@@ -459,31 +459,48 @@ EOD;
 		return $item;
 	}
 
-	function GetDetails($details, $data)
+	function GetDetails($t, $g, $a)
 	{
-		if (empty($data['Data']['details'][$this->Name])) return $details;
+		if (empty($t->vars['Data']['details'][$this->Name])) return;
 
-		$td = &$data['Data']['details'][$this->Name];
+		$td = &$t->vars['Data']['details'][$this->Name];
 
-		$ret = "TMDB/URL: ".'<a href="'.
-			$td['url'].'" target="_blank">Visit</a>';
+		$ret = array();
 
-		return $ret;
-
-		$trailer = $td['trailer'];
-		if (!empty($trailer))
+		if (!empty($td['url']))
 		{
-			preg_match('/\?v=([^&]+)/', $trailer, $m);
+			$i['var'] = 'TMDB_URL';
+			$i['val'] = '<a href="'.$td['url'].'" target="_blank">Visit</a>';
+			$ret[] = $i;
+		}
+
+		if (!empty($td['trailer']))
+		{
+			preg_match('/\?v=([^&]+)/', $td['trailer'], $m);
 			$v = $m[1];
-			$details['Trailer'] = <<<EOF
+			$i['var'] = 'TMDB_Trailer';
+			$i['val'] = <<<EOF
 <object width="580" height="360"><param name="movie" value="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$v&amp;hl=en_US&amp;fs=1?color1=0x3a3a3a&amp;color2=0x999999&amp;hd=1&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="580" height="360"></embed></object>
 EOF;
+			$ret[] = $i;
 		}
-		$details['TMDB/Oveview'] = $td['overview'];
-		$details['TMDB/Score'] = $td['votes'].' votes to '.$td['rating']
-			.' rating scores '.$td['score'];
 
-		return $details;
+		if (!empty($td['overview']))
+		{
+			$i['var'] = 'TMDB_Overview';
+			$i['val'] = $td['overview'];
+			$ret[] = $i;
+		}
+
+		if (!empty($td['votes']))
+		{
+			$i['var'] = 'TMDB_Votes';
+			$i['val'] = $td['votes'].' votes to '.$td['rating']
+				.' rating scores '.$td['score'];
+			$ret[] = $i;
+		}
+
+		return VarParser::Concat($g, $ret);
 	}
 }
 

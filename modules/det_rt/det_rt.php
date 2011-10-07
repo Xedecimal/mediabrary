@@ -97,9 +97,9 @@ class RottenTomatoes extends Module implements Scraper
 		return $item;
 	}
 
-	function GetDetails($details, $item)
+	function GetDetails($t, $g, $a)
 	{
-		if (!isset($item->Data['details'][$this->Name])) return $details;
+		if (!isset($item->Data['details'][$this->Name])) return;
 
 		$cc = @$item->Data['details'][$this->Name]['critics_consensus'];
 		if (!empty($cc)) return "Rotten Tomatoes: $cc";

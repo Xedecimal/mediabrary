@@ -8,9 +8,9 @@
 	<input type="hidden" id="detail-path" value="{{Path}}" />
 
 	<div id="details">
-		<callback ds="_d" name="cb.detail.entry" type="movie" />
-		<table>
-		<item><tr><td>{{name}}</td><td>{{value}}</td></tr></item>
-		</table>
+	<callback ds="_d" name="cb.detail.entry" type="movie">
+	<div><a href="{{var}}" class="shower">{{var}}</a></div>
+	<div id="{{var}}" style="display: none">{{val}}</div>
+	</callback>
 	</div>
 </div>

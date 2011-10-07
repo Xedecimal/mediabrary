@@ -97,7 +97,7 @@ class TVRage extends Module implements Scraper
 
 	}
 
-	public function GetDetails($details, $item) {
+	public function GetDetails($t, $g, $a) {
 
 	}
 

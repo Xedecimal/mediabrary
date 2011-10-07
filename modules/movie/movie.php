@@ -44,10 +44,6 @@ class Movie extends MediaLibrary
 			$item = new MovieEntry($data['path'], MovieEntry::GetFSPregs());
 			$item->Data += $data;
 
-			/*if (!empty($_d['q'][2]))
-				$item->Data = $_d['entry.ds']->findOne(array('_id' =>
-					new MongoID($_d['q'][2])));*/
-
 			$t->Set($item);
 			$this->_item = $item;
 			$t->ReWrite('item', array($this, 'TagDetailItem'));
@@ -178,12 +174,13 @@ class Movie extends MediaLibrary
 	function TagDetailItem($t, $g, $a)
 	{
 		$vp = new VarParser();
+		$ret = '';
 		if (!empty($this->details))
 		foreach ($this->details as $n => $v)
 		{
-			@$ret .= $vp->ParseVars($g, array('name' => $n, 'value' => $v));
+			$ret .= $vp->ParseVars($g, array('name' => $n, 'value' => $v));
 		}
-		return @$ret;
+		return $ret;
 	}
 
 	function Check(&$msgs)
