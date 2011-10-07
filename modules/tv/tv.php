@@ -333,7 +333,7 @@ class TVEpisodeEntry extends MediaEntry
 
 		if (!empty($path))
 		{
-			$dat = MediaLibrary::ScrapeFS($path, TVEpisodeEntry::GetFSPregs());
+			$dat = MediaEntry::ScrapeFS($path, TVEpisodeEntry::GetFSPregs());
 			if (!empty($dat['title']))
 				$this->Data['title'] = $dat['title'];
 			if (!empty($dat['series']))
@@ -350,13 +350,8 @@ class TVEpisodeEntry extends MediaEntry
 	static function GetFSPregs()
 	{
 		return array(
-			# path/{series}/{series} Season {season} - {episode} - {title}.ext
-			'#/([^/]+)/([^/-]+)\s*Season ([0-9]+)\s+-\s+([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
-				1 => 'series',
-				2 => 'series',
-				3 => 'season',
-				4 => 'episode',
-				5 => 'title'),
+			# Includes Series, Season, Episode, Title
+
 			# path/{series}/{series} - S{season}E{episode} - {title}.ext
 			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
 				1 => 'series',
@@ -364,8 +359,22 @@ class TVEpisodeEntry extends MediaEntry
 				3 => 'season',
 				4 => 'episode',
 				5 => 'title'),
+			# path/{series}/{series} Season {season} Episode {episode} - {title}.ext
+			'#/([^/]+)/([^/-]+)\s*Season ([0-9]{1,3})\s+Episode ([0-9]{1,3})\s*-\s*(.*)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'series',
+				3 => 'season',
+				4 => 'episode',
+				5 => 'title'),
+			# path/{series}/{series} Season {season} - {episode} - {title}.ext
+			'#/([^/]+)/([^/-]+)\s*Season ([0-9]+)\s+-\s+([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'series',
+				3 => 'season',
+				4 => 'episode',
+				5 => 'title'),
 			# path/{series}/{title} - S{season}E{episode}.ext
-			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9]+)\..*$#i' => array(
+			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]{1,3})E([0-9]{1,3})\..*$#i' => array(
 				1 => 'series',
 				2 => 'title',
 				3 => 'season',
@@ -376,6 +385,15 @@ class TVEpisodeEntry extends MediaEntry
 				2 => 'season',
 				3 => 'episode',
 				4 => 'title'),
+
+			# Includes Series, Season, Episode
+
+			# path/{series} S{SSS}E{EEE}.ext
+			'#/([^/]*)S(\d{1,3})E(\d{1,3}).*\.(.{3})$#' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'ext'),
 			//path/{series}/S{season}E{episode}.ext
 			'#/([^/]+)/S([0-9]+)E([0-9]+)\.[^.]+$#i' => array(
 				0 => 'title', # Substituted as filename
@@ -411,6 +429,9 @@ class TVEpisodeEntry extends MediaEntry
 				1 => 'series',
 				2 => 'season',
 				3 => 'episode'),
+
+			# Includes Series, Episode, Title
+
 			# path/{series}/{series} - {episode} - {title}.ext
 			'#/([^/]+)/[^-]+\s*-\s*(\d+)\s*-\s*(.*)\.([^.]+)$#' => array(
 				1 => 'series',
@@ -486,7 +507,7 @@ class ModTVEpisode extends MediaLibrary
 			if (substr($f->GetFilename(), 0, 1) == '.') continue;
 
 			$p = $f->GetPathname();
-			$i = MediaLibrary::ScrapeFS($p, TVEpisodeEntry::GetFSPregs());
+			$i = MediaEntry::ScrapeFS($p, TVEpisodeEntry::GetFSPregs());
 			#$i = $tvi->ScrapeFS($f);
 
 			if (!isset($i['episode']))

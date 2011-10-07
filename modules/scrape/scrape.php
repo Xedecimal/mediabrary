@@ -54,7 +54,7 @@ class Scrape extends Module
 			/*if (empty($ids))
 			{
 				$auto = true;
-				$mov = new MovieEntry($path, Movie::GetFSPregs());
+				$mov = new MovieEntry($path, MovieEntry::GetFSPregs());
 				foreach ($_d['scrape.scrapers'] as $s)
 					if ($s->CanAuto()) $ids[$s] = null;
 			}*/

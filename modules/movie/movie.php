@@ -207,7 +207,7 @@ class Movie extends MediaLibrary
 			if ($fsi->isDir()) continue;
 
 			$f = $fsi->GetPathname();
-			$this->_files[$f] = new MovieEntry($f, Movie::GetFSPregs());
+			$this->_files[$f] = new MovieEntry($f, MovieEntry::GetFSPregs());
 			$ext = File::ext($f);
 			$this->_filelist[] = basename($f, '.'.$ext);
 		}
@@ -387,7 +387,7 @@ EOD;
 
 		$ret = array();
 
-		$pregs = Movie::GetFSPregs();
+		$pregs = MovieEntry::GetFSPregs();
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie']['paths'] as $p)
@@ -449,39 +449,6 @@ EOD;
 
 		return $ret;
 	}
-
-	static function GetFSPregs()
-	{
-		return array(
-			# title [date].ext
-			'#/([^/[\]]+)\s*\[([0-9]{4})\].*\.([^.]*)$#' => array(
-				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
-
-			# title (date).ext
-			'/\/([^\/]+)\s+\((\d{4})\).*\.([^.]+)$/' => array(
-				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
-
-			# title (date) CDnum.ext
-			'#/([^/]+)\s*\((\d{4})\).*cd(\d+)\.([^.]+)$#i' => array(
-				1 => 'Title', 2 => 'Released', 3 => 'Part', 4 => 'Ext'),
-
-			# title CDnum.ext
-			'#/([^/]+).*cd(\d+)\.([^.]+)$#i' => array(
-				1 => 'Title', 2 => 'Part', 3 => 'Ext'),
-
-			# title [strip].ext
-			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
-				1 => 'Title', 2 => 'Ext'),
-
-			# title.ext
-			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
-				1 => 'Title', 3 => 'Ext'),
-
-			# title.ext
-			'#([^/]+)\s*\.(\S+)$#' => array(
-				1 => 'Title', 2 => 'Ext')
-		);
-	}
 }
 
 class MovieEntry extends MediaEntry
@@ -521,6 +488,39 @@ class MovieEntry extends MediaEntry
 			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
 		else
 			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
+	}
+
+	static function GetFSPregs()
+	{
+		return array(
+			# title[date].ext
+			'#/([^/]+)\[(\d{4})\][^/]*\.([^.]{3})$#' => array(
+				1 => 'title', 2 => 'released', 3 => 'ext'),
+
+			# title (date) CDnum.ext
+			'#/([^/]+)\s*\((\d{4})\).*cd(\d+)\.([^.]+)$#i' => array(
+				1 => 'Title', 2 => 'Released', 3 => 'Part', 4 => 'Ext'),
+
+			# title (date).ext
+			'/\/([^\/]+)\s+\((\d{4})\).*\.([^.]+)$/' => array(
+				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
+
+			# title DDDD.ext
+			'#([^/]+)(\d{4}).*\.([^.]{3})$#i' => array(
+				1 => 'title', 2 => 'released', 3 => 'ext'),
+
+			# title CDnum.ext
+			'#/([^/]+).*cd(\d+)\.([^.]+)$#i' => array(
+				1 => 'Title', 2 => 'Part', 3 => 'Ext'),
+
+			# title [strip].ext
+			'#/([^/]+)\s*\[.*\.([^.]+)$#' => array(
+				1 => 'Title', 2 => 'Ext'),
+
+			# title.ext
+			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
+				1 => 'Title', 3 => 'Ext')
+		);
 	}
 }
 
