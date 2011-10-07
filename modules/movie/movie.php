@@ -109,11 +109,13 @@ class Movie extends MediaLibrary
 			# Update stored paths.
 
 			$item = $_d['entry.ds']->findOne(array('path' => $path));
-			foreach ($item['paths'] as $ix => $p) if ($p == $path)
-				$item['paths'][$ix] = $targ;
-			$item['path'] = $targ;
-
-			$_d['entry.ds']->save($item);
+			if (!empty($item))
+			{
+				foreach ($item['paths'] as $ix => $p) if ($p == $path)
+					$item['paths'][$ix] = $targ;
+				$item['path'] = $targ;
+				$_d['entry.ds']->save($item);
+			}
 
 			# Update covers or backdrops.
 
