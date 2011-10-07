@@ -9,4 +9,6 @@ $(function () {
 
 		return false;
 	});
+
+	$('#table-list').tablesorter();
 });

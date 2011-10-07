@@ -2,3 +2,7 @@
 #view-list td { border-bottom: 1px solid #333; }
 #view-list .missing td { opacity: 0.5; }
 #view-list .unavail td { color: #FCC; }
+
+.header { background: url('img/sort_none.gif') no-repeat center right; padding: 0 20px; }
+.headerSortUp { background: url('img/sort_up.gif') no-repeat center right; }
+.headerSortDown { background: url('img/sort_down.gif') no-repeat center right; }
