@@ -190,7 +190,7 @@ class TV extends MediaLibrary
 
 				if (empty($ep->Data['index']))
 				{
-					var_dump("Cannot recognize: $episode");
+					//var_dump("Cannot recognize: $episode");
 					continue;
 				}
 
