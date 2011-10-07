@@ -42,6 +42,29 @@ class MediaEntry
 		global $_d;
 		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
 	}
+
+	static function ScrapeFS($path, $pregs)
+	{
+		// Collect path based metadata.
+
+		$mx = 0;
+		foreach ($pregs as $preg => $matches)
+		{
+			if (preg_match($preg, $path, $m))
+			{
+				foreach ($matches as $idx => $col)
+					$ret[$col] = $m[$idx];
+				$ret['debug_matched'] = $mx;
+				break;
+			}
+			$mx++;
+		}
+
+		$ret['fs_path'] = $path;
+		$ret['fs_filename'] = basename($path);
+
+		return $ret;
+	}
 }
 
 ?>

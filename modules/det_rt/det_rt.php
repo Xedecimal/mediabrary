@@ -60,7 +60,7 @@ class RottenTomatoes extends Module implements Scraper
 		if (!empty($item['title'])) $title = $item['title'];
 		else
 		{
-			$fs = MediaLibrary::ScrapeFS($path, Movie::GetFSPregs());
+			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
 			var_dump($fs);
 		}
 
