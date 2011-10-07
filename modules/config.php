@@ -65,7 +65,7 @@ class Config extends Module
 		$frm->AddInput(new FormInput('Show Metadata', 'text',
 			'nc[paths][tv][meta]', $_d['config']['paths']['tv']['meta']));
 		$frm->AddInput(new FormInput(null, 'submit', 'butSubmit', 'Save'));
-		die($frm->Get(array('method' => 'post', 'action' => '{{app_abs}}/configuration/save')));
+		return $frm->Get(array('method' => 'post', 'action' => '{{app_abs}}/configuration/save'));
 	}
 }
 
