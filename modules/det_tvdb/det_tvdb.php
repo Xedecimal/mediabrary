@@ -20,6 +20,9 @@ class TVDB extends Module implements Scraper
 
 	# Scraper implementation
 
+	public $Link = 'http://www.thetvdb.com';
+	public $Icon = 'modules/det_tvdb/img/tvdb.png';
+
 	public function CanAuto() {
 
 	}
@@ -38,15 +41,46 @@ class TVDB extends Module implements Scraper
 
 	public function Scrape($item, $id = null) {	}
 
-	function Find($path, $full = false)
+	function Find($path)
 	{
 		global $_d;
 
-		$sid = TVDB::GetSID($path);
 		$key = TVDB::_tvdb_key;
 
+		$info = array();
+
+		if (is_file($path)) $p = dirname($path);
+		else $p = $path;
+
+		# Manually specified title.
+
+		$file_title = "$p/.title.txt";
+		if (file_exists($file_title)) $realname = file_get_contents($file_title);
+		else $realname = basename($p);
+
+		$url = TVDB::_tvdb_find.rawurlencode($realname);
+		$sx = simplexml_load_string(file_get_contents($url));
+		$seriess = $sx->xpath('//Data/Series');
+
+		$items = array();
+		foreach ($seriess as $series)
+		{
+
+			$url = '';
+			$item = array(
+				'id' => $series->id,
+				'title' => $series->SeriesName,
+				'date' => $series->FirstAired,
+				'covers' => 'http://thetvdb.com/banners/'.$series->banner,
+				'ref' => 'http://thetvdb.com/?tab=series&id='.$series->id
+			);
+			$items[] = $item;
+		}
+
+		return $items;
+
 		$ret = '';
-		$dst = $path.'/.info.zip';
+		$dst = $p.'/.info.zip';
 		$src = "http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip";
 		if (!@file_put_contents($dst, file_get_contents($src)))
 			return 'Unable to write tvdb metadata.';
@@ -63,8 +97,6 @@ class TVDB extends Module implements Scraper
 		File::MakeFullDir($_d['config']['paths']['tv']['meta']);
 		file_put_contents($_d['config']['paths']['tv']['meta']."/thm_$series",
 			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
-
-		die($ret."Grabbed");
 	}
 
 	# Callbacks
@@ -126,7 +158,7 @@ class TVDB extends Module implements Scraper
 				$tve->Data['season'] = $s;
 				$tve->Data['episode'] = $e;
 				$tve->Data['parent'] = $se->Title;
-				$tve->Data['index'] = "S{$s}E{$e}";
+				$tve->Data['index'] = sprintf('S%02dE%02d', $s, $e);
 				$tve->Title = @$ep['title'];
 				$tve->Parent = $se->Title;
 
@@ -255,6 +287,9 @@ class TVDB extends Module implements Scraper
 }
 
 Module::Register('TVDB');
+
 Scrape::Reg('tv', 'TVDB');
+Scrape::Reg('tv-series', 'TVDB');
+Scrape::Reg('tv-episode', 'TVDB');
 
 ?>

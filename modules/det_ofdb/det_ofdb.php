@@ -86,6 +86,8 @@ class OFDB extends Module implements Scraper
 	function Scrape($item, $id = null)
 	{
 		$data = json_decode(self::Details($id), true);
+		unset($data['ofdbgw']['resultat']['besetzung']);
+		unset($data['ofdbgw']['resultat']['fassungen']);
 		$item['details'][$this->Name] = $data['ofdbgw']['resultat'];
 		return $item;
 	}

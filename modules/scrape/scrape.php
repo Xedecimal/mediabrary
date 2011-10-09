@@ -103,15 +103,12 @@ EOF;
 		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="'.$img.'"
 			alt="Find" /></a>';
 
-		# @TODO: Remove TMDB reference.
 		if (!empty($t->vars['details']))
 		{
 			$ret .= <<<EOF
 <a href="{{_id}}" id="a-scrape-remove"><img src="img/database_delete.png"
 	alt="Remove" /></a><a href="{{_id}}" id="a-scrape-covers"><img
-	src="modules/movie/img/images.png" alt="Select New Cover" /></a><a
-	href="http://www.themoviedb.org/movie/{{tmdbid}}" target="_blank"><img
-	src="modules/tmdb/img/tmdb.png" alt="tmdb" /></a>
+	src="modules/movie/img/images.png" alt="Select New Cover" /></a>
 EOF;
 		}
 		return $ret;

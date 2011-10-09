@@ -72,6 +72,8 @@ class ViewList extends Module
 					# Has not yet been released, we can't get it.
 					if ($i['released']->sec > time())
 						$i['class'] = 'unavail';
+					# Has been released.
+					else $i['class'] = 'missing';
 				# Should be available.
 				else $i['class'] = 'missing';
 			}

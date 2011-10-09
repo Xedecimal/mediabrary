@@ -2,10 +2,14 @@
 
 class TVRage extends Module implements Scraper
 {
+	public $Name = 'TVRage';
+
 	const _tvrage_key = 'ouF0qPaRHNf7MXPMrQZv';
 	const _tvrage_find = 'http://services.tvrage.com/myfeeds/search.php?key=ouF0qPaRHNf7MXPMrQZv&show=';
 	const _tvrage_info = 'http://services.tvrage.com/myfeeds/showinfo.php?key=ouF0qPaRHNf7MXPMrQZv&sid=';
 	const _tvrage_list = 'http://services.tvrage.com/myfeeds/episode_list.php?key=ouF0qPaRHNf7MXPMrQZv&sid=';
+
+	# Module extension
 
 	function Link()
 	{
@@ -14,16 +18,22 @@ class TVRage extends Module implements Scraper
 		$_d['tv.cb.check.series'] = array(&$this, 'cb_tv_check');
 	}
 
+	# Scraper implementation
+
+	public $Link = 'http://www.tvrage.com';
+	public $Icon = 'modules/det_tvrage/img/tv-rage.png';
+
 	function Find($path, $full = false)
 	{
-		$sid = ModScrapeTVRage::GetSID($path, $full);
-		if ($full)
-			ModScrapeTVRage::GetXML($path, true);
+		$sid = $this->GetSID($path, $full);
+		if ($full) $this->GetXML($path, true);
 	}
 
 	static function GetSID($path, $full = false)
 	{
-		$sc = "$path/.tvrage.season.xml";
+		if (is_file($path)) $p = dirname($path);
+		else $p = $path;
+		$sc = "$p/.tvrage.season.xml";
 
 		# Overridable title
 		$file_title = "$path/.title.txt";
@@ -33,9 +43,9 @@ class TVRage extends Module implements Scraper
 		# Cache data
 		if (!file_exists($sc) || $full)
 		{
-			$url = ModScrapeTVRage::_tvrage_find.rawurlencode($realname);
+			$url = TVRage::_tvrage_find.rawurlencode($realname);
 			$sx = simplexml_load_string(file_get_contents($url));
-			$iurl = ModScrapeTVRage::_tvrage_info.rawurlencode($sx->show->showid);
+			$iurl = TVRage::_tvrage_info.rawurlencode($sx->show->showid);
 			@file_put_contents($sc, file_get_contents($iurl));
 		}
 
@@ -48,7 +58,7 @@ class TVRage extends Module implements Scraper
 	{
 		global $_d;
 
-		$sid = ModScrapeTVRage::GetSID($series);
+		$sid = $this->GetSID($series);
 		if ($sid == -1) {
 			echo "Could not locate this series $series";
 			return null;
@@ -57,7 +67,7 @@ class TVRage extends Module implements Scraper
 		$infoloc = "$series/.tvrage.series.xml";
 		if ($download || !file_exists($infoloc))
 		{
-			$url = ModScrapeTVRage::_tvrage_list.$sid;
+			$url = $this->_tvrage_list.$sid;
 			$out = file_get_contents($url);
 			@file_put_contents($infoloc, $out);
 		}
@@ -69,7 +79,7 @@ class TVRage extends Module implements Scraper
 	{
 		$ret = array();
 
-		$sx = ModScrapeTVRage::GetXML($series);
+		$sx = $this->GetXML($series);
 		$ret['series'] = trim((string)$sx->name);
 		foreach ($sx->xpath('//Season') as $s)
 		{
@@ -111,5 +121,7 @@ class TVRage extends Module implements Scraper
 }
 
 Scrape::Reg('tv', 'TVRage');
+Scrape::Reg('tv-series', 'TVRage');
+Scrape::Reg('tv-episode', 'TVRage');
 
 ?>

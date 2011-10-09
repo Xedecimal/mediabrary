@@ -92,6 +92,8 @@ class ModPlayer extends Module
 	{
 		global $_d;
 
+		if (empty($t->vars['Path'])) return;
+
 		$p = $t->vars['Path'];
 
 		$icon = Module::P('player/img/play.png');

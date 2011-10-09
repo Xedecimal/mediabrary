@@ -328,6 +328,10 @@ EOD;
 		}
 		# Collect remote data
 		$data = Arr::FromXML(self::Details($id));
+
+		# @TODO: Some day do something with the cast maybe.
+		unset($data['movies']['movie']['cast']);
+		unset($data['movies']['movie']['images']);
 		$item['details'][$this->Name] = $data['movies']['movie'];
 
 		# Try to set the release date on the movie.

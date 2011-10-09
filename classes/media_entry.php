@@ -40,6 +40,7 @@ class MediaEntry
 	function save_to_db()
 	{
 		global $_d;
+
 		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
 	}
 

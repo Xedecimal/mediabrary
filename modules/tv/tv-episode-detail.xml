@@ -4,4 +4,12 @@
 	<input type="hidden" id="detail-type" value="{{Data.type}}" />
 	<input type="hidden" id="detail-id" value="{{_id}}" />
 	<input type="hidden" id="detail-path" value="{{Data.path}}" />
+
+	<div id="details">
+	Path: {{Path}}
+	<callback ds="_d" name="cb.detail.entry" type="tv-episode">
+	<div><a href="{{var}}" class="shower">{{var}}</a></div>
+	<div id="{{var}}" style="display: none">{{val}}</div>
+	</callback>
+	</div>
 </div>

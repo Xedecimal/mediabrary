@@ -41,9 +41,10 @@ class TV extends MediaLibrary
 			if (@$_d['q'][1] == 'detail')
 			{
 				$ds = $_d['entry.ds']->findOne(array('_id' => new MongoId($_d['q'][2])));
-				$i = new TVEpisodeEntry($ds['path']);
+
 				$t = new Template();
-				$t->Set($i);
+				if (!empty($ds['path']))
+					$t->Set(new TVEpisodeEntry($ds['path']));
 				$t->Set($ds);
 				die($t->ParseFile(Module::L('tv/tv-episode-detail.xml')));
 			}
@@ -163,7 +164,37 @@ class TV extends MediaLibrary
 		$errors = 0;
 
 		$fs = $this->CollectFS();
-		$ds = $this->CollectDS();
+
+		# We'll collect our own data for more rigorous checks.
+
+		$ds = array();
+		$cr = $_d['entry.ds']->find(array('$or' => array(
+			array('type' => 'tv-series'),
+			array('type' => 'tv-episode'),
+			array('type' => 'tv-season')
+		)));
+
+		foreach ($cr as $ent)
+		{
+			$s = $ent['series'];
+			$se = $ent['season'];
+			$ep = $ent['episode'];
+
+			if (isset($ds[$s][$se][$ep]))
+			{
+				$e1 = $ds[$s][$se][$ep];
+				$e2 = $ent;
+
+				if (empty($e1['path'])) $id = $e1['_id'];
+				else $id = $e2['_id'];
+				$_d['entry.ds']->remove(array(
+					'type' => 'tv-episode', '_id' => $id), array('safe' => 1));
+
+				$msgs['Duplicates'][] = "Found duplicate: {$s} {$se} {$ep}. Removed {$id}";
+			}
+
+			$ds[$s][$se][$ep] = $ent;
+		}
 
 		# Database checks
 
@@ -207,7 +238,7 @@ class TV extends MediaLibrary
 
 				# Check Database Existence
 
-				if (!empty($es) && empty($ds[$es][$ese][$eep]))
+				if (!empty($es) && empty($ds[$es][$ese][$eep]['path']))
 				{
 					$msgs['TV/Metadata'][] = "Adding missing '{$ep->Path}' to database.";
 
@@ -289,7 +320,7 @@ class TV extends MediaLibrary
 
 		foreach ($cr as $i)
 		{
-			if (!empty($i['series']) || !empty($i['season']) || !empty($i['episode']))
+			if (!empty($i['series']) && !empty($i['season']) && !empty($i['episode']))
 				$ret[$i['series']][$i['season']][$i['episode']] = $i;
 		}
 
@@ -370,8 +401,8 @@ class TVEpisodeEntry extends MediaEntry
 				$this->Data['episode'] = (int)$dat['episode'];
 			$this->Data['parent'] = MediaLibrary::CleanString(@$dat['series']);
 			if (!empty($dat['season']) && !empty($dat['episode']))
-				$this->Data['index'] = 'S'.(int)$dat['season'].'E'
-					.(int)$dat['episode'];
+				$this->Data['index'] = sprintf('S%02dE%02d', $dat['season'],
+					$dat['episode']);
 		}
 	}
 
