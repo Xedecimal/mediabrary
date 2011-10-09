@@ -26,81 +26,20 @@ class TMDB extends Module implements Scraper
 	{
 		global $_d;
 
-		$_d['movie.cb.query']['columns']['details.TMDB.id'] = 1;
-		$_d['movie.cb.query']['columns']['details.TMDB.name'] = 1;
-		$_d['movie.cb.query']['columns']['details.TMDB.url'] = 1;
-		$_d['movie.cb.query']['columns']['details.TMDB.imdb_id'] = 1;
-		$_d['movie.cb.query']['columns']['details.TMDB.released'] = 1;
-		$_d['movie.cb.query']['columns']['details.TMDB.certification'] = 1;
-		$_d['movie.cb.check'][] = array($this, 'movie_cb_check');
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.id"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.name"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.url"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.imdb_id"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.released"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.certification"] = 1;
+		$_d['movie.cb.query']['order']["details.{$this->Name}.score"] = -1;
 
-		$_d['movie.cb.query']['order']['details.TMDB.score'] = -1;
-
-		$_d['filter.cb.filters']['tmdb'] = array(&$this, 'filter_cb_filters');
+		$_d['movie.cb.check'][$this->Name] = array($this, 'movie_cb_check');
+		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
 	}
 
 	function Prepare()
 	{
-		# Precompile stats
-
-		# @TODO: Bring this back!
-		/*$map = <<<EOF
-function () {
-	var e = {
-		voteAvg: 0,
-		rateAvg: 0,
-		votes: this.details.TMDB ? parseInt(this.details.TMDB.votes) : 0,
-		rating: this.details.TMDB ? parseFloat(this.details.TMDB.rating) : 0
-	}
-
-	emit(0, e);
-}
-EOF;
-		$reduce = <<<EOF
-function (k, vs) {
-	var ix = 0;
-	var ravg = 0;
-	var vavg = 0;
-
-	vs.forEach(function (v) {
-		ravg = (ravg + v.rating) / 2;
-		vavg = (vavg + v.votes) / 2;
-	});
-
-	return {
-		rateAvg: ravg,
-		voteAvg: vavg,
-		votes: vs.votes,
-		rating: vs.rating
-	};
-}
-EOF;
-
-		global $_d;
-
-		$_d['db']->command(array(
-			'mapreduce' => 'entry',
-			'out' => 'tmdbcache',
-			'map' => new MongoCode($map),
-			'reduce' => new MongoCode($reduce),
-		));
-
-		$obj = $_d['db']->tmdbcache->findOne();
-		$ra = $obj['value']['rateAvg'];
-		$va = $obj['value']['voteAvg'];
-
-		$ds = $_d['entry.ds'];
-		$all = $ds->find();
-		foreach ($all as $ent)
-		{
-			if (empty($ent['details']['TMDB'])) continue;
-
-			$v = $ent['details']['TMDB']['votes'];
-			$r = $ent['details']['TMDB']['rating'];
-			$ent['details']['TMDB']['score'] = (($va * $ra) + ($v * $r) / ($va + $v));
-			#$ds->save($ent);
-		}*/
-
 		if (!$this->Active) return;
 
 		global $_d;
@@ -138,68 +77,13 @@ EOF;
 				&& preg_match('/.*\((\d+)\)\.\S{3}/', $path, $m))
 				$title .= ' '.$m[1];
 
-			die(TMDB::Find($path, $title));
+			die($this->Find($path, $title));
 		}
-		/*else if (@$_d['q'][1] == 'scrape')
-		{
-			$p = Server::GetVar('target');
-			$movie = Movie::GetMovie($p);
-
-			if (empty($movie['title'])) $movie['title'] = $movie['fs_title'];
-			if (empty($movie['date'])) $movie['date'] = @$movie['fs_date'];
-
-			# Fast scrape doesn't come with tmdbid.
-			if (Server::GetVar('fast') == 1)
-			{
-				$title = MediaLibrary::SearchTitle($movie['title']).' '
-					.@$movie['date'];
-				$sx_movies = TMDB::FindXML($title);
-				if (empty($sx_movies)) die('Found nothing for "'.$title.'"');
-				$tmdbid = (string)$sx_movies[0]->id;
-			}
-			else $tmdbid = Server::GetVar('tmdb_id');
-
-			# Do the actual scrape.
-			$movie = TMDB::Scrape($movie, $tmdbid);
-
-			# Collect updated information.
-			$media = Movie::GetMedia('movie', $movie,
-				Module::P('movie/img/missing.jpg'));
-
-			if (empty($movie)) die(json_encode(array('error' => 'Not found',
-				'fs_path' => Server::GetVar('target'))));
-
-			# Run all module callbacks
-			$movie = U::RunCallbacks($_d['tmdb.cb.postscrape'], $movie);
-
-			# Update the database
-			$res = $_d['db']->command(array('findAndModify' => 'entry',
-				'query' => array('title' => $movie['title'], 'date' => $movie['date']),
-				'update' => $movie, 'new' => 1, 'upsert' => 1));
-
-			if (Server::GetVar('fast') == 1) die('Fixed!');
-			die(json_encode($movie + $media));
-		}*/
 		else if (@$_d['q'][1] == 'remove')
 		{
 			$_d['entry.ds']->remove(array('_id' => new MongoID(Server::GetVar('id'))));
 			die();
 		}
-		/*else if (@$_d['q'][1] == 'covers')
-		{
-			$id = $_d['q'][2];
-
-			$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-
-			if (empty($item) || empty($item['tmdbid']))
-				die("This movie doesn't seem fully scraped.");
-
-			$covers = TMDB::GetCovers($item['tmdbid']);
-			$ret = '';
-			foreach ($covers as $ix => $c)
-				$ret .= '<a href="'.$id.'" class="tmdb-aCover"><img src="'.$c.'" /></a>';
-			die($ret);
-		}*/
 		else if (@$_d['q'][1] == 'cover')
 		{
 			$id = $_d['q'][2];
@@ -219,16 +103,15 @@ EOF;
 
 	function movie_cb_check($md, &$msgs)
 	{
-		# Check for TMDB metadata.
+		# Check for metadata.
 
-		if (empty($md->Data['details']['TMDB'])
-		|| empty($md->Data['details']['TMDB']['released']))
+		if (empty($md->Data['details'][$this->Name]))
 		{
 			$p = $md->Path;
 			$uep = rawurlencode($p);
-			$msgs['TMDB/Metadata'][] = <<<EOF
-<a href="scrape/scrape?path=$uep"
-	class="a-fix">Scrape</a> File {$p} has no TMDB metadata.
+			$msgs["$this->Name/Metadata"][] = <<<EOF
+<a href="scrape/scrape?type=movie&path=$uep"
+	class="a-fix">Scrape</a> File {$p} has no {$this->Name} metadata.
 EOF;
 			return 1;
 		}
@@ -237,16 +120,16 @@ EOF;
 
 		# Check for certification.
 
-		if (empty($md->Data['details']['TMDB']['certification']))
+		if (empty($md->Data['details'][$this->Name]['certification']))
 		{
 			$uep = urlencode($md->Path);
 			$url = "{{app_abs}}/scrape/scrape?path={$uep}";
-			$tmdburl = $md->Data['details']['TMDB']['url'];
-			$imdbid = $md->Data['details']['TMDB']['imdb_id'];
+			$surl = $md->Data['details'][$this->Name]['url'];
+			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
-			$msgs['TMDB/Certification'][] = <<<EOD
+			$msgs["{$this->Name}/Certification"][] = <<<EOD
 <a href="{$url}" class="a-fix">Scrape</a> No certification for {$md->Title}
-- <a href="{$tmdburl}" target="_blank">TMDB</a>
+- <a href="{$surl}" target="_blank">{$this->Name}</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
 			$errors++;
@@ -254,9 +137,12 @@ EOD;
 
 		# Check filename compliance.
 
-		$filetitle = Movie::CleanTitleForFile($md->Data['details']['TMDB']['name']);
+		$filetitle = Movie::CleanTitleForFile($md->Data['details'][$this->Name]['name']);
 
-		$date = substr($md->Data['details']['TMDB']['released'], 0, 4);
+		if (!empty($md->Data['details'][$this->Name]['released']))
+			$date = substr($md->Data['details'][$this->Name]['released'], 0, 4);
+		else $date = '';
+
 		$file = $md->Path;
 		$ext = File::ext(basename($md->Path));
 
@@ -277,17 +163,17 @@ EOD;
 		{
 			$urlfix = "movie/rename?path=".urlencode($file);
 			$urlfix .= '&amp;target='.dirname($file).'/'.urlencode($target);
-			$urlunfix = "tmdb/remove?id={$md->Data['_id']}";
+			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
 			$bn = basename($file);
 
-			$tmdburl = $md->Data['details']['TMDB']['url'];
-			$imdbid = $md->Data['details']['TMDB']['imdb_id'];
+			$tmdburl = $md->Data['details'][$this->Name]['url'];
+			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
-			$msgs['TMDB/Filename Compliance'][] = <<<EOD
+			$msgs['Filename Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <a href="{$urlunfix}" class="a-nogo">Unscrape</a>
 File "$bn" should be "$target".
-- <a href="{$tmdburl}" target="_blank">TMDB</a>
+- <a href="{$tmdburl}" target="_blank">{$this->Name}</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
 			$errors++;
@@ -299,10 +185,10 @@ EOD;
 
 		if (empty($md->Image))
 		{
-			$urlunfix = "tmdb/remove?id={$md->Data['_id']}";
-			$msgs['TMDB/Media'][] = <<<EOD
+			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
+			$msgs["{$this->Name}/Media"][] = <<<EOD
 <a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md->Path}
-- <a href="http://www.themoviedb.org/movie/{$md->Data['details']['TMDB']['id']}"
+- <a href="http://www.themoviedb.org/movie/{$md->Data['details'][$this->Name]['id']}"
 target="_blank">Reference</a>
 EOD;
 			$errors++;
@@ -313,9 +199,9 @@ EOD;
 
 	function cb_search_query($q)
 	{
-		$ret['$or'][]['details.TMDB.keywords.keyword.@attributes.name'] =
+		$ret['$or'][]["details.{$this->Name}.keywords.keyword.@attributes.name"] =
 			new MongoRegex("/$q/i");
-		$ret['$or'][]['details.TMDB.name'] = new MongoRegex("/$q/i");
+		$ret['$or'][]["details.{$this->Name}.name"] = new MongoRegex("/$q/i");
 		return $ret;
 	}
 
@@ -323,12 +209,12 @@ EOD;
 	{
 		global $_d;
 
-		$cols = array('details.TMDB.categories.category.@attributes.name' => 1);
+		$cols = array("details.{$this->Name}.categories.category.@attributes.name" => 1);
 
 		foreach ($_d['entry.ds']->find(array(), $cols) as $i)
 		{
-			if (!empty($i['details']['TMDB']['categories']['category']))
-			foreach ($i['details']['TMDB']['categories']['category'] as $c)
+			if (!empty($i['details'][$this->Name]['categories']['category']))
+			foreach ($i['details'][$this->Name]['categories']['category'] as $c)
 			if (isset($c['@attributes']))
 			{
 				$n = $c['@attributes']['name'];
@@ -352,12 +238,15 @@ EOD;
 
 		foreach ($items as $i)
 		{
-			$ret['TMDB/Categories/'.$i['cat_name']] = array('href' =>
-				'{"details.TMDB.categories.category.@attributes.name": {"$all": ["'.
-				$i['cat_name'].'"]}}', 'style' => "font-size: {$sizes[$i['cat_name']]}px");
+			# @TODO: This is a mess, clean it up.
+			$ret["{$this->Name}/Categories/{$i['cat_name']}"] = array('href' =>
+				'details.'.$this->Name.'.categories.category.@attributes.name": {"$all": ["'
+				.$i['cat_name'].'"]}}',
+				'style' => "font-size: {$sizes[$i['cat_name']]}px"
+			);
 		}
 
-		$ret['TMDB/Missing'] = '{"details.TMDB": null}';
+		$ret[$this->Name.'/Missing'] = '{"details.'.$this->Name.'": null}';
 		return $ret;
 	}
 
@@ -382,19 +271,17 @@ EOD;
 	{
 		global $_d;
 
+		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
 		$item = $_d['entry.ds']->findOne(array('path' => $path));
 
-		$title = Server::GetVar('title');
+		$title = Server::GetVar('title', $md->Title);
 
-		if (empty($title) && !empty($item['details']['TMDB']['name']))
-			$title = $item['details']['TMDB']['name'];
+		if (empty($title) && !empty($item['details'][$this->Name]['name']))
+			$title = $item['details'][$this->Name]['name'];
 		else if (empty($title) && !empty($item['title']))
 			$title = $item['title'];
 		else if (empty($title))
-		{
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
-			var_dump($fs);
-		}
 
 		$url = TMDB_FIND.rawurlencode($title);
 		if (!empty($date)) $url .= '+'.$date;
@@ -435,7 +322,7 @@ EOD;
 	{
 		if ($id == null)
 		{
-			$keys = array_keys(TMDB::Find(MediaLibrary::SearchTitle($item['title']), @$item['released']));
+			$keys = array_keys($this->Find($item['path']));
 			if (empty($keys)) return $item;
 			$id = $keys[0];
 		}
@@ -450,16 +337,15 @@ EOD;
 
 		global $_d;
 
-		$obj = $_d['db']->tmdbcache->findOne();
-
-		$ra = $obj['value']['rateAvg'];
-		$va = $obj['value']['voteAvg'];
-		$v = $item['details'][$this->Name]['votes'];
-		$r = $item['details'][$this->Name]['rating'];
+		// @TODO: These values are bad, we need to fix this system.
+		//$ra = $obj['value']['rateAvg'];
+		//$va = $obj['value']['voteAvg'];
+		//$v = $item['details'][$this->Name]['votes'];
+		//$r = $item['details'][$this->Name]['rating'];
 
 		# Badass algorithm here.
-		$item['details'][$this->Name]['score'] =
-			(($va * $ra) + ($v * $r) / ($va + $v));
+		//$item['details'][$this->Name]['score'] =
+		//	(($va * $ra) + ($v * $r) / ($va + $v));
 
 		return $item;
 	}
@@ -497,13 +383,13 @@ EOF;
 			$ret[] = $i;
 		}
 
-		if (!empty($td['votes']))
+		/*if (!empty($td['votes']))
 		{
 			$i['var'] = 'TMDB_Votes';
 			$i['val'] = $td['votes'].' votes to '.$td['rating']
 				.' rating scores '.$td['score'];
 			$ret[] = $i;
-		}
+		}*/
 
 		return VarParser::Concat($g, $ret);
 	}

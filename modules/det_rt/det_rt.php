@@ -24,6 +24,17 @@ class RottenTomatoes extends Module implements Scraper
 		$this->CheckActive($this->Name);
 	}
 
+	function Link()
+	{
+		global $_d;
+
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.id"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.year"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.title"] = 1;
+		$_d['movie.cb.query']['columns']["details.{$this->Name}.links.alternate"] = 1;
+		$_d['movie.cb.check'][$this->Name] = array($this, 'cb_movie_check');
+	}
+
 	function Prepare()
 	{
 		global $_d;
@@ -44,7 +55,8 @@ class RottenTomatoes extends Module implements Scraper
 		}
 	}
 
-	# Scraper Related
+	# Scraper implementation
+
 	public $Link = 'http://www.rottentomatoes.com';
 	public $Icon = 'modules/det_rt/icon.png';
 
@@ -56,16 +68,14 @@ class RottenTomatoes extends Module implements Scraper
 	{
 		global $_d;
 
+		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
 		$item = $_d['entry.ds']->findOne(array('path' => $path));
 
-		$title = Server::GetVar('title');
+		$title = Server::GetVar('title', $md->Title);
 
 		if (empty($title) && !empty($item['title'])) $title = $item['title'];
 		else if (empty($title))
-		{
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
-			var_dump($fs);
-		}
 
 		$title = MediaLibrary::SearchTitle($title);
 
@@ -75,6 +85,7 @@ class RottenTomatoes extends Module implements Scraper
 
 		# Prepare results.
 		$ret = array();
+		if (!empty($dat['movies']))
 		foreach ($dat['movies'] as $m)
 		{
 			$ret[$m['id']] = array(
@@ -106,6 +117,66 @@ class RottenTomatoes extends Module implements Scraper
 
 		$cc = @$item->Data['details'][$this->Name]['critics_consensus'];
 		if (!empty($cc)) return "Rotten Tomatoes: $cc";
+	}
+
+
+	# Callbacks
+
+	function cb_movie_check($md, &$msgs)
+	{
+		$errors = 0;
+
+		# Check for RottenTomatoes metadata.
+
+		if (empty($md->Data['details'][$this->Name]))
+		{
+			$p = $md->Path;
+			$uep = rawurlencode($p);
+			$msgs['RottenTomatoes/Metadata'][] = <<<EOF
+<a href="scrape/scrape?path=$uep"
+	class="a-fix">Scrape</a> File {$p} has no {$this->Name} metadata.
+EOF;
+			return 1;
+		}
+
+		# Check filename compliance.
+
+		$filetitle = Movie::CleanTitleForFile($md->Data['details'][$this->Name]['title']);
+
+		$date = $md->Data['details'][$this->Name]['year'];
+		$file = $md->Path;
+		$ext = File::ext(basename($md->Path));
+
+		# Part files need their CD#
+		if (!empty($md->Data['part']))
+		{
+			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
+				.$file['part'].'\.(\S+)$#';
+			$target = "$filetitle ($date) CD{$md['part']}.$ext";
+		}
+		else
+		{
+			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\)\.(\S+)$#';
+			$target = "$filetitle ($date).$ext";
+		}
+
+		if (!preg_match($preg, $file))
+		{
+			$urlfix = "movie/rename?path=".urlencode($file);
+			$urlfix .= '&amp;target='.dirname($file).'/'.urlencode($target);
+			$urlunfix = "{$this->Name}/remove?id={$md->Data['_id']}";
+			$bn = basename($file);
+
+			$url = $md->Data['details'][$this->Name]['links']['alternate'];
+
+			$msgs['Filename Compliance'][] = <<<EOD
+<a href="{$urlfix}" class="a-fix">Fix</a>
+<a href="{$urlunfix}" class="a-nogo">Unscrape</a>
+File "$bn" should be "$target".
+- <a href="{$url}" target="_blank">{$this->Name}</a>
+EOD;
+			$errors++;
+		}
 	}
 }
 

@@ -13,6 +13,7 @@ class Movie extends MediaLibrary
 		$_d['movie.source'] = 'file';
 		$_d['movie.cb.query']['columns']['path'] = 1;
 		$_d['movie.cb.query']['columns']['paths'] = 1;
+		$_d['movie.cb.query']['columns']['title'] = 1;
 
 		$_d['movie.cb.query']['match'] = array();
 
@@ -213,15 +214,17 @@ class Movie extends MediaLibrary
 
 		# Collect database information
 		$this->_ds = array();
-		foreach ($_d['entry.ds']->find(array(), $_d['movie.cb.query']['columns']) as $dr)
+		foreach ($_d['entry.ds']->find(array('type' => 'movie'), $_d['movie.cb.query']['columns']) as $dr)
 		{
-			if (!empty($dr['paths']))
-			foreach ($dr['paths'] as $p)
+			$paths = isset($dr['paths']) ? $dr['paths'] : array();
+			$paths[] = $dr['path'];
+
+			foreach ($paths as $p)
 			{
 				# Remove missing items
 				if (empty($p) || !isset($this->_files[$p]))
 				{
-					$ret['cleanup'][] = "Removed database entry for non-existing '"
+					$msgs['Cleanup'][] = "Removed database entry for non-existing '"
 						.$p."'";
 					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
 				}
@@ -240,7 +243,7 @@ class Movie extends MediaLibrary
 		# Make sure our entry cache is up to date.
 		foreach ($this->_files as $p => $movie)
 			$ret = array_merge_recursive($ret,
-				$this->CheckDatabaseExistence($movie));
+				$this->CheckDatabaseExistence($p, $movie, $msgs));
 
 		# Iterate all known combined items.
 		foreach ($this->_files as $p => $movie)
@@ -254,6 +257,7 @@ class Movie extends MediaLibrary
 			{
 				$md = $this->_files[$p];
 				$md->Data = $this->_ds[$p];
+				$errors += $this->CheckDatabase($p, $md, $msgs);
 				$errors += $this->CheckFilename($p, $md, $msgs);
 				foreach ($_d['movie.cb.check'] as $cb)
 					$errors += call_user_func_array($cb, array(&$md, &$msgs));
@@ -268,9 +272,9 @@ class Movie extends MediaLibrary
 			}
 		}
 
-		$ret = array_merge_recursive($ret, $this->CheckOrphanMedia());
+		$this->CheckOrphanMedia($msgs);
 
-		$ret['Stats'][] = 'Checked '.count($this->_items).' known movie files.';
+		$msgs['Stats'][] = 'Checked '.count($this->_ds).' known movie files.';
 
 		return $ret;
 	}
@@ -280,25 +284,53 @@ class Movie extends MediaLibrary
 	 * @param MovieEntry $movie
 	 * @return array Array of error messages.
 	 */
-	function CheckDatabaseExistence($movie)
+	function CheckDatabaseExistence($file, $md, &$msgs)
 	{
 		global $_d;
 
 		$ret = array();
 
 		# This is multipart, we only keep track of the first item.
-		if (!empty($movie->Part)) return $ret;
+		if (!empty($md->Part)) return $ret;
 
-		if (!isset($this->_ds[$movie->Path]))
-		{
-			$_d['entry.ds']->save($movie->Data, array('safe' => 1));
-		}
+		if (!isset($this->_ds[$md->Path]))
+			$_d['entry.ds']->save($md->Data, array('safe' => 1));
 
 		return $ret;
 	}
 
+	function CheckDatabase($p, $md, &$msgs)
+	{
+		global $_d;
+
+		# The database does not match the filename.
+		if (!empty($md->Title) && $md->Title != @$md->Data['title'])
+		{
+			# Save the file title to the database.
+			$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
+				array('$set' => array('title' => $md->Title))
+			);
+		}
+
+		# The database does not have a release date.
+		if (!empty($md->Released) && $md->Released != @$md->Data['released'])
+			# Save the file title to the database.
+			$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
+				array('$set' => array('released' => $md->Released))
+			);
+
+		# The database has no parent set for a given movie, has to be Movie.
+		if (!empty($md->Data['_id']) && empty($md->Data['parent']))
+			# Save the file title to the database.
+			$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
+				array('$set' => array('parent' => 'Movie'))
+			);
+	}
+
 	function CheckFilename($file, $md, &$msgs)
 	{
+		global $_d;
+
 		$ext = File::ext($file);
 
 		# Filename related
@@ -308,7 +340,9 @@ class Movie extends MediaLibrary
 		}
 
 		# Title Related
-		$title = Movie::CleanTitleForFile($md->Title);
+		$title = $md->Title;
+
+		$title = Movie::CleanTitleForFile($title);
 
 		# Validate strict naming conventions.
 
@@ -338,7 +372,7 @@ class Movie extends MediaLibrary
 			$urlfix = "movie/fix?path=".urlencode($file);
 			$bn = basename($file);
 
-			$msgs['Movie/Filename Compliance'][] = <<<EOD
+			$msgs['Filename Compliance'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 File "$bn" should be "$target"
 EOD;
@@ -351,11 +385,11 @@ EOD;
 	/**
 	 * Check for orphaned meta images.
 	 */
-	function CheckOrphanMedia()
+	function CheckOrphanMedia(&$msgs)
 	{
 		global $_d;
 
-		$ret = array();
+		$errors = 0;
 
 		$mp = $_d['config']['paths']['movie']['meta'];
 		foreach (glob("$mp/movie/*") as $p)
@@ -369,7 +403,8 @@ EOD;
 
 				//if (!unlink($p))
 				//	$ret['Media'][] = "Could not unlink: $p";
-				else $ret['Media'][] = "Removed orphan cover $p";
+				else $msgs['Media'][] = "Removed orphan cover $p";
+				$errors++;
 			}
 			else
 			{
@@ -378,7 +413,8 @@ EOD;
 				//else $ret['Media'][] = "Removed irrelevant cover: {$p}";
 			}
 		}
-		return $ret;
+
+		return $errors;
 	}
 
 	function CollectFS()
@@ -404,9 +440,6 @@ EOD;
 	function CollectDS()
 	{
 		global $_d;
-
-		//if (empty($_d['movie.cb.query']['limit']) && empty($_d['movie.cb.nolimit']))
-		//	$_d['movie.cb.query']['limit'] = 50;
 
 		if (empty($_d['movie.cb.query']['order']))
 			$_d['movie.cb.query']['order'] = array('obtained' => -1);
@@ -478,6 +511,7 @@ class MovieEntry extends MediaEntry
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = $this->Path;
 		$this->Data['obtained'] = filemtime($this->Path);
+		$this->Data['index'] = '';
 		$this->parent = 'Movie';
 
 		# Collect cover data
@@ -495,7 +529,7 @@ class MovieEntry extends MediaEntry
 		return array(
 			# title[date].ext
 			'#/([^/]+)\[(\d{4})\][^/]*\.([^.]{3})$#' => array(
-				1 => 'title', 2 => 'released', 3 => 'ext'),
+				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title (date) CDnum.ext
 			'#/([^/]+)\s*\((\d{4})\).*cd(\d+)\.([^.]+)$#i' => array(
@@ -507,7 +541,7 @@ class MovieEntry extends MediaEntry
 
 			# title DDDD.ext
 			'#([^/]+)(\d{4}).*\.([^.]{3})$#i' => array(
-				1 => 'title', 2 => 'released', 3 => 'ext'),
+				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title CDnum.ext
 			'#/([^/]+).*cd(\d+)\.([^.]+)$#i' => array(
@@ -519,7 +553,10 @@ class MovieEntry extends MediaEntry
 
 			# title.ext
 			'#([^/(]+?)[ (.]*(ac3|dvdrip|xvid|limited|dvdscr).*\.([^.]+)$#i' => array(
-				1 => 'Title', 3 => 'Ext')
+				1 => 'Title', 3 => 'Ext'),
+
+			# title.ext
+			'#([^/]+)\.([^.]{3})#' => array(1 => 'Title', 2 => 'Ext')
 		);
 	}
 }

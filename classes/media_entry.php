@@ -65,6 +65,16 @@ class MediaEntry
 
 		return $ret;
 	}
+
+
+	static function GetEntryByType($path, $type)
+	{
+		switch ($type)
+		{
+			case 'movie':
+				return new MovieEntry($path, MovieEntry::GetFSPregs());
+		}
+	}
 }
 
 ?>

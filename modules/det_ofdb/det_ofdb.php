@@ -51,7 +51,8 @@ class OFDB extends Module implements Scraper
 
 	function Find($path)
 	{
-		$title = Server::GetVar('title');
+		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
+		$title = Server::GetVar('title', $md->Title);
 
 		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
 		$xml = @file_get_contents(OFDB_FIND.rawurlencode($title), false, $ctx);

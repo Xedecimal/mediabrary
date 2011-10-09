@@ -45,13 +45,16 @@ class Scrape extends Module
 
 			# @TODO: Move elsewhere.
 			# This is automated
-			/*if (empty($ids))
+			if (empty($ids))
 			{
 				$auto = true;
-				$mov = new MovieEntry($path, MovieEntry::GetFSPregs());
-				foreach ($_d['scrape.scrapers'] as $s)
-					if ($s->CanAuto()) $ids[$s] = null;
-			}*/
+
+				$md = MediaEntry::GetEntryByType($path, $type);
+
+				/* @var $s Scraper */
+				foreach ($_d['scrape.scrapers'][$type] as $s)
+					if ($s->CanAuto()) $ids[$s->Name] = null;
+			}
 
 			# Collect generic information
 			$q['path'] = $path;
