@@ -124,7 +124,12 @@ class TV extends MediaLibrary
 		}
 		else if (@$_d['q'][1] == 'rename')
 		{
-			if (!rename(Server::GetVar('src'), Server::GetVar('dst'))) die('Error!');
+			$path = Server::GetVar('path');
+			$target = Server::GetVar('target');
+
+			$md = new TVEpisodeEntry($path);
+
+			if ($md->Rename($target)) die('Error!');
 			else die('Done.');
 		}
 		else
@@ -160,7 +165,25 @@ class TV extends MediaLibrary
 		$fs = $this->CollectFS();
 		$ds = $this->CollectDS();
 
-		# Each Series
+		# Database checks
+
+		foreach ($ds as $s => $series)
+		{
+			foreach ($series as $se => $season)
+			{
+				foreach ($season as $ep => $episode)
+				{
+					if (!empty($episode['path']))
+						if (!file_exists($episode['path']))
+						{
+							$msgs['Orphans'][] = "Removing {$episode['path']}";
+							$_d['entry.ds']->remove(array('_id' => $episode['_id']));
+						}
+				}
+			}
+		}
+
+		# Filesystem checks
 
 		foreach ($fs as $p => $s)
 		{
@@ -178,21 +201,20 @@ class TV extends MediaLibrary
 				$episode = str_replace('\\', '/', $fep->GetPathname());
 
 				$ep = new TVEpisodeEntry($fep->GetPathname());
+				$es = @$ep->Data['series'];
+				$ese = @$ep->Data['season'];
+				$eep = @$ep->Data['episode'];
 
-				#  Check Database Existence
+				# Check Database Existence
 
-				if (!empty($ep->Data['series']))
-				if (empty($ds[$ep->Data['series']][$ep->Data['season']][$ep->Data['episode']]))
+				if (!empty($es) && empty($ds[$es][$ese][$eep]))
 				{
 					$msgs['TV/Metadata'][] = "Adding missing '{$ep->Path}' to database.";
+
 					$ep->save_to_db();
 				}
 
-				if (empty($ep->Data['index']))
-				{
-					//var_dump("Cannot recognize: $episode");
-					continue;
-				}
+				if (empty($ep->Data['index'])) continue;
 
 				if (!empty($_d['tv.cb.check.episode']))
 				foreach ($_d['tv.cb.check.episode'] as $cb)
@@ -341,12 +363,12 @@ class TVEpisodeEntry extends MediaEntry
 			if (!empty($dat['title']))
 				$this->Data['title'] = $dat['title'];
 			if (!empty($dat['series']))
-				$this->Data['series'] = $dat['series'];
+				$this->Data['series'] = MediaLibrary::CleanString($dat['series']);
 			if (!empty($dat['season']))
 				$this->Data['season'] = (int)$dat['season'];
 			if (!empty($dat['episode']))
 				$this->Data['episode'] = (int)$dat['episode'];
-			$this->Data['parent'] = @$dat['series'];
+			$this->Data['parent'] = MediaLibrary::CleanString(@$dat['series']);
 			if (!empty($dat['season']) && !empty($dat['episode']))
 				$this->Data['index'] = 'S'.(int)$dat['season'].'E'
 					.(int)$dat['episode'];
@@ -394,8 +416,8 @@ class TVEpisodeEntry extends MediaEntry
 
 			# Includes Series, Season, Episode
 
-			# path/{series} S{SSS}E{EEE}.ext
-			'#/([^/]*)S(\d{1,3})E(\d{1,3}).*\.(.{3})$#' => array(
+			# path/{series}/{series} S{SSS}E{EEE}.ext
+			'#/([^/]+)/[^/]+S(\d{1,3})E(\d{1,3}).*\.(.{3})$#' => array(
 				1 => 'series',
 				2 => 'season',
 				3 => 'episode',

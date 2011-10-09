@@ -36,9 +36,7 @@ class TVDB extends Module implements Scraper
 
 	}
 
-	public function Scrape($item, $id = null) {
-
-	}
+	public function Scrape($item, $id = null) {	}
 
 	function Find($path, $full = false)
 	{
@@ -75,6 +73,8 @@ class TVDB extends Module implements Scraper
 	{
 		global $_d;
 
+		$errors = 0;
+
 		$se = new TVSeriesEntry($series);
 
 		$creps = $_d['entry.ds']->find(array(
@@ -91,6 +91,18 @@ class TVDB extends Module implements Scraper
 		{
 			foreach ($eps as $e => $ep)
 			{
+				$dbep = @$dbeps[$s][$e];
+
+				# This entry is in the filesystem.
+				if (!empty($dbep['path']))
+				{
+					# Check series.
+					$errors += $this->CheckDetails($msgs, $dbep);
+
+					# Check filename.
+					$errors += $this->CheckFilename($msgs, $dbep);
+				}
+
 				# TVDB is already appended to this.
 				if (isset($dbeps[$s][$e]['details'][$this->Name])) continue;
 
@@ -119,29 +131,47 @@ class TVDB extends Module implements Scraper
 				$tve->Parent = $se->Title;
 
 				$tve->save_to_db();
-
-				# Check out the filename.
-
-				/*$epname = '';
-				if (!empty($eps['eps'][$s][$e]['title']))
-					$epname = $eps['eps'][$s][$e]['title'];
-				if (!empty($epname))
-					$epname = MediaLibrary::CleanTitleForFile($epname, false);
-				if (!empty($eps['series']))
-					$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
-
-				# <series> / <series> - S<season>E<episode> - <title>.avi
-				if (!preg_match("@([^/]+)/({$se->Title}) - S([0-9]{2})E([0-9]{2}) - ".preg_quote($epname).'\.([^.]+)$@', $episode))
-				{
-					$dir = dirname($episode);
-					$info['med_season'] = sprintf('%02d', $info['med_season']);
-					$info['med_episode'] = sprintf('%02d', $info['med_episode']);
-					$fname = "{$sname} - S{$info['med_season']}E{$info['med_episode']} - {$epname}";
-					$url = Module::L('tv/rename?src='.urlencode($episode).'&amp;dst='.urlencode("$dir/$fname.$ext"));
-					$msgs['TV/Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File $episode has invalid name, should be \"$dir/$fname.$ext\"";
-					$errors++;
-				}*/
 			}
+		}
+
+		return $errors;
+	}
+
+	function CheckDetails(&$msgs, $ep)
+	{
+		# No TVDB data to reference
+		if (!isset($ep['details'][$this->Name])) return;
+
+		if ($ep['title'] != $ep['details'][$this->Name]['title'])
+		{
+			var_dump("Title mismatch: {$ep['title']} to {$ep['details'][$this->Name]['title']}");
+		}
+	}
+
+	function CheckFilename(&$msgs, $ep)
+	{
+		$epname = '';
+		if (!empty($ep['title']))
+			$epname = $ep['title'];
+		if (!empty($epname))
+			$epname = MediaLibrary::CleanTitleForFile($epname, false);
+		if (!empty($eps['series']))
+			$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
+
+		$preg = "@([^/]+)/({$ep['series']}) - S([0-9]{2,3})E([0-9]{2,3}) - "
+			.preg_quote($epname).'\.([^.]+)$@';
+
+		# <series> / <series> - S<season>E<episode> - <title>.avi
+		if (!preg_match($preg, $ep['path']))
+		{
+			$dir = dirname($ep['path']);
+			$ext = File::ext($ep['path']);
+			$fns = sprintf('%02d', $ep['season']);
+			$fne = sprintf('%02d', $ep['episode']);
+			$fname = "{$ep['series']} - S{$fns}E{$fne} - {$epname}";
+			$url = Module::L('tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext"));
+			$msgs['Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"";
+			return 1;
 		}
 	}
 

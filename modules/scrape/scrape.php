@@ -165,16 +165,6 @@ EOF;
 		global $_d;
 		$_d['scrape.scrapers'][$type][$class] = new $class;
 	}
-
-	static function FormatDetail($details)
-	{
-		foreach ($details as $n => $v)
-		{
-			$ret .= "<p>$n: $v</p>";
-		}
-
-		return $ret;
-	}
 }
 
 Module::Register('Scrape');

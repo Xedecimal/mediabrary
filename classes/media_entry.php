@@ -43,6 +43,19 @@ class MediaEntry
 		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
 	}
 
+	function Rename($target)
+	{
+		rename($this->Data['path'], $target);
+
+		if (!empty($this->Data['paths']))
+			foreach ($this->Data['paths'] as $ix => $p)
+				if ($p == $this->Data['path'])
+					$this->Data['paths'][$ix] = $target;
+
+		$this->Data['path'] = $target;
+		$this->save_to_db();
+	}
+
 	static function ScrapeFS($path, $pregs)
 	{
 		// Collect path based metadata.
@@ -66,7 +79,6 @@ class MediaEntry
 		return $ret;
 	}
 
-
 	static function GetEntryByType($path, $type)
 	{
 		switch ($type)
@@ -75,6 +87,7 @@ class MediaEntry
 				return new MovieEntry($path, MovieEntry::GetFSPregs());
 		}
 	}
+
 }
 
 ?>

@@ -11,7 +11,7 @@ class TVRage extends Module implements Scraper
 	{
 		global $_d;
 
-		$_d['tv.cb.check'] = array(&$this, 'cb_tv_check');
+		$_d['tv.cb.check.series'] = array(&$this, 'cb_tv_check');
 	}
 
 	function Find($path, $full = false)

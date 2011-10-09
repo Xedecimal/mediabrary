@@ -1,5 +1,5 @@
 var page_loading = false;
-var sub = {};
+var sub = { page: 0 };
 
 $(function () {
 	$('.a-title').live('click', function () {
