@@ -51,12 +51,9 @@ class OFDB extends Module implements Scraper
 
 	function Find($path)
 	{
-		$ctx = stream_context_create(array(
-			'http' => array(
-				'timeout' => 5
-				)
-			)
-		);
+		$title = Server::GetVar('title');
+
+		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
 		$xml = @file_get_contents(OFDB_FIND.rawurlencode($title), false, $ctx);
 		if (empty($xml)) return array();
 
@@ -73,6 +70,7 @@ class OFDB extends Module implements Scraper
 				'title' => $sx_movie->titel,
 				'date' => $sx_movie->jahr,
 				'covers' => $sx_movie->bild,
+				'ref' => 'http://www.ofdb.de/film/'.$id
 			);
 		}
 

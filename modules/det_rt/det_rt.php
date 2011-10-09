@@ -57,8 +57,11 @@ class RottenTomatoes extends Module implements Scraper
 		global $_d;
 
 		$item = $_d['entry.ds']->findOne(array('path' => $path));
-		if (!empty($item['title'])) $title = $item['title'];
-		else
+
+		$title = Server::GetVar('title');
+
+		if (empty($title) && !empty($item['title'])) $title = $item['title'];
+		else if (empty($title))
 		{
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
 			var_dump($fs);

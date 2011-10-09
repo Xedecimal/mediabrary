@@ -245,7 +245,8 @@ class Movie extends MediaLibrary
 		# Iterate all known combined items.
 		foreach ($this->_files as $p => $movie)
 		{
-			# We reported information in here to place in $ret later.
+			# If a provider reports errors on this entry, we do not want to
+			# mark it as clean so it will continue to be checked.
 			$errors = 0;
 
 			# Database available, run additional checks.

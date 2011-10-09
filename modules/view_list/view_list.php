@@ -51,6 +51,7 @@ class ViewList extends Module
 		foreach ($this->_sort as &$v) $v = (int)$v;
 
 		$m = array();
+		if (!empty($this->_q))
 		foreach ($this->_q as $col => $q)
 			if (!empty($q))
 				$m[$col] = new MongoRegex('/'.preg_quote($q).'/i');

@@ -30,14 +30,8 @@ class Scrape extends Module
 			$this->path = $_GET['path'];
 			$this->type = $_GET['type'];
 
-			# @TODO: Move this stuff elsewhere!
-
-			//$item = new MovieEntry($p);
-
-			//$q['fs_path'] = $p;
-			//$item->Data = $_d['entry.ds']->findOne($q);
-
-			//$t->Set($item);
+			$t->Set('path', $this->path);
+			$t->Set('title', Server::GetVar('title', ''));
 			die($t->ParseFile(Module::L('scrape/find.xml')));
 		}
 

@@ -249,6 +249,7 @@ EOF;
 - <a href="{$tmdburl}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
+			$errors++;
 		}
 
 		# Check filename compliance.
@@ -289,6 +290,7 @@ File "$bn" should be "$target".
 - <a href="{$tmdburl}" target="_blank">TMDB</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
+			$errors++;
 		}
 
 		# Check for cover.
@@ -303,15 +305,9 @@ EOD;
 - <a href="http://www.themoviedb.org/movie/{$md->Data['details']['TMDB']['id']}"
 target="_blank">Reference</a>
 EOD;
+			$errors++;
 		}
 
-		/*if (!file_exists("$mp/bd_$next"))
-		{
-				$urlunfix = "tmdb/remove?id={$md['_id']}";
-				$ret['Media'][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing backdrop for {$md['fs_path']}
-EOD;
-		}*/
 		return $errors;
 	}
 
@@ -387,11 +383,14 @@ EOD;
 		global $_d;
 
 		$item = $_d['entry.ds']->findOne(array('path' => $path));
-		if (!empty($item['details']['TMDB']['name']))
+
+		$title = Server::GetVar('title');
+
+		if (empty($title) && !empty($item['details']['TMDB']['name']))
 			$title = $item['details']['TMDB']['name'];
-		else if (!empty($item['title']))
+		else if (empty($title) && !empty($item['title']))
 			$title = $item['title'];
-		else
+		else if (empty($title))
 		{
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
 			var_dump($fs);
@@ -444,12 +443,17 @@ EOD;
 		$data = Arr::FromXML(self::Details($id));
 		$item['details'][$this->Name] = $data['movies']['movie'];
 
+		# Try to set the release date on the movie.
+		if (!empty($data['movies']['movie']['released']))
+		if (preg_match('/(\d{4})/', $data['movies']['movie']['released'], $m))
+			$item['released'] = $m[1];
+
 		global $_d;
 
 		$obj = $_d['db']->tmdbcache->findOne();
+
 		$ra = $obj['value']['rateAvg'];
 		$va = $obj['value']['voteAvg'];
-
 		$v = $item['details'][$this->Name]['votes'];
 		$r = $item['details'][$this->Name]['rating'];
 

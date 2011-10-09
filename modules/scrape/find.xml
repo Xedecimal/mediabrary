@@ -5,9 +5,9 @@ cache. Afterwards, pick a cover that you find attractive and all data will then
 be saved. You may optionally choose the blank image if no covers are found or
 you dislike all of them.</p>
 
-<p>Original Filename: '{{Path}}'</p>
+<p>Original Filename: '{{path}}'</p>
 
-<p><input type="text" id="inTitle" />
+<p><input type="text" id="in-title" value="{{title}}" />
 	<input type="button" class="but-scrape-research" value="Manual Search" /></p>
 
 <scraper>
@@ -17,7 +17,7 @@ you dislike all of them.</p>
 <div class="results">
 <result>
 <label><input type="radio" class="find-result" id="sel-{{Name}}"
-name="{{Name}}" value="{{id}}" /> {{title}}</label> <a href="{{ref}}" target="_blank">[ref]</a> <br /></result>
+name="{{Name}}" value="{{id}}" />{{date}} {{title}}</label> <a href="{{ref}}" target="_blank">[ref]</a> <br /></result>
 </div> <!-- .results -->
 </fieldset>
 </scraper>

@@ -3,11 +3,12 @@ var sub = {};
 
 $(function () {
 	$('.a-title').live('click', function () {
-		$('<div />').dialog({
+		$('<div id="detail-dialog" />').dialog({
 			width: '80%',
 			height: 500,
 			position: 'top',
-			title: 'Item Details'
+			title: 'Item Details',
+			close: function (e, ui) { $(e.target).remove(); }
 		}).load($(this).attr('href'));
 
 		return false;
@@ -30,8 +31,8 @@ $(function () {
 
 		sub['sort'] = {};
 
-		$('.headerSortDown .dbname').each(function () { sort[$(this).val()] = -1; });
-		$('.headerSortUp .dbname').each(function () { sort[$(this).val()] = 1; });
+		$('.headerSortDown').each(function () { sub['sort'][$(this).data('col')] = -1; });
+		$('.headerSortUp').each(function () { sub['sort'][$(this).data('col')] = 1; });
 
 		clearItems();
 	});

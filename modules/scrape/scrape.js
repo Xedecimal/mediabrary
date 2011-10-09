@@ -1,8 +1,7 @@
 $(function () {
 	$('#a-scrape-find').live('click', scape_find);
 
-	// @TODO: Do we need this source/attr data?
-	$('.but-scrape-research').live('click', { source: '#inTitle', attr: 'value' }, scape_find);
+	$('.but-scrape-research').live('click', scape_find);
 
 	// A found result has been selected (not yet chosen).
 	$('.find-result').live('click', function () {
@@ -26,10 +25,6 @@ $(function () {
 
 		var cov = $(this).attr('src');
 
-		// Place cover image
-		$('.movie-item[title="'+fs_path+'"]').css('background',
-			'url("'+cov+'")');
-
 		var ids = {};
 
 		$('.find-result:checked').each(function (ix, item) {
@@ -43,12 +38,15 @@ $(function () {
 			'ids': ids
 		};
 
-		$.get(window.app_abs+'/scrape/scrape', dat, function (data) {
-		}, 'json');
+		// Tell the scrapers to get to work.
 
-		// Restore dialog contents.
-		$('#details-wrap').load(window.app_abs+'/'+dat['type']+'/detail/'
-			+$('#detail-id').val());
+		$('#details').html('<p>Collecting and saving the selected data...</p>');
+
+		$.get(window.app_abs+'/scrape/scrape', dat, function (data) {
+			// Restore dialog contents with new details.
+			$('#detail-dialog').load(window.app_abs+'/'+dat['type']+'/detail/'
+				+$('#detail-id').val());
+		}, 'json');
 	});
 });
 
@@ -58,21 +56,23 @@ function scape_find(event) {
 		path: $('#detail-path').val()
 	};
 
-	// @TODO: Movie specific, move to the movie side of things.
+	// Typed in a title specifically to find.
 
-	// Re-searching manually.
-	if ($('#inTitle').val())
+	if ($('#in-title').val())
 	{
 		dat['manual'] = 1;
-		dat['title'] = $('#inTitle').val();
+		dat['title'] = $('#in-title').val();
 	}
 
 	// Initial automatic search.
+
 	else
 	{
 		dat['title'] = $('#movie_title').val();
 		dat['date'] = $('#movie_released').val();
 	}
+
+	$('#details').html('<p>Currently searching...</p>');
 
 	$.get(window.app_abs+'/scrape/find', dat, function (data) {
 		$('#details').html(data);
