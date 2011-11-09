@@ -1,13 +1,13 @@
 <div id="tv-series">
-<a href="{{Path}}" id="scrape-tv-link"><img src="img/find.png" alt="Grab Latest Information" /></a>
 <callback ds="_d" name="tv.cb.buttons" />
 
-<input type="hidden" id="active-title" value="{{Title}}" />
+<input type="hidden" id="detail-type" value="tv-series" />
+<input type="hidden" id="detail-path" value="{{Path}}" />
 
-<div id="tv-details">
+<div id="details">
 <item>
 	<div class="tv-episode" title="{{path}}" id="item:{{_id}}">
-	S{{season}}E{{episode}} - {{released}} - <a class="episode-link"
+	S{{season}}E{{episode}} - {{Released}} - <a class="episode-link"
 		href="player?path={{url}}">{{title}}</a></div>
 </item>
 </div> <!-- #tv-details -->
