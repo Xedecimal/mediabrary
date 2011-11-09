@@ -1,29 +1,15 @@
 $(function () {
-	$('#dialog-tv').dialog({
-		'modal': true,
-		autoOpen: false,
-		width: '80%',
-		height: 600,
-		position: 'top'
-	});
-
 	$('.a-tv-item').live('click', function () {
-		$('#dialog-tv').dialog('option', 'title',
-			'Details for '+$(this).attr('title'));
+		$('<div id="detail-dialog" />').dialog({
+			'modal': true,
+			width: '80%',
+			height: 600,
+			position: 'top',
+			title: 'Details for '+$(this).attr('title'),
+			
+			close: function () { $('#detail-dialog').remove(); }
+		}).load('tv/series', { 'name': $(this).attr('href') });
 
-		$('#dialog-tv').load('tv/series',
-			{'name': $(this).attr('href')},
-			function () {
-				$('#dialog-tv').dialog('open');
-			}
-		);
-		return false;
-	});
-
-	$('#scrape-tv-link').live('click', function () {
-		$.get('tv/search', {series: $(this).attr('href')}, function (data) {
-			$('#scrape-tv-link').after(data);
-		}, 'html')
 		return false;
 	});
 
