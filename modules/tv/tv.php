@@ -482,13 +482,14 @@ class TVSeriesEntry extends MediaEntry
 				if (!isset($this->ds[$is][$ie]))
 				{
 					$ep->Data['parent'] = $this->Data['_id'];
-					$ep->save_to_db();
-					$msgs['TV'][] = "Adding {$this->Title} {$is}x{$ie} to database.";
+					//$ep->save_to_db();
+					//$msgs['TV'][] = "Adding {$this->Title} {$is}x{$ie} to database.";
 				}
 
 				else if (empty($this->ds[$is][$ie]['path']))
 				{
 					$this->ds[$is][$ie]['path'] = $ep->Path;
+					//var_dump($this->ds[$is][$ie]);
 					$_d['entry.ds']->save($this->ds[$is][$ie],
 						array('safe' => 1));
 					$msgs['TV'][] = "Updated path {$ep->Path} on existing entry.";

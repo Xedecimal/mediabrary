@@ -55,5 +55,6 @@ $(function () {
 });
 
 function clearItems() {
+	sub['page'] = 0;
 	$('#table-list tbody').load('view_list/items', sub);
 }

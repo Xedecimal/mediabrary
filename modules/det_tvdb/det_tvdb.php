@@ -182,6 +182,7 @@ class TVDB extends Module implements Scraper
 					$tve->Data['index'] = sprintf('S%02dE%02d', $s, $e);
 					$tve->Title = $ep['title'];
 					$tve->Data['parent'] = $series->Data['_id'];
+					$dbep = $tve->Data;
 					$tve->save_to_db();
 				}
 				else $dbep = $series->ds[$s][$e];
