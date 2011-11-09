@@ -51,7 +51,7 @@ class Incoming extends Module
 
 		if ($found['type'] == 'TVEpisodeEntry')
 		{
-			foreach ($_d['config']['paths']['tv']['paths'] as $p)
+			foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
 			{
 				$dirs = File::Comb($p, null, SCAN_DIRS);
 				$sims = array();
