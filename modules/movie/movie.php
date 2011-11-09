@@ -507,11 +507,15 @@ class MovieEntry extends MediaEntry
 
 		# Default data values for every movie entry.
 		$this->Data['title'] = $this->Title;
-		if (isset($this->Released)) $this->Data['released'] = $this->Released;
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = $this->Path;
 		$this->Data['obtained'] = filemtime($this->Path);
-		$this->Data['index'] = "{$this->Title} ({$this->Released})";
+		$this->Data['index'] = $this->Title;
+		if (isset($this->Released))
+		{
+			$this->Data['released'] = $this->Released;
+			$this->Data['index'] .= '('.$this->Released.')';
+		}
 		$this->parent = 'Movie';
 
 		# Collect cover data
