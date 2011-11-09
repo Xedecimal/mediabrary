@@ -64,6 +64,7 @@ class ViewList extends Module
 		$res = array();
 		foreach ($cr as $i)
 		{
+			if (!isset($i['index'])) $i['index'] = '';
 			# We do not have this item.
 			if (empty($i['path']))
 			{
