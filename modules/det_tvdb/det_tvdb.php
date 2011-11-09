@@ -6,8 +6,10 @@ class TVDB extends Module implements Scraper
 
 	const _tvdb_key = '138419DAB0A9141D';
 	const _tvdb_find = 'http://www.thetvdb.com/api/GetSeries.php?seriesname=';
+	const _tvdb_api = 'http://www.thetvdb.com/api/138419DAB0A9141D/';
 
-	//http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/all/en.zip
+	# http://www.thetvdb.com/api/138419DAB0A9141D/mirrors.xml
+	# http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/banners.xml
 
 	# Module extension
 
@@ -16,6 +18,32 @@ class TVDB extends Module implements Scraper
 		global $_d;
 
 		$_d['tv.cb.check.series'][$this->Name] = array(&$this, 'cb_tv_check_series');
+	}
+
+	function Prepare()
+	{
+		global $_d;
+
+		if (@$_d['q'][1] == 'covers')
+		{
+			$id = Server::GetVar('id');
+
+			# Collect Information
+			$xml = self::GetRemoteBanners($id);
+			$sx = simplexml_load_string($xml);
+			$xp = $sx->xpath("//Banners/Banner[BannerType='poster']");
+
+			# Process Information
+			$ret = array('id' => $this->Name);
+			foreach ($xp as $ban)
+			{
+				$fn = (string)$ban->BannerPath;
+				file_put_contents('temp/'.basename($fn), file_get_contents('http://thetvdb.com/banners/'.$fn));
+				$ret['covers'][] = 'temp/'.basename($fn);
+			}
+
+			die(json_encode($ret));
+		}
 	}
 
 	# Scraper implementation
@@ -27,19 +55,64 @@ class TVDB extends Module implements Scraper
 
 	}
 
-	public function Details($id) {
+	public function Details($id)
+	{
+		global $_d;
 
+		if ($id == -1) {
+			echo "Could not locate this series $series";
+			return null;
+		}
+
+		$za = TVDB::GetRemoteZip($id);
+
+		$ret['detail'] = $za->getFromName('en.xml');
+		$ret['mirrors'] = $za->getFromName('mirrors.xml');
+		$ret['banners'] = $za->getFromName('banners.xml');
+		$za->close();
+
+		return $ret;
+
+		/*if (empty($info['Episode'])) return array();
+		foreach ($info['Episode'] as $ep)
+		{
+			$sn = (int)$ep['SeasonNumber'];
+			$en = (int)$ep['EpisodeNumber'];
+
+			$item['details']['TVDB'] = $ep;
+
+			if (!empty($ep['FirstAired']))
+				$item['aired'] = Database::MyDateTimestamp($ep['FirstAired']);
+			if (!empty($ep['EpisodeName']))
+				$item['title'] = MediaLibrary::CleanString($ep['EpisodeName']);
+
+			# Build TVDB url
+			$eid = $ep['id'];
+			$snid = $ep['seasonid'];
+			$srid = $ep['seriesid'];
+			$item['links']['TVDB'] = "http://thetvdb.com/index.php?tab=episode&amp;seriesid=$srid&amp;seasonid=$snid&amp;id=$eid";
+
+			$ret['eps'][$sn][$en] = $item;
+		}
+		return $ret;*/
 	}
 
 	public function GetDetails($t, $g, $a) {
-
 	}
 
 	public function GetName() {
 
 	}
 
-	public function Scrape($item, $id = null) {	}
+	public function Scrape($item, $id = null)
+	{
+		$dst = $item['path'].'/.info.xml';
+		$src = self::_tvdb_api."/series/{$id}/all/en.xml";
+		if (!@file_put_contents($dst, file_get_contents($src)))
+			return 'Unable to write tvdb metadata.';
+
+		return $item;
+	}
 
 	function Find($path)
 	{
@@ -59,13 +132,13 @@ class TVDB extends Module implements Scraper
 		else $realname = basename($p);
 
 		$url = TVDB::_tvdb_find.rawurlencode($realname);
-		$sx = simplexml_load_string(file_get_contents($url));
+		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
+		$sx = simplexml_load_string(file_get_contents($url, false, $ctx));
 		$seriess = $sx->xpath('//Data/Series');
 
 		$items = array();
 		foreach ($seriess as $series)
 		{
-
 			$url = '';
 			$item = array(
 				'id' => $series->id,
@@ -78,25 +151,6 @@ class TVDB extends Module implements Scraper
 		}
 
 		return $items;
-
-		$ret = '';
-		$dst = $p.'/.info.zip';
-		$src = "http://www.thetvdb.com/api/{$key}/series/{$sid}/all/en.zip";
-		if (!@file_put_contents($dst, file_get_contents($src)))
-			return 'Unable to write tvdb metadata.';
-
-		$za = new ZipArchive;
-		$za->open($dst);
-		$xml = $za->getFromName('banners.xml');
-		$za->close();
-
-		$sx = simplexml_load_string($xml);
-		list($ban) = $sx->xpath("//Banners/Banner[BannerType='series']/BannerPath");
-		$pi = pathinfo($ban);
-		$series = basename($path);
-		File::MakeFullDir($_d['config']['paths']['tv']['meta']);
-		file_put_contents($_d['config']['paths']['tv']['meta']."/thm_$series",
-			file_get_contents("http://www.thetvdb.com/banners/{$ban}"));
 	}
 
 	# Callbacks
@@ -107,23 +161,35 @@ class TVDB extends Module implements Scraper
 
 		$errors = 0;
 
-		$se = new TVSeriesEntry($series);
+		$tvdbeps = TVDB::GetInfo($series->Path);
 
-		$creps = $_d['entry.ds']->find(array(
-			'type' => 'tv-episode',
-			'parent' => $se->Title
-		));
-
-		foreach ($creps as $ep)
-			$dbeps[$ep['season']][$ep['episode']] = $ep;
-
-		$tvdbeps = TVDB::GetInfo($series);
-
+		if (!empty($tvdbeps['eps']))
 		foreach ($tvdbeps['eps'] as $s => $eps)
 		{
 			foreach ($eps as $e => $ep)
 			{
-				$dbep = @$dbeps[$s][$e];
+				# No record of this entry, let us make it.
+				if (empty($series->ds[$s][$e]))
+				{
+					$msgs['TVDB/Metadata'][] = "Adding missing database entry for {$series->Title} of $s $e.";
+
+					$tve = new TVEpisodeEntry(null);
+					$tve->Data['details'][$this->Name] = $ep['details'][$this->Name];
+					if (!empty($ep['aired']))
+						$tve->Data['released'] = new MongoDate($ep['aired']);
+					if (isset($ep['title'])) $tve->Data['title'] = $ep['title'];
+					if (empty($tve->Data['path'])) $tve->Data['path'] = '';
+					$tve->Data['type'] = 'tv-episode';
+					$tve->Data['series'] = $series->Title;
+					$tve->Data['season'] = $s;
+					$tve->Data['episode'] = $e;
+					$tve->Data['index'] = sprintf('S%02dE%02d', $s, $e);
+					$tve->Title = $ep['title'];
+					$tve->Data['parent'] = $series->Data['_id'];
+					$tve->save_to_db();
+
+				}
+				else $dbep = $series->ds[$s][$e];
 
 				# This entry is in the filesystem.
 				if (!empty($dbep['path']))
@@ -137,32 +203,6 @@ class TVDB extends Module implements Scraper
 
 				# TVDB is already appended to this.
 				if (isset($dbeps[$s][$e]['details'][$this->Name])) continue;
-
-				$tve = new TVEpisodeEntry(null);
-
-				$msgs['TVDB/Metadata'][] = "Adding missing database entry for $series of $s $e.";
-
-				if (!empty($dbeps[$s][$e])) $tve->Data = $dbeps[$s][$e];
-
-				$tve->Data['details'][$this->Name] = $ep;
-
-				if (!empty($ep['aired']))
-				{
-					$tve->Data['released'] = new MongoDate($ep['aired']);
-				}
-
-				if (!empty($ep['title'])) $tve->Data['title'] = $ep['title'];
-				if (empty($tve->Data['path'])) $tve->Data['path'] = '';
-				$tve->Data['type'] = 'tv-episode';
-				$tve->Data['series'] = $se->Title;
-				$tve->Data['season'] = $s;
-				$tve->Data['episode'] = $e;
-				$tve->Data['parent'] = $se->Title;
-				$tve->Data['index'] = sprintf('S%02dE%02d', $s, $e);
-				$tve->Title = @$ep['title'];
-				$tve->Parent = $se->Title;
-
-				$tve->save_to_db();
 			}
 		}
 
@@ -173,11 +213,6 @@ class TVDB extends Module implements Scraper
 	{
 		# No TVDB data to reference
 		if (!isset($ep['details'][$this->Name])) return;
-
-		if ($ep['title'] != $ep['details'][$this->Name]['title'])
-		{
-			var_dump("Title mismatch: {$ep['title']} to {$ep['details'][$this->Name]['title']}");
-		}
 	}
 
 	function CheckFilename(&$msgs, $ep)
@@ -208,6 +243,11 @@ class TVDB extends Module implements Scraper
 	}
 
 	# Statics
+
+	static function GetRemoteBanners($id)
+	{
+		return file_get_contents(self::_tvdb_api.'/series/'.$id.'/banners.xml');
+	}
 
 	static function GetSID($path)
 	{
@@ -244,24 +284,21 @@ class TVDB extends Module implements Scraper
 			return null;
 		}
 
-		$infoloc = "$series/.info.zip";
+		$infoloc = "$series/.tvdb.xml";
 		if ($download || !file_exists($infoloc))
 		{
 			$url = 'http://www.thetvdb.com/api/138419DAB0A9141D/series/'
-				.$sid.'/all/en.zip';
+				.$sid.'/all/en.xml';
 			file_put_contents($infoloc, file_get_contents($url));
 		}
-		$za = new ZipArchive;
-		$za->open($infoloc);
-		$xml = $za->getFromName('en.xml');
-		$za->close();
+		$xml = file_get_contents($infoloc);
 		return Arr::FromXML($xml);
 	}
 
 	static function GetInfo($series)
 	{
 		$info = TVDB::GetXML($series);
-		if (empty($info)) return array();
+		if (empty($info['Episode'])) return array();
 		foreach ($info['Episode'] as $ep)
 		{
 			$sn = (int)$ep['SeasonNumber'];
