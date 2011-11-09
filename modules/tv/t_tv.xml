@@ -1,7 +1,5 @@
 <null>
 
-<div id="dialog-tv" class="hidden"></div>
-
 <script type="text/javascript" src="modules/tv/_tv.js" />
 
 <a href="#" id="a-tv-scrape-all">Scrape all new information.</a>
