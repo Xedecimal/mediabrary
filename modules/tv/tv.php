@@ -424,9 +424,7 @@ class TVSeriesEntry extends MediaEntry
 		));
 
 		foreach ($eps as $ep)
-		{
 			$this->ds[$ep['season']][$ep['episode']] = $ep;
-		}
 	}
 
 	function CollectFS()
@@ -515,7 +513,6 @@ class TVEpisodeEntry extends MediaEntry
 				$this->Data['season'] = (int)$dat['season'];
 			if (!empty($dat['episode']))
 				$this->Data['episode'] = (int)$dat['episode'];
-			$this->Data['parent'] = MediaLibrary::CleanString(@$dat['series']);
 			if (!empty($dat['season']) && !empty($dat['episode']))
 				$this->Data['index'] = sprintf('S%02dE%02d', $dat['season'],
 					$dat['episode']);
