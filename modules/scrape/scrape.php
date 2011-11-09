@@ -12,6 +12,9 @@ class Scrape extends Module
 
 		$_d['cb.detail.buttons']['scrape'] = array(&$this, 'cb_detail_buttons');
 		$_d['cb.detail.entry']['scrape'] = array(&$this, 'cb_detail_entry');
+
+		# @TODO: Details should work for anything.
+		$_d['tv.cb.buttons']['scrape'] = array(&$this, 'cb_detail_buttons');
 	}
 
 	function Prepare()
