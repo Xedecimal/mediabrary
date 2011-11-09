@@ -187,39 +187,49 @@ class TVDB extends Module implements Scraper
 					$tve->Title = $ep['title'];
 					$tve->Data['parent'] = $series->Data['_id'];
 					$tve->save_to_db();
-
 				}
 				else $dbep = $series->ds[$s][$e];
+
+				# Check series.
+				$errors += $this->CheckDetails($msgs, $dbep, $ep);
 
 				# This entry is in the filesystem.
 				if (!empty($dbep['path']))
 				{
-					# Check series.
-					$errors += $this->CheckDetails($msgs, $dbep);
-
 					# Check filename.
-					$errors += $this->CheckFilename($msgs, $dbep);
+					$errors += $this->CheckFilename($msgs, $dbep, $ep);
 				}
-
-				# TVDB is already appended to this.
-				if (isset($dbeps[$s][$e]['details'][$this->Name])) continue;
 			}
 		}
 
 		return $errors;
 	}
 
-	function CheckDetails(&$msgs, $ep)
+	function CheckDetails(&$msgs, $ep, $tvdbep)
 	{
 		# No TVDB data to reference
-		if (!isset($ep['details'][$this->Name])) return;
+		if (!isset($ep['details'][$this->Name]))
+		{
+			$nep = new TVEpisodeEntry($ep['path']);
+			$nep->CollectDS();
+			$nep->Data['details'][$this->Name] = $tvdbep['details'][$this->Name];
+			$nep->save_to_db();
+			$msgs['TVDB'][] = "Adding metadata for {$ep['path']}";
+		}
+
+		if (!empty($ep['details'][$this->Name]['FirstAired'])
+			&& empty($ep['path'])
+			&& !empty($ep['season'])
+			&& strtotime($ep['details'][$this->Name]['FirstAired']) < time())
+			$msgs['TVDB'][] = "Missing episode {$ep['series']} {$ep['season']}x{$ep['episode']}";
 	}
 
-	function CheckFilename(&$msgs, $ep)
+	function CheckFilename(&$msgs, $ep, $dvdbep)
 	{
-		$epname = '';
-		if (!empty($ep['title']))
-			$epname = $ep['title'];
+		if (empty($ep['details'][$this->Name])) return;
+
+		$epname = @$ep['details'][$this->Name]['EpisodeName'];
+
 		if (!empty($epname))
 			$epname = MediaLibrary::CleanTitleForFile($epname, false);
 		if (!empty($eps['series']))
@@ -303,6 +313,9 @@ class TVDB extends Module implements Scraper
 		{
 			$sn = (int)$ep['SeasonNumber'];
 			$en = (int)$ep['EpisodeNumber'];
+
+			foreach (array_keys($ep) as $k)
+				if (empty($ep[$k])) unset($ep[$k]);
 
 			$item['details']['TVDB'] = $ep;
 
