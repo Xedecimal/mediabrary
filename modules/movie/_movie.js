@@ -9,11 +9,13 @@ $(function () {
 	});
 
 	$('.a-movie-item').live('click', function () {
-		$('<div />').dialog({
+		$('<div id="detail-dialog" />').dialog({
 			width: '80%',
 			height: 500,
 			position: 'top',
-			title: 'Movie Details'
+			title: 'Movie Details',
+
+			close: function () { $('#detail-dialog').remove(); }
 		}).load($(this).attr('href'));
 
 		return false;
