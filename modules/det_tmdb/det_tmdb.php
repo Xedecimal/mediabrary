@@ -32,7 +32,6 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.imdb_id"] = 1;
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.released"] = 1;
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.certification"] = 1;
-		$_d['movie.cb.query']['order']["details.{$this->Name}.score"] = -1;
 
 		$_d['movie.cb.check'][$this->Name] = array($this, 'movie_cb_check');
 		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
