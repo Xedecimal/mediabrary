@@ -1,1 +1,2 @@
-#divMainTV { background: url('img/main-shows.jpg'); }
+.tv-item { float: left; }
+.tv-image { width: 250px; }

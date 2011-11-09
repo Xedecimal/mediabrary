@@ -1,6 +1,6 @@
 <item>
 	<div class="tv-item">
-	<a href="{{Path}}" class="a-tv-item" title="{{Title}}">
+	<a href="{{Data._id}}" class="a-tv-item" title="{{Title}}">
 	<img class="tv-image" src="{{Image}}" alt="{{Title}}" /></a>
 	</div>
 </item>

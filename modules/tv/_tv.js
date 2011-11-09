@@ -6,9 +6,9 @@ $(function () {
 			height: 600,
 			position: 'top',
 			title: 'Details for '+$(this).attr('title'),
-			
+
 			close: function () { $('#detail-dialog').remove(); }
-		}).load('tv/series', { 'name': $(this).attr('href') });
+		}).load('tv-series/detail/'+$(this).attr('href'));
 
 		return false;
 	});

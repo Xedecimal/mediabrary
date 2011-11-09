@@ -25,13 +25,9 @@ class MediaLibrary extends Module
 		{
 			$ix++;
 
-			//if (!empty($a['LIMIT']) && $ix >= $a['LIMIT']) break;
-
 			# URL friendly path
 			$i->PathEncoded = rawurlencode($i->Path);
 
-			# Thumbnail
-			//$i->ImageCSS = str_replace("'", '\\\'', $i->Image);
 			$i->RuePath = rawurlencode($i->Path);
 			$ret .= $vp->ParseVars($g, $i);
 		}

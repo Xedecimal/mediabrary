@@ -87,34 +87,15 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		/*if (empty($_d['q'][0]))
+		if (@$_d['q'][0] != 'tv' && @$_d['q'][0] != 'tv-series') return;
+
+		$this->_items = TV::CollectDS();
+
+		if (@$_d['q'][1] == 'detail')
 		{
-			$ret = '<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />';
-
-			$series = $size = $total = 0;
-
-			if (!empty($_d['config']['paths']['tv-series']))
-			foreach ($_d['config']['paths']['tv-series'] as $p)
-				$series = count(glob("$p/*", GLOB_ONLYDIR));
-
-			$size = File::SizeToString($size);
-			$text = "{$size} of {$series} Series in {$total} Episodes";
-
-			$ret .= '<div id="divMainTV" class="main-link"><a href="tv" id="a-tv">'.$text.'</a></div>';
-			return die($ret);
-		}*/
-
-		if (@$_d['q'][0] != 'tv') return;
-
-		$this->_items = TV::CollectFS();
-
-		if (@$_d['q'][1] == 'series')
-		{
-			$series = Server::GetVar('name');
-			$m = new ModTVEpisode();
-			$m->_vars['Path'] = $series;
-			$m->_vars['Title'] = basename($series);
-			$m->Series = $series;
+			$m = TVSeriesEntry::FromID($_d['q'][2]);
+			$m->_vars['Path'] = $m->Path;
+			$m->_vars['Title'] = $m->Title;
 			die($m->Get());
 		}
 		else if (@$_d['q'][1] == 'search')
@@ -130,7 +111,6 @@ class TV extends MediaLibrary
 		{
 			$this->_template = 'modules/tv/t_item.xml';
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
-
 			die(parent::Get());
 		}
 		else
@@ -280,12 +260,20 @@ class TV extends MediaLibrary
 				$tvse = new TVSeriesEntry($p);
 
 				# Series does not exist in database.
-
 				if (empty($this->ds[$tvse->Title]))
 				{
 					$msgs['TV'][] = "Adding series {$tvse->Title} to database.";
 					$tvse->save_to_db();
 					return 1;
+				}
+
+				# Path now exists.
+				else if (empty($this->ds[$tvse->Title]->Path))
+				{
+					$msgs['TV'][] = "Adding path {$p} to existing entry.";
+					$tvse->CollectDS();
+					$tvse->Data['path'] = $p;
+					$tvse->save_to_db();
 				}
 
 				$tvse->CheckFilesystem($msgs);
@@ -366,7 +354,11 @@ class TV extends MediaLibrary
 		$ret = array();
 
 		foreach ($cr as $i)
-			$ret[$i['title']]['series'] = $i;
+		{
+			$tvs = new TVSeriesEntry($i['path']);
+			$tvs->Data = $i;
+			$ret[$i['title']] = $tvs;
+		}
 
 		return $ret;
 	}
@@ -407,6 +399,18 @@ class TVSeriesEntry extends MediaEntry
 			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
 		else
 			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/tv/img/missing.jpg';
+	}
+
+	function Get()
+	{
+		global $_d;
+
+		$this->CollectDS();
+
+		$t = new Template();
+		$t->ReWrite('item', array(&$this, 'TagItem'));
+		$t->Set($this);
+		return $t->ParseFile(Module::L('tv/t_tv_series.xml'));
 	}
 
 	function CollectDS()
@@ -481,6 +485,14 @@ class TVSeriesEntry extends MediaEntry
 					$ep->save_to_db();
 					$msgs['TV'][] = "Adding {$this->Title} {$is}x{$ie} to database.";
 				}
+
+				else if (empty($this->ds[$is][$ie]['path']))
+				{
+					$this->ds[$is][$ie]['path'] = $ep->Path;
+					$_d['entry.ds']->save($this->ds[$is][$ie],
+						array('safe' => 1));
+					$msgs['TV'][] = "Updated path {$ep->Path} on existing entry.";
+				}
 			}
 		}
 
@@ -491,6 +503,30 @@ class TVSeriesEntry extends MediaEntry
 
 	static function CheckDS(&$msgs)
 	{
+	}
+
+	function TagItem($t, $g, $a)
+	{
+		$vp = new VarParser();
+
+		foreach ($this->ds as $s => $ss)
+			foreach ($ss as $e => $es)
+			{
+				$es['url'] = urlencode($es['path']);
+				$items[] = $es;
+			}
+
+		return VarParser::Concat($g, $items);
+	}
+
+	static function FromID($id)
+	{
+		global $_d;
+
+		$data = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
+		$tvse = new TVSeriesEntry($data['path']);
+		$tvse->Data = $data;
+		return $tvse;
 	}
 }
 
@@ -632,50 +668,7 @@ class ModTVEpisode extends MediaLibrary
 		$this->_class = 'episode';
 	}
 
-	function Get()
-	{
-		global $_d;
-		$this->_items = ModTVEpisode::GetExistingEpisodes($this->_vars['Path']);
 
-		/*$sx = ModScrapeTVDB::GetXML($this->_vars['Path']);
-		if (!empty($sx))
-		{
-			$elEps = $sx->xpath('//Episode');
-			foreach ($elEps as $elEp)
-			{
-				$s = (int)$elEp->SeasonNumber;
-				if (empty($s)) continue;
-				$e = (int)$elEp->EpisodeNumber;
-				$this->_items[$s][$e]['med_season'] = sprintf('%02d', $s);
-				$this->_items[$s][$e]['med_episode'] = sprintf('%02d', $e);
-				$this->_items[$s][$e]['med_title'] = (string)$elEp->EpisodeName;
-				$this->_items[$s][$e]['med_date'] = (string)$elEp->FirstAired;
-				$this->_items[$s][$e]['have'] = isset($this->_items[$s][$e]['fs_path']) ? 1 : 0;
-			}
-		}*/
-
-		$t = new Template();
-		$t->ReWrite('item', array(&$this, 'TagItem'));
-		$t->Set($this->_vars);
-		return $t->ParseFile($this->_template);
-		return parent::Get();
-	}
-
-	function TagItem($t, $g, $a)
-	{
-		$vp = new VarParser();
-
-		$ret = null;
-		foreach ($this->_items as $s => $ss)
-			foreach ($ss as $e => $es)
-			{
-				if (isset($es['fs_path']))
-					$es['url'] = urlencode($es['fs_path']);
-				$ret .= $vp->ParseVars($g, $es);
-			}
-
-		return $ret;
-	}
 
 	static function GetExistingEpisodes($series)
 	{

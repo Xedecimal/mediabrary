@@ -118,20 +118,16 @@ class TVDB extends Module implements Scraper
 	{
 		global $_d;
 
-		$key = TVDB::_tvdb_key;
-
 		$info = array();
+
+		$tvse = new TVSeriesEntry($path);
 
 		if (is_file($path)) $p = dirname($path);
 		else $p = $path;
 
 		# Manually specified title.
 
-		$file_title = "$p/.title.txt";
-		if (file_exists($file_title)) $realname = file_get_contents($file_title);
-		else $realname = basename($p);
-
-		$url = TVDB::_tvdb_find.rawurlencode($realname);
+		$url = TVDB::_tvdb_find.rawurlencode($tvse->Title);
 		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
 		$sx = simplexml_load_string(file_get_contents($url, false, $ctx));
 		$seriess = $sx->xpath('//Data/Series');
@@ -217,11 +213,23 @@ class TVDB extends Module implements Scraper
 			$msgs['TVDB'][] = "Adding metadata for {$ep['path']}";
 		}
 
-		if (!empty($ep['details'][$this->Name]['FirstAired'])
-			&& empty($ep['path'])
-			&& !empty($ep['season'])
-			&& strtotime($ep['details'][$this->Name]['FirstAired']) < time())
-			$msgs['TVDB'][] = "Missing episode {$ep['series']} {$ep['season']}x{$ep['episode']}";
+		if (!empty($ep['details'][$this->Name]['FirstAired']))
+		{
+			if (empty($ep['released']))
+			{
+				$nep = new TVEpisodeEntry($ep['path']);
+				$nep->CollectDS();
+				$nep->Data['released'] = $ep['details'][$this->Name]['FirstAired'];
+				$nep->save_to_db();
+				$msgs['TVDB'][] = "Filled release date for {$ep['path']}";
+			}
+
+			# Already aired, missing.
+			if (empty($ep['path'])
+				&& !empty($ep['season'])
+				&& strtotime($ep['details'][$this->Name]['FirstAired']) < time())
+				$msgs['TVDB'][] = "Missing episode {$ep['series']} {$ep['season']}x{$ep['episode']}";
+		}
 	}
 
 	function CheckFilename(&$msgs, $ep, $dvdbep)

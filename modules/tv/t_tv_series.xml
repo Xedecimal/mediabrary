@@ -2,12 +2,13 @@
 <callback ds="_d" name="tv.cb.buttons" />
 
 <input type="hidden" id="detail-type" value="tv-series" />
+<input type="hidden" id="detail-id" value="{{Data._id}}" />
 <input type="hidden" id="detail-path" value="{{Path}}" />
 
 <div id="details">
 <item>
-	<div class="tv-episode" title="{{path}}" id="item:{{_id}}">
-	S{{season}}E{{episode}} - {{Released}} - <a class="episode-link"
+	<div class="tv-episode" title="{{path}}" id="item:{{Data._id}}">
+	S{{season}}E{{episode}} - {{details.TVDB.FirstAired}} - <a class="episode-link"
 		href="player?path={{url}}">{{title}}</a></div>
 </item>
 </div> <!-- #tv-details -->

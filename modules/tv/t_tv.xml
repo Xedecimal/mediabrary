@@ -1,6 +1,7 @@
 <null>
 
-<script type="text/javascript" src="modules/tv/_tv.js" />
+<link type="text/css" rel="stylesheet" href="modules/tv/css.css" />
+<script type="text/javascript" src="modules/tv/_tv.js"></script>
 
 <a href="#" id="a-tv-scrape-all">Scrape all new information.</a>
 <div id="progressbar"></div>

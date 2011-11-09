@@ -35,23 +35,26 @@ class TVRage extends Module implements Scraper
 		else $p = $path;
 		$sc = "$p/.tvrage.season.xml";
 
-		# Overridable title
-		$file_title = "$path/.title.txt";
-		if (file_exists($file_title)) $realname = file_get_contents($file_title);
-		else $realname = basename($path);
+		$tvse = new TVSeriesEntry($path);
 
-		# Cache data
-		if (!file_exists($sc) || $full)
+		$url = TVRage::_tvrage_find.rawurlencode($tvse->Title);
+		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
+		$xml = file_get_contents($url, false, $ctx);
+		$sx = simplexml_load_string($xml);
+
+		foreach ($sx->show as $s)
 		{
-			$url = TVRage::_tvrage_find.rawurlencode($realname);
-			$sx = simplexml_load_string(file_get_contents($url));
-			$iurl = TVRage::_tvrage_info.rawurlencode($sx->show->showid);
-			@file_put_contents($sc, file_get_contents($iurl));
+			$url = '';
+			$item = array(
+				'id' => $s->showid,
+				'title' => $s->name,
+				'date' => $s->started,
+				'ref' => $s->link
+			);
+			$items[] = $item;
 		}
 
-		# Process data
-		$sx = simplexml_load_string(file_get_contents($sc));
-		return (int)$sx->showid;
+		return $items;
 	}
 
 	static function GetXML($series, $download = false)
@@ -117,6 +120,12 @@ class TVRage extends Module implements Scraper
 
 	public function Scrape($item, $id = null) {
 
+	}
+
+	# Callbacks
+
+	function cb_tv_check_series($series, &$msgs)
+	{
 	}
 }
 

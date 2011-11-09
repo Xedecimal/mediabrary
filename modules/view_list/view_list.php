@@ -9,7 +9,12 @@ class ViewList extends Module
 	private $_sort = array();
 	private $_q = array();
 
-	function __construct() { $this->CheckActive($this->Name); }
+
+	function __construct()
+	{
+		$this->CheckActive($this->Name);
+		$this->_trans = array('parent' => function ($id) { return !empty($id) ? new MongoID($id) : ''; });
+	}
 
 	function Link()
 	{
@@ -48,18 +53,29 @@ class ViewList extends Module
 
 		$g = file_get_contents(Module::L('view_list/view_list_item.xml'));
 
-		foreach ($this->_sort as &$v) $v = (int)$v;
+		foreach ($this->_sort as &$v)
+			$v = (int)$v;
+
+		foreach ($this->_q as $qk => $qv)
+			if (isset($this->_trans[$qk]))
+				$this->_q[$qk] = call_user_func($this->_trans[$qk], $qv);
 
 		$m = array();
 		if (!empty($this->_q))
 		foreach ($this->_q as $col => $q)
-			if (!empty($q))
+		{
+			if (empty($q)) continue;
+
+			if (is_string($q))
 				$m[$col] = new MongoRegex('/'.preg_quote($q).'/i');
+			else $m[$col] = $q;
+		}
 
 		$cr = $_d['entry.ds']->find($m)
 			->sort($this->_sort)
 			->skip($this->_page*$this->_limit)
-			->limit($this->_limit);
+			->limit($this->_limit)
+			;
 
 		$res = array();
 		foreach ($cr as $i)
