@@ -23,23 +23,25 @@ class TVRage extends Module implements Scraper
 	public $Link = 'http://www.tvrage.com';
 	public $Icon = 'modules/det_tvrage/img/tv-rage.png';
 
-	function Find($path, $full = false)
+	function Find($path, $title)
 	{
-		$sid = $this->GetSID($path, $full);
-		if ($full) $this->GetXML($path, true);
+		$sid = $this->GetSID($path, $title);
 	}
 
-	static function GetSID($path, $full = false)
+	static function GetSID($path, $title)
 	{
-		if (is_file($path)) $p = dirname($path);
-		else $p = $path;
-		$sc = "$p/.tvrage.season.xml";
-
 		$tvse = new TVSeriesEntry($path);
 
-		$url = TVRage::_tvrage_find.rawurlencode($tvse->Title);
+		if (empty($title)) $title = $tvse->Title;
+
+		$url = TVRage::_tvrage_find.rawurlencode($title);
 		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
-		$xml = file_get_contents($url, false, $ctx);
+		$xml = @file_get_contents($url, false, $ctx);
+		if (empty($xml))
+		{
+			$ret[]['title'] = 'Timed Out.';
+			return $ret;
+		}
 		$sx = simplexml_load_string($xml);
 
 		foreach ($sx->show as $s)
@@ -61,7 +63,7 @@ class TVRage extends Module implements Scraper
 	{
 		global $_d;
 
-		$sid = $this->GetSID($series);
+		$sid = TVRage::GetSID($series);
 		if ($sid == -1) {
 			echo "Could not locate this series $series";
 			return null;
@@ -70,7 +72,7 @@ class TVRage extends Module implements Scraper
 		$infoloc = "$series/.tvrage.series.xml";
 		if ($download || !file_exists($infoloc))
 		{
-			$url = $this->_tvrage_list.$sid;
+			$url = TVRage::_tvrage_list.$sid;
 			$out = file_get_contents($url);
 			@file_put_contents($infoloc, $out);
 		}
@@ -118,9 +120,7 @@ class TVRage extends Module implements Scraper
 
 	}
 
-	public function Scrape($item, $id = null) {
-
-	}
+	public function Scrape(&$item, $id = null) { }
 
 	# Callbacks
 

@@ -32,9 +32,10 @@ class Scrape extends Module
 
 			$this->path = $_GET['path'];
 			$this->type = $_GET['type'];
+			$this->title = Server::GetVar('title', '');
 
 			$t->Set('path', $this->path);
-			$t->Set('title', Server::GetVar('title', ''));
+			$t->Set('title', $this->title);
 			die($t->ParseFile(Module::L('scrape/find.xml')));
 		}
 
@@ -68,7 +69,7 @@ class Scrape extends Module
 
 			# Collect scraper information
 			foreach ($ids as $sc => $id)
-				$item->Data = $_d['scrape.scrapers'][$type][$sc]->Scrape(
+				$_d['scrape.scrapers'][$type][$sc]->Scrape(
 					$item->Data, $id);
 
 			# Save details
@@ -154,7 +155,7 @@ EOF;
 
 	function TagFindResult($t, $g)
 	{
-		$res = $this->_scraper->Find($this->path);
+		$res = $this->_scraper->Find($this->path, $this->title);
 		if (!empty($res)) return VarParser::Concat($g, $res);
 	}
 
@@ -173,9 +174,9 @@ interface Scraper
 {
 	function GetName();
 	function CanAuto();
-	function Find($path);
+	function Find($path, $title);
 	function Details($id);
-	function Scrape($item, $id = null);
+	function Scrape(&$item, $id = null);
 	function GetDetails($t, $g, $a);
 }
 

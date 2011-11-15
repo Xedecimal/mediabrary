@@ -16,7 +16,7 @@ class LastFM extends Module implements Scraper
 
 	}
 
-	public function Find($path) { }
+	public function Find($path, $title) { }
 
 	public function GetDetails($t, $g, $a)
 	{
@@ -24,7 +24,7 @@ class LastFM extends Module implements Scraper
 
 	public function GetName() { return 'Last.fm'; }
 
-	public function Scrape($item, $id = null) {
+	public function Scrape(&$item, $id = null) {
 	}
 }
 

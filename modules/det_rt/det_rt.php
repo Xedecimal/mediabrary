@@ -64,14 +64,14 @@ class RottenTomatoes extends Module implements Scraper
 
 	function GetName() { return 'Rotten Tomatoes'; }
 
-	function Find($path)
+	function Find($path, $title)
 	{
 		global $_d;
 
 		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
 		$item = $_d['entry.ds']->findOne(array('path' => $path));
 
-		$title = Server::GetVar('title', $md->Title);
+		if (empty($title)) $title = $md->Title;
 
 		if (empty($title) && !empty($item['title'])) $title = $item['title'];
 		else if (empty($title))
@@ -105,10 +105,9 @@ class RottenTomatoes extends Module implements Scraper
 		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key);
 	}
 
-	function Scrape($item, $id = null)
+	function Scrape(&$item, $id = null)
 	{
 		$item['details'][$this->Name] = json_decode(self::Details($id), true);
-		return $item;
 	}
 
 	function GetDetails($t, $g, $a)

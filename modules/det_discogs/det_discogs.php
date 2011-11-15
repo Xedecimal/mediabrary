@@ -41,12 +41,13 @@ class Discogs extends Module implements Scraper
 	function GetName() { return $this->Name; }
 	function CanAuto() { return false; }
 
-	function Find($path)
+	function Find($path, $title)
 	{
 		$ae = new ArtistEntry($path);
 		$opts['http']['header'] = Discogs::HTTP_HEADER;
 		$cx = stream_context_create($opts);
-		$data = file_get_contents(Discogs::URL_SEARCH.rawurlencode($ae->Title), null, $cx);
+		$t = !empty($title) ? $title : $ae->Title;
+		$data = file_get_contents(Discogs::URL_SEARCH.rawurlencode($t), null, $cx);
 		$data = json_decode($data);
 
 		if (!empty($data->resp->search->exactresults))
@@ -81,13 +82,12 @@ class Discogs extends Module implements Scraper
 		return $res['resp']['artist'];
 	}
 
-	function Scrape($data, $id = null)
+	function Scrape(&$data, $id = null)
 	{
 		if ($data['type'] == 'music-artist')
 		{
 			$data['details'][$this->Name] = $this->Details($id);
 		}
-		return $data;
 	}
 
 	function GetDetails($t, $g, $a)

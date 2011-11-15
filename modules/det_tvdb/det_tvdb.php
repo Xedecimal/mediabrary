@@ -104,17 +104,15 @@ class TVDB extends Module implements Scraper
 
 	}
 
-	public function Scrape($item, $id = null)
+	public function Scrape(&$item, $id = null)
 	{
 		$dst = $item['path'].'/.info.xml';
 		$src = self::_tvdb_api."/series/{$id}/all/en.xml";
 		if (!@file_put_contents($dst, file_get_contents($src)))
 			return 'Unable to write tvdb metadata.';
-
-		return $item;
 	}
 
-	function Find($path)
+	function Find($path, $title)
 	{
 		global $_d;
 
@@ -126,10 +124,11 @@ class TVDB extends Module implements Scraper
 		else $p = $path;
 
 		# Manually specified title.
+		if (empty($title)) $title = $tvse->Title;
 
-		$url = TVDB::_tvdb_find.rawurlencode($tvse->Title);
+		$url = TVDB::_tvdb_find.rawurlencode($title);
 		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
-		$sx = simplexml_load_string(file_get_contents($url, false, $ctx));
+		$sx = @simplexml_load_string(file_get_contents($url, false, $ctx));
 		$seriess = $sx->xpath('//Data/Series');
 
 		$items = array();

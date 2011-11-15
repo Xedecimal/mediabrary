@@ -148,14 +148,14 @@ EOD;
 		# Part files need their CD#
 		if (!empty($md->Data['part']))
 		{
-			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
+			$preg = '#/'.preg_quote($filetitle, '#').'/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
 				.$file['part'].'\.(\S+)$#';
-			$target = "$filetitle ($date) CD{$md['part']}.$ext";
+			$target = "$filetitle ($date)/$filetitle ($date) CD{$md['part']}.$ext";
 		}
 		else
 		{
-			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\)\.(\S+)$#';
-			$target = "$filetitle ($date).$ext";
+			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\)/'.preg_quote($filetitle, '#').' \('.$date.'\)\.(\S+)$#';
+			$target = "$filetitle ($date)/$filetitle ($date).$ext";
 		}
 
 		if (!preg_match($preg, $file))
@@ -168,7 +168,7 @@ EOD;
 			$tmdburl = $md->Data['details'][$this->Name]['url'];
 			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
-			$msgs['Filename Compliance'][] = <<<EOD
+			$msgs['Filename Compliance/TMDB'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <a href="{$urlunfix}" class="a-nogo">Unscrape</a>
 File "$bn" should be "$target".
@@ -266,14 +266,14 @@ EOD;
 		return $sx_movies;
 	}
 
-	function Find($path)
+	function Find($path, $title)
 	{
 		global $_d;
 
 		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
 		$item = $_d['entry.ds']->findOne(array('path' => $path));
 
-		$title = Server::GetVar('title', $md->Title);
+		if (empty($title)) $title = $md->Title;
 
 		if (empty($title) && !empty($item['details'][$this->Name]['name']))
 			$title = $item['details'][$this->Name]['name'];
@@ -317,7 +317,7 @@ EOD;
 		return file_get_contents(TMDB_INFO.$id);
 	}
 
-	function Scrape($item, $id = null)
+	function Scrape(&$item, $id = null)
 	{
 		if ($id == null)
 		{

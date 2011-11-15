@@ -126,6 +126,7 @@ class Movie extends MediaLibrary
 			if (file_exists($cover)) rename($cover, "$md/thm_{$pidst['filename']}");
 			if (file_exists($backd)) rename($backd, "$md/bd_{$pidst['filename']}");
 
+			if (!file_exists($pidst['dirname'])) mkdir($pidst['dirname'], 0777, true);
 			rename($path, $targ);
 			die('Fixed');
 		}
@@ -198,19 +199,7 @@ class Movie extends MediaLibrary
 		# for.
 		$filelist = array();
 
-		# Collect known filesystem data
-		if (!empty($_d['config']['paths']['movie']))
-		foreach ($_d['config']['paths']['movie']['paths'] as $p)
-		foreach(new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS |
-			FilesystemIterator::UNIX_PATHS) as $fsi)
-		{
-			if ($fsi->isDir()) continue;
-
-			$f = $fsi->GetPathname();
-			$this->_files[$f] = new MovieEntry($f, MovieEntry::GetFSPregs());
-			$ext = File::ext($f);
-			$this->_filelist[] = basename($f, '.'.$ext);
-		}
+		$this->_files = $this->CollectFS();
 
 		# Collect database information
 		$this->_ds = array();
@@ -245,6 +234,8 @@ class Movie extends MediaLibrary
 			$ret = array_merge_recursive($ret,
 				$this->CheckDatabaseExistence($p, $movie, $msgs));
 
+		$toterrs = 0;
+
 		# Iterate all known combined items.
 		foreach ($this->_files as $p => $movie)
 		{
@@ -262,6 +253,8 @@ class Movie extends MediaLibrary
 				foreach ($_d['movie.cb.check'] as $cb)
 					$errors += call_user_func_array($cb, array(&$md, &$msgs));
 			}
+
+			if ($toterrs += $errors > 100) break;
 
 			# If we can, mark this movie clean to skip further checks.
 			if (empty($errors) && isset($md) && @$file['fs_part'] < 2)
@@ -423,15 +416,30 @@ EOD;
 
 		$ret = array();
 
-		$pregs = MovieEntry::GetFSPregs();
-
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie']['paths'] as $p)
+			$ret += $this->CollectFSFromDir($p);
+
+		return $ret;
+	}
+
+	function CollectFSFromDir($p)
+	{
+		$pregs = MovieEntry::GetFSPregs();
+		$exts = MovieEntry::getExtensions();
+
+		$ret = array();
+
 		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS
 			| FilesystemIterator::UNIX_PATHS) as $f)
 		{
 			$path = $f->GetPathname();
-			$ret[$path] = new MovieEntry($path, $pregs);
+			if ($f->isDir()) $ret += $this->CollectFSFromDir($path);
+			else
+			{
+				if (in_array($f->getExtension(), $exts))
+					$ret[$path] = new MovieEntry($path, $pregs);
+			}
 		}
 
 		return $ret;
@@ -562,6 +570,11 @@ class MovieEntry extends MediaEntry
 			# title.ext
 			'#([^/]+)\.([^.]{3})#' => array(1 => 'Title', 2 => 'Ext')
 		);
+	}
+
+	static function GetExtensions()
+	{
+		return array('avi', 'mkv', 'divx', 'mp4');
 	}
 }
 
