@@ -24,7 +24,6 @@ class ModPlayer extends Module
 			$m['path'] = $p = Server::GetVar('path');
 			$m['encpath'] = rawurlencode($p);
 			$m['trans'] = ModPlayer::GetTrans($p);
-			#if (is_file($p)) $m['trans'] .= '/'.basename($p);
 			$t->Set($m);
 			die($t->ParseFile(Module::L('player/select.xml')));
 		}
@@ -74,7 +73,7 @@ class ModPlayer extends Module
 		}
 
 		Server::SendDownloadStart(File::GetFile(basename($p)).'.m3u');
-		#die('<pre>'.$ret.'</pre>');
+		//var_dump($ret); die();
 		die($ret);
 	}
 
@@ -125,8 +124,8 @@ class ModPlayer extends Module
 
 	function AddM3UFile($ix, $path, $title, $opts = null)
 	{
-		$pi = pathinfo($path);
-		$p = dirname($path).'/'.rawurlencode($pi['basename']);
+		$p = str_replace(' ', '%20', $path);
+		//$p = dirname($path).'/'.rawurlencode($pi['basename']);
 		return <<<EOF
 #EXTINF:-1,{$title}{$opts}
 {$p}

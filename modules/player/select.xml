@@ -1,7 +1,7 @@
 <div>
 <ul>
 	<li><a href="{{trans}}" id="a-vlc">VLC</a></li>
-	<li><a href="player?path={{path}}" class="a-m3u">M3U</a></li>
+	<li><a href="player?path={{encpath}}" class="a-m3u">M3U</a></li>
 	<li><a href="{{trans}}">Direct</a></li>
 </ul>
 </div>
