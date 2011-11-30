@@ -18,8 +18,9 @@ body { height: 100%; }
 }
 
 /* Left Navigation */
-#left { width: 200px; height: 100%; position: fixed; font-size: 12px; border-right: 1px dashed #888; background: #000; z-index: 1; }
+#left { width: 200px; height: 100%; position: fixed; font-size: 12px;
+		border-right: 1px dashed #888; background: #000; z-index: 1; }
 ul.nav { list-style: none; margin: 0; padding: 5px 10px; }
 
 /* Center Area */
-#content { padding: 0 10px; height: 100%; }
+#content { padding: 0 0 0 13em; height: 100%; }

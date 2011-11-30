@@ -5,10 +5,6 @@ window.refreshAll = function() {
 };
 
 $(function () {
-	$('#left').animate({'marginLeft': -190});
-	$('#left').mouseenter(function () { $('#left').css({'marginLeft': 0}); });
-	$('#left').mouseleave(function () { $('#left').css({'marginLeft': -190}); });
-
 	$('.shower').live('click', function () {
 		$('#'+$(this).attr('href')).toggle();
 		return false;
