@@ -68,7 +68,7 @@ class Incoming extends Module
 
 		if ($found['type'] == 'MovieEntry')
 		{
-			return $_d['config']['paths']['movie']['paths'][0];
+			return $_d['config']['paths']['movie']['paths'][0].'/'.$found['Title'].'('.$found['Released'].')';
 		}
 	}
 }
