@@ -145,33 +145,37 @@ EOD;
 		$file = $md->Path;
 		$ext = File::ext(basename($md->Path));
 
+		$pqr = preg_quote($md->Root);
+
 		# Part files need their CD#
 		if (!empty($md->Data['part']))
 		{
-			$preg = '#/'.preg_quote($filetitle, '#').'/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
+			$preg = '#^'.$pqr.'/'.preg_quote($filetitle, '#').'/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
 				.$file['part'].'\.(\S+)$#';
 			$target = "$filetitle ($date)/$filetitle ($date) CD{$md['part']}.$ext";
 		}
 		else
 		{
-			$preg = '#/'.preg_quote($filetitle, '#').' \('.$date.'\)/'.preg_quote($filetitle, '#').' \('.$date.'\)\.(\S+)$#';
+			$preg = '#^'.$pqr.'/'.preg_quote($filetitle, '#').' \('.$date.'\)/'.preg_quote($filetitle, '#').' \('.$date.'\)\.(\S+)$#';
 			$target = "$filetitle ($date)/$filetitle ($date).$ext";
 		}
 
 		if (!preg_match($preg, $file))
 		{
 			$urlfix = "movie/rename?path=".urlencode($file);
-			$urlfix .= '&amp;target='.dirname($file).'/'.urlencode($target);
+			$urlfix .= '&amp;target='.urlencode($md->Root.'/'.$target);
 			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
 			$bn = basename($file);
 
 			$tmdburl = $md->Data['details'][$this->Name]['url'];
 			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
+			$fulltarget = $md->Root.'/'.$target;
+
 			$msgs['Filename Compliance/TMDB'][] = <<<EOD
 <a href="{$urlfix}" class="a-fix">Fix</a>
 <a href="{$urlunfix}" class="a-nogo">Unscrape</a>
-File "$bn" should be "$target".
+File "$file" should be "$fulltarget".
 - <a href="{$tmdburl}" target="_blank">{$this->Name}</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;

@@ -418,12 +418,12 @@ EOD;
 
 		if (!empty($_d['config']['paths']['movie']))
 		foreach ($_d['config']['paths']['movie']['paths'] as $p)
-			$ret += $this->CollectFSFromDir($p);
+			$ret += $this->CollectFSFromDir($p, $p);
 
 		return $ret;
 	}
 
-	function CollectFSFromDir($p)
+	function CollectFSFromDir($p, $root)
 	{
 		$pregs = MovieEntry::GetFSPregs();
 		$exts = MovieEntry::getExtensions();
@@ -434,11 +434,15 @@ EOD;
 			| FilesystemIterator::UNIX_PATHS) as $f)
 		{
 			$path = $f->GetPathname();
-			if ($f->isDir()) $ret += $this->CollectFSFromDir($path);
+			if ($f->isDir()) $ret += $this->CollectFSFromDir($path, $root);
 			else
 			{
 				if (in_array($f->getExtension(), $exts))
-					$ret[$path] = new MovieEntry($path, $pregs);
+				{
+					$me = new MovieEntry($path, $pregs);
+					$me->Root = $root;
+					$ret[$path] = $me;
+				}
 			}
 		}
 
