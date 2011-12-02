@@ -47,13 +47,16 @@ class Scrape extends Module
 
 			$auto = false;
 
-			# @TODO: Move elsewhere.
 			# This is automated
 			if (empty($ids))
 			{
 				$auto = true;
 
 				$md = MediaEntry::GetEntryByType($path, $type);
+
+				$scraper = Server::GetVar('scraper');
+				if (!empty($scraper)) $ids[$scraper] = null;
+				else
 
 				/* @var $s Scraper */
 				foreach ($_d['scrape.scrapers'][$type] as $s)
@@ -69,8 +72,7 @@ class Scrape extends Module
 
 			# Collect scraper information
 			foreach ($ids as $sc => $id)
-				$_d['scrape.scrapers'][$type][$sc]->Scrape(
-					$item->Data, $id);
+				$_d['scrape.scrapers'][$type][$sc]->Scrape($item->Data, $id);
 
 			# Save details
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));

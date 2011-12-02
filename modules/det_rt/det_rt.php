@@ -107,7 +107,16 @@ class RottenTomatoes extends Module implements Scraper
 
 	function Scrape(&$item, $id = null)
 	{
+		# Auto scrape, try to find a good id.
+		if (empty($id))
+		{
+			$me = new MediaEntry($item['path'], MovieEntry::GetFSPregs());
+			$items = $this->Find($item['path'], $me->Title);
+			$ids = array_keys($items);
+			$id = $ids[0];
+		}
 		$item['details'][$this->Name] = json_decode(self::Details($id), true);
+		sleep(2);
 	}
 
 	function GetDetails($t, $g, $a)
@@ -132,7 +141,7 @@ class RottenTomatoes extends Module implements Scraper
 			$p = $md->Path;
 			$uep = rawurlencode($p);
 			$msgs['RottenTomatoes/Metadata'][] = <<<EOF
-<a href="scrape/scrape?path=$uep"
+<a href="scrape/scrape?type=movie&scraper={$this->Name}&path=$uep"
 	class="a-fix">Scrape</a> File {$p} has no {$this->Name} metadata.
 EOF;
 			return 1;
