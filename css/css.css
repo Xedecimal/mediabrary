@@ -12,3 +12,5 @@ a img { border: 0; }
 .hidden { display: none; }
 .clear { clear: both; }
 .ui-icon { display: inline-block; }
+.table-list { font: 10px Verdana; }
+.table-list td { padding: 2px 1em; }
