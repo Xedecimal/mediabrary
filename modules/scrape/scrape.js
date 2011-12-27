@@ -22,6 +22,17 @@ $(function () {
 		);
 	});
 
+	$('.a-scrape-covers').live('click', function () {
+		var dat = {
+			type: $('#detail-type').val(),
+			id: $(this).attr('href')
+		};
+		$.get(window.app_abs+'/scrape/covers', dat, function (data) {
+			$('#details').html(data); }, 'html');
+
+		return false;
+	});
+
 	$('.scrape-cover').live('click', function () {
 		var fs_path = $('#detail-path').val();
 

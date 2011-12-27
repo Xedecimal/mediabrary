@@ -87,6 +87,21 @@ class Scrape extends Module
 
 			die(json_encode($item));
 		}
+
+		# Collecting just covers from all known sources.
+		if (@$_d['q'][1] == 'covers')
+		{
+			$type = Server::GetVar('type');
+
+			$me = MediaEntry::FromID($_d['q'][2]);
+
+			$covers = array();
+			foreach ($_d['scrape.scrapers'][$type] as $s => $ss)
+			{
+				$covers .= $ss->GetCovers($item);
+			}
+			die(var_dump($covers));
+		}
 	}
 
 	function Get()
@@ -109,12 +124,12 @@ EOF;
 		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="'.$img.'"
 			alt="Find" /></a>';
 
-		if (!empty($t->vars['details']))
+		if (!empty($t->vars['Data']['details']))
 		{
 			$ret .= <<<EOF
-<a href="{{_id}}" id="a-scrape-remove"><img src="img/database_delete.png"
-	alt="Remove" /></a><a href="{{_id}}" id="a-scrape-covers"><img
-	src="modules/movie/img/images.png" alt="Select New Cover" /></a>
+<a href="{{Data._id}}" class="a-scrape-remove"><img src="img/database_delete.png"
+	alt="Remove" /></a><a href="{{Data._id}}" class="a-scrape-covers"><img
+	src="modules/movie/img/images.png" alt="Select New Cover" title="Select New Cover" /></a>
 EOF;
 		}
 		return $ret;
