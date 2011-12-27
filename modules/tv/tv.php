@@ -536,7 +536,7 @@ class TVSeriesEntry extends MediaEntry
 			foreach ($this->ds as $s => $ss)
 			foreach ($ss as $e => $es)
 			{
-				$es['url'] = urlencode($es['path']);
+				$es['url'] = !empty($es['path']) ? urlencode($es['path']) : '';
 				$items[] = $es;
 			}
 		}

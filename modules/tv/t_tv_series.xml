@@ -6,10 +6,16 @@
 <input type="hidden" id="detail-path" value="{{Path}}" />
 
 <div id="details">
+<table class="table-list">
+<tr><th>Index</th><th>Date</th><th>Title</th></tr>
 <item>
-	<div class="tv-episode" title="{{path}}" id="item:{{Data._id}}">
-	S{{season}}E{{episode}} - {{details.TVDB.FirstAired}} - <a class="episode-link"
-		href="player?path={{url}}">{{title}}</a></div>
+	<tr class="tv-episode" title="{{path}}" id="item:{{Data._id}}">
+		<td>S{{season}}E{{episode}}</td>
+		<td>{{details.TVDB.FirstAired}}</td>
+		<td><a class="episode-link"
+			href="player?path={{url}}">{{title}}</a></td>
+	</tr>
 </item>
+</table>
 </div> <!-- #tv-details -->
 </div> <!-- #tv-series -->
