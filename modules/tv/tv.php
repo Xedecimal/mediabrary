@@ -443,7 +443,7 @@ class TVSeriesEntry extends MediaEntry
 		$eps = $_d['entry.ds']->find(array(
 			'type' => 'tv-episode',
 			'parent' => $this->Data['_id']
-		));
+		))->sort(array('index' => 1));
 
 		foreach ($eps as $ep)
 			$this->ds[$ep['season']][$ep['episode']] = $ep;
