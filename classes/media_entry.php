@@ -57,6 +57,16 @@ class MediaEntry
 		$this->save_to_db();
 	}
 
+	static function FromID($id)
+	{
+		global $_d;
+
+		$item = $_d['entry.ds']->findOne(array('_id' => $id));
+		$ret = new MediaEntry($item['path']);
+		$ret->Data = $item;
+		return $ret;
+	}
+
 	static function ScrapeFS($path, $pregs)
 	{
 		// Collect path based metadata.
