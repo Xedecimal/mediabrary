@@ -14,6 +14,13 @@ class Music extends MediaLibrary
 		$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/music/img/missing.jpg';
+
+		$_d['entry-types']['music-artist'] = array('text' => 'Music Artist',
+			'icon' => '<img src="'.Module::P('music/img/music-artist.png').'" />');
+		$_d['entry-types']['music-album'] = array('text' => 'Music Album',
+			'icon' => '<img src="'.Module::P('music/img/music-album.png').'" />');
+		$_d['entry-types']['music-track'] = array('text' => 'Music Track',
+			'icon' => '<img src="'.Module::P('music/img/music-track.png').'" />');
 	}
 
 	function Link()
@@ -21,7 +28,7 @@ class Music extends MediaLibrary
 		global $_d;
 
 		$_d['nav.links']['Media/Music/Grid'] = '{{app_abs}}/music/grid';
-		$_d['nav.links']['Media/Music/List'] = '{{app_abs}}/music/list';
+		#$_d['nav.links']['Media/List/Music'] = '{{app_abs}}/music/list';
 	}
 
 	function Prepare()

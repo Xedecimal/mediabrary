@@ -1,5 +1,6 @@
 var page_loading = false;
-var sub = { page: 0 };
+var sub = urlParms;
+sub['page'] = 0;
 
 $(function () {
 	$('.a-title').live('click', function () {
@@ -25,7 +26,7 @@ $(function () {
 		}
 	});
 
-	$('#table-list').tablesorter();
+	if ($('#table-list tr').length > 2) $('#table-list').tablesorter();
 	$('#table-list').bind('sortEnd', function () {
 		// Send sort columns
 
@@ -39,15 +40,15 @@ $(function () {
 
 	$(window).scroll(function (e) {
 		if (page_loading) return;
-		var target = $('#table-list tr:last');
+		var target = $('.table-list tr:last');
 		if (target.length < 1) return;
 
 		if (target.position().top <
 			($(window).scrollTop() + $(window).height())) {
 			page_loading = true;
-			++sub['page'];
+			sub['page']++;
 			$.get('view_list/items', sub, function (d) {
-				$('#table-list tbody').append(d);
+				$('.table-list tbody').append(d);
 				page_loading = false;
 			})
 		}

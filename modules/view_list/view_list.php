@@ -20,7 +20,11 @@ class ViewList extends Module
 	{
 		global $_d;
 
-		$_d['nav.links']['Everything/List'] = 'view_list';
+		$_d['nav.links']['List/Everything'] = '{{app_abs}}/view_list';
+
+		foreach ($_d['entry-types'] as $type => $info)
+			$_d['nav.links']["List/{$info['text']}"] = "{{app_abs}}/view_list?q[type]=$type";
+
 		$_d['cb.list.item']['list'] = array(&$this, 'cb_list_item');
 	}
 
@@ -30,9 +34,10 @@ class ViewList extends Module
 
 		global $_d;
 
+		$this->_q = Server::GetVar('q');
+
 		if (@$_d['q'][1] == 'items')
 		{
-			$this->_q = Server::GetVar('q');
 			$this->_page = Server::GetVar('page', 0);
 			$this->_sort = Server::GetVar('sort', array());
 			die($this->cb_list_item());
@@ -53,9 +58,9 @@ class ViewList extends Module
 
 		$g = file_get_contents(Module::L('view_list/view_list_item.xml'));
 
-		foreach ($this->_sort as &$v)
-			$v = (int)$v;
+		foreach ($this->_sort as &$v) $v = (int)$v;
 
+		if (!empty($this->_q))
 		foreach ($this->_q as $qk => $qv)
 			if (isset($this->_trans[$qk]))
 				$this->_q[$qk] = call_user_func($this->_trans[$qk], $qv);
@@ -81,14 +86,16 @@ class ViewList extends Module
 		foreach ($cr as $i)
 		{
 			if (!isset($i['index'])) $i['index'] = '';
+
+			$i['icon'] = @$_d['entry-types'][$i['type']]['icon'];
+
 			# We do not have this item.
 			if (empty($i['path']))
 			{
 				# Release date is available.
 				if (!empty($i['released']))
 					# Has not yet been released, we can't get it.
-					if ($i['released']->sec > time())
-						$i['class'] = 'unavail';
+					if ($i['released']->sec > time()) $i['class'] = 'unavail';
 					# Has been released.
 					else $i['class'] = 'missing';
 				# Should be available.
@@ -97,8 +104,17 @@ class ViewList extends Module
 			else $i['class'] = 'existing';
 
 			if (!empty($i['released']))
+			{
 				if (is_object($i['released']))
 					$i['released'] = date('Y-m-d', $i['released']->sec);
+			}
+			else $i['released'] = '';
+
+			$i['detail'] = '';
+
+			if (!empty($i['parent']))
+				$i['parentobj'] = $_d['entry.ds']->findOne(array(
+					'_id' => $i['parent']));
 
 			$res[] = $i;
 		}

@@ -5,7 +5,7 @@
 <script type="text/javascript" src="xedlib/js/jquery.tablesorter.js"></script>
 <script type="text/javascript" src="view_list/view_list.js"></script>
 
-<table id="table-list">
+<table class="table-list">
 	<thead><tr>
 	<th data-col="title">Name</th>
 	<th data-col="released">Date</th>

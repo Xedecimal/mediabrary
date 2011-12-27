@@ -17,6 +17,9 @@ class Movie extends MediaLibrary
 
 		$_d['movie.cb.query']['match'] = array();
 
+		$_d['entry-types']['movie'] = array('text' => 'Movie',
+			'icon' => '<img src="'.Module::P('movie/img/movie.png').'" />');
+
 		$this->_items = array();
 		$this->_class = 'movie';
 

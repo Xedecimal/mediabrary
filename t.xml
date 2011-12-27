@@ -2,6 +2,7 @@
 <head>
 <meta charset="utf-8" />
 <title>Mediabrary</title>
+<script type="text/javascript">var urlParms = <?php unset($_GET['rw']); echo json_encode($_GET); ?></script>
 <script type="text/javascript">
 window.app_abs = '{{app_abs}}';
 </script>

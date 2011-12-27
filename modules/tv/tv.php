@@ -28,7 +28,13 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$_d['nav.links']['Media/TV'] = '{{app_abs}}/tv';
-	}
+
+		$_d['entry-types']['tv-series'] = array('text' => 'TV Series',
+			'icon' => '<img src="'.Module::P('tv/img/tv-series.png').'" />');
+
+		$_d['entry-types']['tv-episode'] = array('text' => 'TV Episode',
+			'icon' => '<img src="'.Module::P('tv/img/tv-episode.png').'" />');
+		}
 
 	function Prepare()
 	{

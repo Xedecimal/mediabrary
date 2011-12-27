@@ -2,10 +2,12 @@ table { border-collapse: collapse; }
 
 #view-list { font: 10px Verdana; }
 #view-list th { text-align: left; }
-#view-list td { border-bottom: 1px solid #333; padding: 2px 1em; }
+#view-list td img { vertical-align: middle; }
+#view-list td { padding: 2px 1em; }
+#view-list tr:nth-child(odd) td { background: #111; }
 #view-list .missing td { opacity: 0.5; }
 #view-list .unavail td { color: #FCC; }
-#view-list tr:hover { background: #222; }
+#view-list tr:hover td { background: #222; }
 
 .header { background: url('img/sort_none.gif') no-repeat center right; padding: 0 20px 0 0; }
 .headerSortUp { background: url('img/sort_up.gif') no-repeat center right; }
