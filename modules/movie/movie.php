@@ -522,12 +522,8 @@ class MovieEntry extends MediaEntry
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = $this->Path;
 		$this->Data['obtained'] = filemtime($this->Path);
-		$this->Data['index'] = $this->Title;
 		if (isset($this->Released))
-		{
 			$this->Data['released'] = $this->Released;
-			$this->Data['index'] .= '('.$this->Released.')';
-		}
 		$this->parent = 'Movie';
 
 		# Collect cover data
