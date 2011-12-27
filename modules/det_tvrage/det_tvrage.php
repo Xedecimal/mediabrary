@@ -28,6 +28,8 @@ class TVRage extends Module implements Scraper
 		$sid = $this->GetSID($path, $title);
 	}
 
+	function GetCovers($item) {}
+
 	static function GetSID($path, $title)
 	{
 		$tvse = new TVSeriesEntry($path);

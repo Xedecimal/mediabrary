@@ -69,6 +69,8 @@ class Discogs extends Module implements Scraper
 		return $rets;
 	}
 
+	function GetCovers($item) { }
+
 	function Details($id)
 	{
 		//TODO: We need to cover music-artist, music-album and music-track here.

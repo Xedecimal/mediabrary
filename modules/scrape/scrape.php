@@ -177,6 +177,7 @@ interface Scraper
 	function GetName();
 	function CanAuto();
 	function Find($path, $title);
+	function GetCovers($item);
 	function Details($id);
 	function Scrape(&$item, $id = null);
 	function GetDetails($t, $g, $a);

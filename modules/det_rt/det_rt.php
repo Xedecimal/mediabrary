@@ -99,6 +99,8 @@ class RottenTomatoes extends Module implements Scraper
 		return $ret;
 	}
 
+	function GetCovers($item) {}
+
 	function Details($id)
 	{
 		# Collect Information

@@ -316,6 +316,8 @@ EOD;
 		return $ret;
 	}
 
+	function GetCovers($item) {}
+
 	function Details($id)
 	{
 		return file_get_contents(TMDB_INFO.$id);

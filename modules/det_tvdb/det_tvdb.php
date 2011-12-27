@@ -148,6 +148,8 @@ class TVDB extends Module implements Scraper
 		return $items;
 	}
 
+	function GetCovers($item) {}
+
 	# Callbacks
 
 	function cb_tv_check_series($series, &$msgs)

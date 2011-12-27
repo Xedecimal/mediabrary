@@ -79,6 +79,8 @@ class OFDB extends Module implements Scraper
 		return $ret;
 	}
 
+	function GetCovers($item) {}
+
 	function Details($id)
 	{
 		return file_get_contents(OFDB_DETAIL.$id);
