@@ -118,7 +118,6 @@ class RottenTomatoes extends Module implements Scraper
 			$id = $ids[0];
 		}
 		$item['details'][$this->Name] = json_decode(self::Details($id), true);
-		sleep(2);
 	}
 
 	function GetDetails($t, $g, $a)
