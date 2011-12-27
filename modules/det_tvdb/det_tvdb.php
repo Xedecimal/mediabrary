@@ -24,6 +24,8 @@ class TVDB extends Module implements Scraper
 	{
 		global $_d;
 
+		if (!$this->Active) return;
+
 		if (@$_d['q'][1] == 'covers')
 		{
 			$id = Server::GetVar('id');
