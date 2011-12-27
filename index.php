@@ -35,7 +35,7 @@ $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
 $_d['entry.ds']->ensureIndex(array('path' => 1, 'parent' => 1, 'index' => 1),
-	array('unique' => true));
+	array('unique' => 1, 'safe' => 1));
 $_d['entry.ds']->ensureIndex(array('obtained' => 1));
 
 require_once('xedlib/modules/nav.php');
