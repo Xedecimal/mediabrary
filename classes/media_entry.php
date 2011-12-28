@@ -61,7 +61,7 @@ class MediaEntry
 	{
 		global $_d;
 
-		$item = $_d['entry.ds']->findOne(array('_id' => $id));
+		$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
 		$ret = new MediaEntry($item['path']);
 		$ret->Data = $item;
 		return $ret;
