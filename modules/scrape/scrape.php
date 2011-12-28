@@ -91,16 +91,18 @@ class Scrape extends Module
 		# Collecting just covers from all known sources.
 		if (@$_d['q'][1] == 'covers')
 		{
+			$id = Server::GetVar('id');
 			$type = Server::GetVar('type');
 
-			$me = MediaEntry::FromID($_d['q'][2]);
+			$me = MediaEntry::FromID($id);
 
 			$covers = array();
 			foreach ($_d['scrape.scrapers'][$type] as $s => $ss)
 			{
-				$covers .= $ss->GetCovers($item);
+				$covs = $ss->GetCovers($me);
+				if (!empty($covs)) $covers += $covs;
 			}
-			die(var_dump($covers));
+			die(json_encode($covers));
 		}
 	}
 

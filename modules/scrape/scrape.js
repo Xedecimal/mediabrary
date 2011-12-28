@@ -16,21 +16,34 @@ $(function () {
 						+'" class="scrape-cover covers-'+data.id+'" width="185"'
 						+' height="275" />');
 					$(ins).appendTo('#div-covers').hide().show(500);
-					//$().append();
 				});
 			}, 'json'
 		);
 	});
 
 	$('.a-scrape-covers').live('click', function () {
-		var dat = {
-			type: $('#detail-type').val(),
-			id: $(this).attr('href')
-		};
-		$.get(window.app_abs+'/scrape/covers', dat, function (data) {
-			$('#details').html(data); }, 'html');
+		var id = $(this).attr('href');
+
+		var dat = { type: $('#detail-type').val(), 'id': id };
+
+		$.get(window.app_abs+'/scrape/covers', dat, function (covers) {
+			$.each(covers, function (ix, url) {
+				var ins = $('<input type="image" src="'+url
+					+'" class="save-cover" width="185"'
+					+' height="275" data-target="'+id+'" />');
+				$(ins).appendTo('#details').hide().show(500);
+			});
+		}, 'json');
 
 		return false;
+	});
+
+	$('.save-cover').live('click', function () {
+		var cov = $(this).attr('src');
+		var fs_path = $('#detail-path').val();
+		$.get(window.app_abs+'/scrape/cover', dat, function () {
+			
+		});
 	});
 
 	$('.scrape-cover').live('click', function () {

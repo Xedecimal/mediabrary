@@ -316,7 +316,16 @@ EOD;
 		return $ret;
 	}
 
-	function GetCovers($item) {}
+	function GetCovers($item)
+	{
+		$ret = array();
+
+		foreach ($item->Data['details'][$this->Name]['images']['image'] as $i)
+			if ($i['@attributes']['type'] == 'poster')
+				$ret[] = $i['@attributes']['url'];
+
+		return $ret;
+	}
 
 	function Details($id)
 	{
@@ -336,7 +345,6 @@ EOD;
 
 		# @TODO: Some day do something with the cast maybe.
 		unset($data['movies']['movie']['cast']);
-		unset($data['movies']['movie']['images']);
 		$item['details'][$this->Name] = $data['movies']['movie'];
 
 		# Try to set the release date on the movie.
