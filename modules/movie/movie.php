@@ -531,7 +531,8 @@ class MovieEntry extends MediaEntry
 
 		# Collect cover data
 		$this->NoExt = File::GetFile($this->Filename);
-		$thm_path = VarParser::Parse($_d['config']['paths']['movie']['meta'], $this);
+
+		$thm_path = dirname($this->Path).'/folder.jpg';
 
 		if (file_exists($thm_path))
 			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);

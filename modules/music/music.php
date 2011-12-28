@@ -11,16 +11,19 @@ class Music extends MediaLibrary
 
 		global $_d;
 
-		$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
-		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
-			'/modules/music/img/missing.jpg';
-
 		$_d['entry-types']['music-artist'] = array('text' => 'Music Artist',
 			'icon' => '<img src="'.Module::P('music/img/music-artist.png').'" />');
 		$_d['entry-types']['music-album'] = array('text' => 'Music Album',
 			'icon' => '<img src="'.Module::P('music/img/music-album.png').'" />');
 		$_d['entry-types']['music-track'] = array('text' => 'Music Track',
 			'icon' => '<img src="'.Module::P('music/img/music-track.png').'" />');
+
+		# No music artists configured, we're done here.
+		if (empty($_d['config']['paths']['music-artist'])) return;
+
+		$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
+		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
+			'/modules/music/img/missing.jpg';
 	}
 
 	function Link()
@@ -90,6 +93,10 @@ class Music extends MediaLibrary
 		global $_d;
 
 		$ret = array();
+
+		# No music paths configured, we're done here.
+		if (empty($_d['config']['paths']['music'])) return $ret;
+
 		foreach ($_d['config']['paths']['music'] as $p)
 		foreach (new FilesystemIterator($p, FilesystemIterator::SKIP_DOTS) as $f)
 		{
@@ -113,11 +120,8 @@ class Music extends MediaLibrary
 			array('type' => 'music-track')
 		)));
 
-		foreach ($cr as $i)
-		{
-			$ret[$i['path']] = $i;
-		}
-
+		$ret = array();
+		foreach ($cr as $i) $ret[$i['path']] = $i;
 		return $ret;
 	}
 
