@@ -1,5 +1,8 @@
 <?php
 
+# Depends on on scraper module
+require_once(dirname(__FILE__).'/../scrape/scrape.php');
+
 class Discogs extends Module implements Scraper
 {
 	public $Name = 'Discogs';
