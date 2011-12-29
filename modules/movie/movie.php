@@ -200,7 +200,7 @@ class Movie extends MediaLibrary
 
 		# General Cleanup
 
-		$_d['entry.ds']->remove(array('type' => 'movie', 'path' => null));
+		#$_d['entry.ds']->remove(array('type' => 'movie', 'path' => null));
 
 		# Improve our local file cache for fast access.
 		$this->UpdateFSCache();
@@ -436,10 +436,8 @@ EOD;
 		$pregs = MovieEntry::GetFSPregs();
 		$exts = MovieEntry::GetExtensions();
 
-		if (!file_exists($this->state_file))
-			$state = array('index' => 0);
-		else
-			$state = unserialize(file_get_contents($this->state_file));
+		if (!file_exists($this->state_file)) $state = array('index' => 0);
+		else $state = unserialize(file_get_contents($this->state_file));
 
 		$res = $_d['movie_fs.ds']->find()
 			->skip($state['index']++)
@@ -515,7 +513,7 @@ class MovieEntry extends MediaEntry
 		{
 			$exts = MovieEntry::GetExtensions();
 			$files = glob($path.'/*.{'.implode(',', $exts).'}', GLOB_BRACE);
-			if (count($files) < 1) var_dump("Empty folder: {$path}");
+			if (count($files) < 1) return;
 			else if (count($files) > 1) var_dump("Invalid movie folder: {$path}");
 			else $path = $files[0];
 		}
