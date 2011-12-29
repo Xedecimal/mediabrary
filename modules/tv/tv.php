@@ -203,6 +203,9 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
+		# No configured tv series paths, we're done here.
+		if (empty($_d['config']['paths']['tv-series']['paths'])) return;
+
 		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
 		{
 			foreach (new FilesystemIterator($p) as $fep)

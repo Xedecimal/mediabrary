@@ -11,6 +11,9 @@ class Incoming extends Module
 			'MovieEntry' => 4
 		);
 
+		# No incoming folders configured, we're done here.
+		if (empty($_d['config']['paths']['incoming'])) return;
+
 		$files = File::Comb($_d['config']['paths']['incoming'],
 			'/\.txt$|\.r[ra0-9]{2}$|\.sfv$|\.srt$|\.nfo$|\.torrent$|\.ico$|\.png$|\.sub$|\.idx$|\.diz$|sample|\.jpg$|\.url$/i', SCAN_FILES);
 

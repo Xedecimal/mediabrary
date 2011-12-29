@@ -214,6 +214,7 @@ EOD;
 
 		$cols = array("details.{$this->Name}.categories.category.@attributes.name" => 1);
 
+		$cats = array();
 		foreach ($_d['entry.ds']->find(array(), $cols) as $i)
 		{
 			if (!empty($i['details'][$this->Name]['categories']['category']))
@@ -227,8 +228,10 @@ EOD;
 
 		$curcat = Server::GetVar('category');
 
+		if (!empty($cats))
 		$sizes = Math::RespectiveSize($cats);
 
+		$items = array();
 		foreach ($cats as $n => $c)
 		{
 			$d['cat_name'] = $n;

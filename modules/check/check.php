@@ -4,6 +4,11 @@ class ModCheck extends Module
 {
 	public $Block = 'foot';
 
+	function __construct()
+	{
+		$this->state_file = dirname(__FILE__).'/check.dat';
+	}
+
 	function Link()
 	{
 		global $_d;
@@ -27,10 +32,10 @@ class ModCheck extends Module
 		session_write_close();
 
 		$errors = 0;
-		// Collect check messages
+
+		# Collect check messages
 		foreach ($mods as $m)
-			if (method_exists($m, 'Check'))
-				$m->Check($this->_msgs);
+			if (method_exists($m, 'Check')) $m->Check($this->_msgs);
 
 		$t = new Template();
 		$t->ReWrite('group', array(&$this, 'TagGroup'));

@@ -10,6 +10,11 @@ class Movie extends MediaLibrary
 
 		global $_d;
 
+		$this->state_file = dirname(__FILE__).'/state.dat';
+
+		$_d['movie_fs.ds'] = $_d['db']->movie_fs;
+		$_d['movie_fs.ds']->ensureIndex(array('path' => 1),
+			array('unique' => 1, 'dropDups' => 1, 'safe' => 1));
 		$_d['movie.source'] = 'file';
 		$_d['movie.cb.query']['columns']['path'] = 1;
 		$_d['movie.cb.query']['columns']['paths'] = 1;
@@ -147,12 +152,11 @@ class Movie extends MediaLibrary
 
 		$_d['movie.cb.query']['limit'] = 50;
 		$query = $_d['movie.cb.query'];
-		$this->_files = $this->CollectFS();
 		$this->_items = $this->CollectDS();
 
 		if (!empty($_d['movie.cb.filter']))
 			$this->_items = U::RunCallbacks($_d['movie.cb.filter'],
-				$this->_items, $this->_files);
+				$this->_items);
 
 		if (!empty($_d['movie.cb.fsquery']['limit']))
 		{
@@ -196,17 +200,17 @@ class Movie extends MediaLibrary
 
 		# General Cleanup
 
-		$_d['entry.ds']->remove(array('path' => null));
+		$_d['entry.ds']->remove(array('type' => 'movie', 'path' => null));
 
-		# This will be used later to hunt for things that a file doesn't exist
-		# for.
-		$filelist = array();
+		# Improve our local file cache for fast access.
+		$this->UpdateFSCache();
 
-		$this->_files = $this->CollectFS();
+		$this->_files = $this->CheckFS();
 
 		# Collect database information
 		$this->_ds = array();
-		foreach ($_d['entry.ds']->find(array('type' => 'movie'), $_d['movie.cb.query']['columns']) as $dr)
+		foreach ($_d['entry.ds']->find(array('type' => 'movie'),
+			$_d['movie.cb.query']['columns']) as $dr)
 		{
 			$paths = isset($dr['paths']) ? $dr['paths'] : array();
 			$paths[] = $dr['path'];
@@ -214,7 +218,7 @@ class Movie extends MediaLibrary
 			foreach ($paths as $p)
 			{
 				# Remove missing items
-				if (empty($p) || !isset($this->_files[$p]))
+				if (empty($p) || !file_exists($p))
 				{
 					$msgs['Cleanup'][] = "Removed database entry for non-existing '"
 						.$p."'";
@@ -240,7 +244,7 @@ class Movie extends MediaLibrary
 		$toterrs = 0;
 
 		# Iterate all known combined items.
-		foreach ($this->_files as $p => $movie)
+		/*foreach ($this->_files as $p => $movie)
 		{
 			# If a provider reports errors on this entry, we do not want to
 			# mark it as clean so it will continue to be checked.
@@ -266,14 +270,39 @@ class Movie extends MediaLibrary
 					array('$set' => array('mov_clean' => true))
 				);
 			}
-		}
+		}*/
 
-		$this->CheckOrphanMedia($msgs);
+		//$this->CheckOrphanMedia($msgs);
 
 		$msgs['Stats'][] = 'Checked '.count($this->_ds).' known movie files.';
 
 		return $ret;
 	}
+
+	/*function CheckNextFile()
+	{
+		if (!file_exists($this->state_file))
+			file_put_contents($this->state_file, serialize(array(
+				'path' => 0,
+				'indices' => array(0)
+			)));
+		$state = unserialise(file_get_contents($this->state_file));
+
+		if ($state['path'] >= count($_d['config']['paths']['movie']['paths']))
+			$state['path'] = 0;
+
+		# Current path we have been working on
+		$path = $_d['config']['paths']['movie']['paths'][$state['path']];
+
+		$dp = opendir($dp);
+		$dirs = scanndir($dp);
+
+		$this->CheckFile($dirs[$state['indices'][0]]);
+	}
+
+	function CheckFile($path, $indices)
+	{
+	}*/
 
 	/**
 	 * Check if a given item exists in the database.
@@ -378,75 +407,51 @@ EOD;
 		return 0;
 	}
 
-	/**
-	 * Check for orphaned meta images.
-	 */
-	function CheckOrphanMedia(&$msgs)
+	function UpdateFSCache()
 	{
 		global $_d;
 
-		$errors = 0;
-
-		$mp = $_d['config']['paths']['movie']['meta'];
-		foreach (glob("$mp/movie/*") as $p)
+		foreach ($_d['config']['paths']['movie']['paths'] as $p)
 		{
-			$f = basename($p);
-
-			# Proper named thumbnail or backdrop.
-			if (preg_match('/(thm_|bd_)(.*)/', $f, $m))
+			$paths = scandir($p);
+			foreach ($paths as $i)
 			{
-				if (array_search($m[2], $filelist) !== false) continue;
+				if ($i == '.' || $i == '..') continue;
 
-				//if (!unlink($p))
-				//	$ret['Media'][] = "Could not unlink: $p";
-				else $msgs['Media'][] = "Removed orphan cover $p";
-				$errors++;
-			}
-			else
-			{
-				//if (!unlink($p))
-				//	$ret['Media'][] = "Could not unlink: $p";
-				//else $ret['Media'][] = "Removed irrelevant cover: {$p}";
+				$path = urlencode($p.'/'.$i);
+
+				$add = array();
+				$add['path'] = $path;
+				$_d['movie_fs.ds']->update($add, $add,
+					array('safe' => 1, 'upsert' => 1));
 			}
 		}
-
-		return $errors;
 	}
 
-	function CollectFS()
+	function CheckFS()
 	{
 		global $_d;
 
 		$ret = array();
-
-		if (!empty($_d['config']['paths']['movie']))
-		foreach ($_d['config']['paths']['movie']['paths'] as $p)
-			$ret += $this->CollectFSFromDir($p, $p);
-
-		return $ret;
-	}
-
-	function CollectFSFromDir($p, $root)
-	{
 		$pregs = MovieEntry::GetFSPregs();
-		$exts = MovieEntry::getExtensions();
+		$exts = MovieEntry::GetExtensions();
 
-		$ret = array();
+		if (!file_exists($this->state_file))
+			$state = array('index' => 0);
+		else
+			$state = unserialize(file_get_contents($this->state_file));
 
-		foreach (new FilesystemIterator($p, FileSystemIterator::SKIP_DOTS
-			| FilesystemIterator::UNIX_PATHS) as $f)
+		$res = $_d['movie_fs.ds']->find()
+			->skip($state['index']++)
+			->limit(1);
+
+		file_put_contents($this->state_file, serialize($state));
+
+		foreach ($res as $p)
 		{
-			$path = $f->GetPathname();
-			if ($f->isDir()) $ret += $this->CollectFSFromDir($path, $root);
-			else
-			{
-				if (in_array($f->getExtension(), $exts))
-				{
-					$me = new MovieEntry($path, $pregs);
-					$me->Root = $root;
-					$ret[$path] = $me;
-				}
-			}
+			$path = urldecode($p['path']);
+			$me = new MovieEntry($path, $pregs);
+			$ret[$me->Path] = $me;
 		}
 
 		return $ret;
@@ -505,6 +510,16 @@ class MovieEntry extends MediaEntry
 
 	function __construct($path, $pregs = null)
 	{
+		# This is a movie folder
+		if (is_dir($path))
+		{
+			$exts = MovieEntry::GetExtensions();
+			$files = glob($path.'/*.{'.implode(',', $exts).'}', GLOB_BRACE);
+			if (count($files) < 1) var_dump("Empty folder: {$path}");
+			else if (count($files) > 1) var_dump("Invalid movie folder: {$path}");
+			else $path = $files[0];
+		}
+
 		parent::__construct($path, $pregs);
 
 		global $_d;
@@ -525,6 +540,8 @@ class MovieEntry extends MediaEntry
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = $this->Path;
 		$this->Data['obtained'] = filemtime($this->Path);
+		$this->Data['parent'] = 2;
+		$this->Data['class'] = 'object.item.videoItem.movie';
 		if (isset($this->Released))
 			$this->Data['released'] = $this->Released;
 		$this->parent = 'Movie';
