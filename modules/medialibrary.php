@@ -100,8 +100,6 @@ class MediaLibrary extends Module
 	{
 		return trim($str);
 	}
-
-	function Check(&$msgs) { return 0; }
 }
 
 ?>
