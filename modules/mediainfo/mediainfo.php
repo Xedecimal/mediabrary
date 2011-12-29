@@ -91,8 +91,8 @@ class MediaInfo extends Module
 	{
 		global $_d;
 
-		if (empty($_d['q'][0]))
-			$_d['nav.links']['Tools/Stats'] = 'mediainfo';
+		$_d['cb.detail.entry']['mediainfo'] = array(&$this, 'cb_detail_entry');
+		$_d['nav.links']['Tools/Stats'] = 'mediainfo';
 	}
 
 	function Prepare()
@@ -103,10 +103,9 @@ class MediaInfo extends Module
 
 		if (@$_d['q'][1] == 'process')
 		{
-			var_dump($_d['q'][2]);
 			$q['_id'] = new MongoId($_d['q'][2]);
 			$res = $_d['entry.ds']->findone($q);
-			$this->Process($res['path']);
+			$this->Process($res);
 			die();
 		}
 	}
@@ -144,6 +143,7 @@ EOF;
 		$dr = $_d['entry.ds']->find($q, $cols);
 
 		# Catalog data by path into local var.
+		$stats = array();
 		if (!empty($dr))
 		foreach ($dr as $r)
 		{
@@ -155,11 +155,13 @@ EOF;
 		}
 
 		# Catalog data we will colorize into it's own arrays.
+		$nums = array();
 		foreach ($stats as $p => $v)
 			foreach ($this->colorize as $col)
 				$nums[$col][$p] = @$v[$col];
 
 		# Decide on what color each item will be.
+		$flat_stats = array();
 		foreach ($nums as $col => $n)
 			$flat_stats[$col] = Math::RespectiveSize($n, 1, 5);
 
@@ -211,22 +213,17 @@ EOF;
 		global $_d;
 		$ret = array();
 
-		# Collect all mtime values of movie files.
-
-		if (!empty($_d['config']['paths']['movie']))
-		foreach ($_d['config']['paths']['movie'] as $p)
-		foreach (glob($p.'/*') as $f)
+		$q['codec.mtime']['$exists'] = 0;
+		$q['path']['$exists'] = 1;
+		$cols['path'] = 1;
+		foreach ($_d['entry.ds']->find($q) as $entry)
 		{
-			if (is_dir($f)) continue;
-			$mtimes[$f] = filemtime($f);
+			MediaInfo::Process($entry);
 		}
 
 		# Collect all database mtime values.
-
 		$dbtimes = array();
-		$q['codec.mtime']['$exists'] = 1;
-		$cols['codec.mtime'] = 1;
-		$cols['path'] = 1;
+
 		foreach ($_d['entry.ds']->find($q, $cols) as $r)
 			$dbtimes[$r['path']] = $r['codec']['mtime'];
 
@@ -235,31 +232,28 @@ EOF;
 		if (!isset($dbtimes[$p]) || $dbtimes[$p] != $t)
 		{
 			U::VarInfo("Scanning codec info for {$p}");
-			MediaInfo::Process($p);
+
 		}
 
 		return $ret;
 	}
 
-	function movie_cb_detail($item)
+	function cb_detail_entry($t, $g, $a)
 	{
 		global $_d;
-		MediaInfo::Process(str_replace('"', '\"', $item['fs_path']));
+		MediaInfo::Process($t->vars['Data']);
 	}
 
-	function Process($path)
+	function Process($item)
 	{
 		global $_d;
 
-		$cmd_path = escapeshellarg($path);
-		$out = `mediainfo --Output=XML {$cmd_path}`;
+		$cmd_path = escapeshellarg($item['path']);
+		$out = `{$_d['config']['mediainfo']} --Output=XML {$cmd_path}`;
 		if (empty($out)) { var_dump('Error loading media info.'); return; }
 		$sx = simplexml_load_string(preg_replace('/|/', '', $out));
 
 		$tracks = $sx->File->track;
-
-		$q['path'] = $path;
-		$item = $_d['entry.ds']->findOne($q);
 
 		if (!empty($tracks))
 		{
@@ -302,8 +296,8 @@ EOF;
 					$item['codec'][$name] = $value;
 				}
 			}
-			$item['codec']['mtime'] = filemtime($path);
-			$item['codec']['fsize'] = filesize($path);
+			$item['codec']['mtime'] = filemtime($item['path']);
+			$item['codec']['fsize'] = filesize($item['path']);
 			$_d['entry.ds']->save($item, array('safe' => 1));
 		}
 	}
