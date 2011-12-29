@@ -15,7 +15,12 @@ class Cover extends Module
 
 		if (!$this->Active) return;
 
-		$path = Server::GetVar('path');
+		if (!empty($_d['q'][1]))
+		{
+			$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($_d['q'][1])));
+			$path = dirname($item['path']).'/folder.jpg';
+		}
+		else $path = Server::GetVar('path');
 
 		header("Content-Type: image/jpeg");
 		die(file_get_contents($path));
