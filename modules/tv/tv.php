@@ -150,6 +150,7 @@ class TV extends MediaLibrary
 
 		$this->_state['path'] = 0;
 
+		if (!empty($_d['config']['paths']['tv-series']['paths']))
 		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
 		{
 			$files = scandir($p);
@@ -465,7 +466,7 @@ class TVSeriesEntry extends MediaEntry
 			$ep = new TVEpisodeEntry($p);
 			# Possibly Metadata or unknown file.
 			if (empty($ep->Data['season']))
-				throw new CheckException("Unable to identify episode: {$ep->Path}");
+				throw new CheckException('episode_unknown', "Unable to identify episode: {$ep->Path}");
 
 			$this->fs[$ep->Data['season']][$ep->Data['episode']] = $ep;
 		}
@@ -516,7 +517,7 @@ class TVSeriesEntry extends MediaEntry
 				{
 					$ep->Data['parent'] = $this->Data['_id'];
 					$ep->SaveDS();
-					throw new CheckException("Adding {$this->Title} {$is}x{$ie} to database.");
+					throw new CheckException(0, "Adding {$this->Title} {$is}x{$ie} to database.");
 				}
 
 				else if (empty($this->ds[$is][$ie]['path']))
@@ -524,7 +525,7 @@ class TVSeriesEntry extends MediaEntry
 					$this->ds[$is][$ie]['path'] = $ep->Path;
 					$_d['entry.ds']->save($this->ds[$is][$ie],
 						array('safe' => 1));
-					throw new CheckException("Updated path {$ep->Path} on existing entry.");
+					throw new CheckException(0, "Updated path {$ep->Path} on existing entry.");
 				}
 			}
 		}

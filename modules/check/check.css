@@ -1,4 +1,4 @@
-#output { border: 1px solid #CCC; height: 20em; overflow: auto; }
+#output { border: 1px solid #222; height: 20em; overflow: auto; padding: 1em; }
 #output .source { font-weight: bold; padding: 0 1em; }
 
 #a-check

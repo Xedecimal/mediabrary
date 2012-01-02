@@ -10,11 +10,10 @@ class Movie extends MediaLibrary
 
 		global $_d;
 
-		$this->state_file = dirname(__FILE__).'/state.dat';
+		$_d['fs.ds'] = $_d['db']->fs;
+		$_d['fs.ds']->ensureIndex(array('path' => 1),
+			array('unique' => 1, 'dropDups' => 1));
 
-		$_d['movie_fs.ds'] = $_d['db']->movie_fs;
-		$_d['movie_fs.ds']->ensureIndex(array('path' => 1),
-			array('unique' => 1, 'dropDups' => 1, 'safe' => 1));
 		$_d['movie.source'] = 'file';
 		$_d['movie.cb.query']['columns']['path'] = 1;
 		$_d['movie.cb.query']['columns']['paths'] = 1;
@@ -196,17 +195,22 @@ class Movie extends MediaLibrary
 	{
 		global $_d;
 
+		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
 		$state['path'] = 0;
+		$state['module'] = $this->Name;
+		$state['files'] = array();
+
 		foreach ($_d['config']['paths']['movie']['paths'] as $p)
 		{
 			$files = scandir($p);
 			foreach ($files as $f)
 			{
 				if ($f[0] == '.') continue;
-				$state['files'][] = $p.'/'.$f;
+				$state['files'][] = urlencode($p.'/'.$f);
 			}
 		}
-		file_put_contents($this->state_file, serialize($state));
+
+		$_d['state.ds']->save($state);
 	}
 
 	function Check()
@@ -220,12 +224,16 @@ class Movie extends MediaLibrary
 		#$_d['entry.ds']->remove(array('type' => 'movie', 'path' => null));
 		$status = $this->CheckFS();
 
+		foreach ($_d['entry.ds']->find() as $i)
+			foreach ($_d['movie.cb.check'] as $cb)
+				call_user_func_array($cb, array(&$md, &$msgs));
+
 		#return;
 		# @TODO: Bring this back to life.
-		throw new Exception("Avoiding the next checks.");
+		#throw new CheckException("Avoiding the next checks.");
 
 		# Collect database information
-		$this->_ds = array();
+		/*$this->_ds = array();
 		$q['type'] = 'movie';
 		$q['clean']['$exists'] = 0;
 		foreach ($_d['entry.ds']->find($q, $_d['movie.cb.query']['columns']) as $dr)
@@ -245,9 +253,7 @@ class Movie extends MediaLibrary
 
 				$this->_ds[$p] = $dr;
 			}
-		}
-
-		$toterrs = 0;
+		}*/
 
 		# Iterate all known combined items.
 		/*foreach ($this->_files as $p => $movie)
@@ -263,8 +269,6 @@ class Movie extends MediaLibrary
 				$md->Data = $this->_ds[$p];
 				$errors += $this->CheckDatabase($p, $md, $msgs);
 				$errors += $this->CheckFilename($p, $md, $msgs);
-				foreach ($_d['movie.cb.check'] as $cb)
-					$errors += call_user_func_array($cb, array(&$md, &$msgs));
 			}
 
 			if ($toterrs += $errors > 100) break;
@@ -280,26 +284,21 @@ class Movie extends MediaLibrary
 
 		//$this->CheckOrphanMedia($msgs);
 
-		$msgs['Stats'][] = 'Checked '.count($this->_ds).' known movie files.';
-
-		return $ret;
+		//$msgs['Stats'][] = 'Checked '.count($this->_ds).' known movie files.';
 	}
 
 	function CheckFS()
 	{
 		global $_d;
 
-		$pregs = MovieEntry::GetFSPregs();
-		$exts = MovieEntry::GetExtensions();
-
-		$state = unserialize(file_get_contents($this->state_file));
+		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
 
 		if (empty($state['files'])) return;
 
 		while (!empty($state['files']))
 		{
-			$filename = array_pop($state['files']);
-			$cex = null;
+			$filename = urldecode(array_pop($state['files']));
+
 			try
 			{
 				$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
@@ -308,7 +307,9 @@ class Movie extends MediaLibrary
 				$this->CheckFile($me);
 			}
 			catch (CheckException $ex) { $cex = $ex; }
-			file_put_contents($this->state_file, serialize($state));
+
+			$_d['state.ds']->save($state);
+
 			if (!empty($cex)) throw $cex;
 		}
 	}
@@ -336,7 +337,7 @@ class Movie extends MediaLibrary
 			#$p = Str::MakeUTF8($md->Path);
 			#$md = new MovieEntry($p);
 			#file_put_contents('debug.txt', print_r($md->Data), FILE_APPEND);
-			$_d['entry.ds']->save($md->Data, array('safe' => 1));
+			$_d['entry.ds']->save($md->Data);
 			throw new CheckException("Added new movie '{$md->Path}' to database.");
 		}
 
@@ -383,9 +384,9 @@ class Movie extends MediaLibrary
 		if (array_search($ext, MovieEntry::GetExtensions()) === false)
 		{
 			$msg = "File {$me->Path} has an unknown extension. ($ext)";
-			$me->Data['errors'][] = $msg;
+			$me->Data['errors']['bad_extension'] = array('type' => 'bad_extension', 'msg' => $msg);
 			$me->SaveDS();
-			throw new CheckException($msg);
+			throw new CheckException('bad_extension', $msg);
 		}
 
 		# Title Related
@@ -421,9 +422,9 @@ class Movie extends MediaLibrary
 			$urlfix = "movie/fix?path=".urlencode($me->Path);
 			$bn = basename($me->Path);
 			$msg = "File '$bn' should be '$target'";
-			$me->Data['errors'][] = $msg;
+			$me->Data['errors']['bad_filename'] = array('type' => 'bad_filename', 'msg' => $msg);
 			$me->SaveDS();
-			throw new CheckException($msg);
+			throw new CheckException($msg, 'bad_filename');
 		}
 	}
 
@@ -443,7 +444,7 @@ class Movie extends MediaLibrary
 				$add = array();
 				$add['path'] = $path;
 				$_d['movie_fs.ds']->update($add, $add,
-					array('safe' => 1, 'upsert' => 1));
+					array('upsert' => 1));
 			}
 		}
 	}
@@ -502,17 +503,7 @@ class MovieEntry extends MediaEntry
 	function __construct($path)
 	{
 		# This is a movie folder
-		if (is_dir($path))
-		{
-			$exts = MovieEntry::GetExtensions();
-			$files = glob($path.'/*.{'.implode(',', $exts).'}', GLOB_BRACE);
-			if (count($files) < 1)
-				throw new CheckException("Not enough video files in this folder"
-					."{$path}.");
-			else if (count($files) > 1)
-				throw new CheckException("Too many video files in folder: {$path}");
-			else $path = $files[0];
-		}
+		if (is_dir($path)) $path = $this->LoadDir($path);
 
 		# @TODO: Way too much processing on something that needs to be light
 		# weight.
@@ -552,10 +543,46 @@ class MovieEntry extends MediaEntry
 
 		$thm_path = dirname($this->Path).'/folder.jpg';
 
-		if (file_exists($thm_path))
+		/*if (file_exists($thm_path))
 			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
 		else
-			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';
+			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';*/
+	}
+
+	function LoadDir($path)
+	{
+		global $_d;
+
+		$mtime = filemtime($path);
+		if (isset($mtime)) # Use cache
+		{
+			$dat = $_d['fs.ds']->findOne(array('path' => urlencode($path)));
+			if (!empty($dat))
+			{
+				$dat['path'] = urlencode($path);
+				if ($dat['mtime'] == $mtime)
+					return urldecode($dat['files'][0]);
+			}
+		}
+		$exts = MovieEntry::GetExtensions();
+		$files = glob($path.'/*.{'.implode(',', $exts).'}', GLOB_BRACE);
+		foreach ($files as &$f) $f = urlencode($f);
+
+		if (!empty($dat))
+		{
+			$dat['mtime'] = $mtime;
+			$dat['files'] = $files;
+			$_d['fs.ds']->save($dat);
+		}
+
+		if (count($files) < 1)
+			throw new CheckException("Not enough video files in this folder"
+				."{$path}.", 'low_folder');
+		else if (count($files) > 1)
+			throw new CheckException("Too many video files in folder: {$path}",
+				'high_folder');
+
+		return urldecode($files[0]);
 	}
 
 	static function GetFSPregs()

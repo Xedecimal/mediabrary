@@ -108,11 +108,13 @@ class TMDB extends Module implements Scraper
 		{
 			$p = $md->Path;
 			$uep = rawurlencode($p);
-			$msgs["$this->Name/Metadata"][] = <<<EOF
+			throw new CheckException("File {$p} has no {$this->Name} metadata.",
+				'tmdb_metadata');
+			/*$msgs["$this->Name/Metadata"][] = <<<EOF
 <a href="scrape/scrape?type=movie&path=$uep"
-	class="a-fix">Scrape</a> File {$p} has no {$this->Name} metadata.
+	class="a-fix">Scrape</a>
 EOF;
-			return 1;
+			return 1;*/
 		}
 
 		$errors = 0;

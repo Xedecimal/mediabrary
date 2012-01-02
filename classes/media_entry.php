@@ -47,7 +47,7 @@ class MediaEntry
 	function SaveDS()
 	{
 		global $_d;
-		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
+		return $_d['entry.ds']->save($this->Data);
 	}
 
 	function Rename($target)

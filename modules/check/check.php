@@ -6,7 +6,12 @@ class ModCheck extends Module
 
 	function __construct()
 	{
-		$this->state_file = dirname(__FILE__).'/check.dat';
+		global $_d;
+
+		$_d['state.ds'] = $_d['db']->state;
+		$_d['state.ds']->ensureIndex(array('module' => 1),
+			array('unique' => 1, 'dropDups' => 1, 'safe' => 1));
+
 		$this->CheckActive('check');
 	}
 
@@ -33,8 +38,9 @@ class ModCheck extends Module
 				if (method_exists($m, 'Check')) $state['mods'][$n] = 1;
 			}
 
+			$state['module'] = $this->Name;
 			$state['index'] = 0;
-			file_put_contents($this->state_file, serialize($state));
+			$_d['state.ds']->save($state);
 
 			die();
 		}
@@ -43,8 +49,7 @@ class ModCheck extends Module
 		{
 			global $mods;
 
-			if (file_exists($this->state_file))
-				$state = unserialize(file_get_contents($this->state_file));
+			$state = $_d['state.ds']->findOne(array('module' => $this->Name));
 
 			while (!empty($state['mods']))
 			{
@@ -55,12 +60,14 @@ class ModCheck extends Module
 				$n = $keys[$ix];
 				$m = $mods[$n];
 				try { $ret = $m->Check(); }
-				catch (CheckException $e) { $ret['msg'] = $e->getMessage(); }
+				catch (CheckException $e) { $ret['msg'] = $e->msg; }
 				$ret['source'] = $n;
 				if (++$state['index'] >= count($keys)) $state['index'] = 0;
 
+				if (empty($ret['msg'])) var_dump($e);
 				if (empty($ret['msg'])) { unset($state['mods'][$n]); continue; }
-				file_put_contents($this->state_file, serialize($state));
+				$_d['state.ds']->save($state);
+
 				die(json_encode($ret));
 			}
 
@@ -72,25 +79,21 @@ class ModCheck extends Module
 	{
 		global $_d;
 
+		$r = array();
 		$q['errors']['$exists'] = 1;
 		$c = $_d['entry.ds']->find($q)->count();
 		if ($c > 0)
-			$r['notify'] = "<a href=\"{{app_abs}}/check\"><img src=\"{{app_abs}}/img/exclamation.png\" alt=\"Error\" style=\"vertical-align: bottom\" /> {$c} media files have errors that require your attention.</a>";
+			$r['notify'] = "<a href=\"{{app_abs}}/check\"><img
+			src=\"{{app_abs}}/img/exclamation.png\" alt=\"Error\"
+			style=\"vertical-align: bottom\" /> {$c} media files have errors
+			that require your attention.</a>";
 
 		if ($_d['q'][0] != 'check') return $r;
 
 		$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/check/check.css" />';
 		global $mods;
 
-		$this->_msgs = array();
-
-		session_write_close();
-
 		$errors = 0;
-
-		# Collect check messages
-		//foreach ($mods as $m)
-		//	if (method_exists($m, 'Check')) $m->Check($this->_msgs);
 
 		$t = new Template();
 		$t->ReWrite('group', array(&$this, 'TagGroup'));
@@ -100,24 +103,20 @@ class ModCheck extends Module
 
 	function TagGroup($t, $g)
 	{
-		$vp = new VarParser();
+		global $_d;
 
-		$ret = null;
-		$ix = 0;
-		foreach ($this->_msgs as $t => $ms)
-		{
-			$msgs = null;
-			foreach ($ms as $m)
-				$msgs .= '<p>'.$m.'</p>';
-			$ret .= $vp->ParseVars($g, array(
-				'id' => $ix,
-				'title' => $t,
-				'msgs' => $msgs,
-				'count' => count($ms)
-			));
-			$ix++;
-		}
-		return $ret;
+		$q['errors']['$exists'] = 1;
+		$cols['path'] = 1;
+		$cols['errors'] = 1;
+
+		$t = new Template();
+		$t->ReWrite('error', array(&$this, 'TagError'));
+		return $t->Concat($g, $_d['entry.ds']->find($q, $cols));
+	}
+
+	function TagError($t, $g)
+	{
+		return VarParser::Concat($g, $t->vars['errors']);
 	}
 }
 

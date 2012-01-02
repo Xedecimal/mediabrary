@@ -276,10 +276,10 @@ EOF;
 		if (empty($sx))
 		{
 			$msg = "Bad codec data in file '{$item['path']}'.";
-			$item['errors'][] = $msg;
+			$item['errors']['bad_codec'] = array('type' => 'bad_codec', 'msg' => $msg);
 			$item['codec']['mtime'] = filemtime($item['path']);
 			$_d['entry.ds']->save($item, array('safe' => 1));
-			throw new CheckException($msg);
+			throw new CheckException('bad_codec', $msg);
 		}
 
 		$tracks = $sx->File->track;

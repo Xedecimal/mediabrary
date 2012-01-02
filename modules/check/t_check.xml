@@ -3,12 +3,9 @@
 <div id="output"><div id="entry">Progress will be presented here.</div></div>
 <p><a href="#" id="a-scan">Scan Sources</a></p>
 <group>
-<div id="fg-{{id}}" class="group">
-<a href="{{id}}" class="a-fixthese">[{{_d.i18n.Fix_These}}]</a>
-	<a href="{{id}}" title="{{title}}" class="aCheckCat">+ {{title}}</a> ({{count}})
-<div id="grp-{{id}}" style="display: none">
-{{msgs}}
-</div> <!-- #grp-{{id}} -->
+<div class="group">
+<p>{{path}}</p>
+<error>{{type}}: {{msg}}</error>
 </div> <!-- group -->
 </group>
 </div>

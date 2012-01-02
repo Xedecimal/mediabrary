@@ -42,7 +42,6 @@ function stepFix()
 window.proceed = true;
 function checkPrepare()
 {
-	twopass = false;
 	$.get('check/prepare', function () { checkStep() });
 }
 
@@ -52,13 +51,13 @@ function checkStep()
 		if (data.msg) {
 			var entry = $('<div class="entry"><span class="source">'+data.source
 				+'</span><span class="msg">'+data.msg+'</span></div>');
-			$('#output').append(entry.fadeIn());
-			entry[0].scrollIntoView();
+			$('#output').prepend(entry/*.fadeIn()*/);
+			//entry[0].scrollIntoView();
 			checkStep();
 			window.proceed = true;
+			$('#output').addClass('loading');
 		}
 		else if (window.proceed) { window.proceed = false; checkPrepare(); }
+		else $('#output').removeClass('loading');
 	}, 'json');
-
-
 }
