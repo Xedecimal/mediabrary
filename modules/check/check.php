@@ -55,7 +55,7 @@ class ModCheck extends Module
 				$n = $keys[$ix];
 				$m = $mods[$n];
 				try { $ret = $m->Check(); }
-				catch (Exception $e) { $ret['msg'] = $e->getMessage(); }
+				catch (CheckException $e) { $ret['msg'] = $e->getMessage(); }
 				$ret['source'] = $n;
 				if (++$state['index'] >= count($keys)) $state['index'] = 0;
 
@@ -63,6 +63,8 @@ class ModCheck extends Module
 				file_put_contents($this->state_file, serialize($state));
 				die(json_encode($ret));
 			}
+
+			die();
 		}
 	}
 

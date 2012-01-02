@@ -32,15 +32,21 @@ class MediaEntry
 		}
 		else $this->Title = $this->Filename;
 
-		if (!empty($path)) $this->Data['path'] = $path;
-		if (!empty($this->Title)) $this->Data['title'] = $this->Title;
+		if (!empty($path)) $this->Data['path'] = Str::MakeUTF8($path);
+		if (!empty($this->Title)) $this->Data['title'] = Str::MakeUTF8($this->Title);
 		if (!empty($this->Type)) $this->Data['type'] = $this->Type;
 	}
 
-	function save_to_db()
+	function LoadDS()
 	{
 		global $_d;
+		$this->Data = $_d['entry.ds']->findOne(array(
+			'path' => Str::MakeUTF8($this->Path)));
+	}
 
+	function SaveDS()
+	{
+		global $_d;
 		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
 	}
 

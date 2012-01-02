@@ -225,6 +225,9 @@ EOF;
 
 		$q['codec.mtime']['$exists'] = 0;
 		$q['path']['$exists'] = 1;
+		$q['$or'][]['type'] = 'movie';
+		$q['$or'][]['type'] = 'tv-episode';
+		$q['$or'][]['type'] = 'music-track';
 		$cols['path'] = 1;
 
 		$ents = $_d['entry.ds']->find($q)->skip($state['index']++);
@@ -276,7 +279,7 @@ EOF;
 			$item['errors'][] = $msg;
 			$item['codec']['mtime'] = filemtime($item['path']);
 			$_d['entry.ds']->save($item, array('safe' => 1));
-			throw new Exception($msg);
+			throw new CheckException($msg);
 		}
 
 		$tracks = $sx->File->track;
@@ -329,6 +332,6 @@ EOF;
 	}
 }
 
-Module::Register('MediaInfo');
+#Module::Register('MediaInfo');
 
 ?>

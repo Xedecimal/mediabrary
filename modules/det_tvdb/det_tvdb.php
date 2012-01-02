@@ -177,7 +177,6 @@ class TVDB extends Module implements Scraper
 					if (!empty($ep['aired']))
 						$tve->Data['released'] = new MongoDate($ep['aired']);
 					if (isset($ep['title'])) $tve->Data['title'] = $ep['title'];
-					if (empty($tve->Data['path'])) $tve->Data['path'] = '';
 					$tve->Data['type'] = 'tv-episode';
 					$tve->Data['series'] = $series->Title;
 					$tve->Data['season'] = $s;
@@ -186,7 +185,7 @@ class TVDB extends Module implements Scraper
 					$tve->Title = $ep['title'];
 					$tve->Data['parent'] = $series->Data['_id'];
 					$dbep = $tve->Data;
-					$tve->save_to_db();
+					$tve->SaveDS();
 				}
 				else $dbep = $series->ds[$s][$e];
 
@@ -213,7 +212,7 @@ class TVDB extends Module implements Scraper
 			$nep = new TVEpisodeEntry($ep['path']);
 			$nep->CollectDS();
 			$nep->Data['details'][$this->Name] = $tvdbep['details'][$this->Name];
-			$nep->save_to_db();
+			$nep->SaveDS();
 			$msgs['TVDB'][] = "Adding metadata for {$ep['path']}";
 		}
 
@@ -224,7 +223,7 @@ class TVDB extends Module implements Scraper
 				$nep = new TVEpisodeEntry($ep['path']);
 				$nep->CollectDS();
 				$nep->Data['released'] = $ep['details'][$this->Name]['FirstAired'];
-				$nep->save_to_db();
+				$nep->SaveDS();
 				$msgs['TVDB'][] = "Filled release date for {$ep['path']}";
 			}
 

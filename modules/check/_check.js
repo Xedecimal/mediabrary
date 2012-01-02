@@ -39,18 +39,26 @@ function stepFix()
 	$(window.fixparent).find('.a-fix:first').click();
 }
 
-function checkPrepare() { $.get('check/prepare', function () { checkStep() }); }
+window.proceed = true;
+function checkPrepare()
+{
+	twopass = false;
+	$.get('check/prepare', function () { checkStep() });
+}
 
 function checkStep()
 {
 	$.get('check/one', function (data) {
-		if (data.msg)
-		{
+		if (data.msg) {
 			var entry = $('<div class="entry"><span class="source">'+data.source
 				+'</span><span class="msg">'+data.msg+'</span></div>');
 			$('#output').append(entry.fadeIn());
 			entry[0].scrollIntoView();
 			checkStep();
+			window.proceed = true;
 		}
+		else if (window.proceed) { window.proceed = false; checkPrepare(); }
 	}, 'json');
+
+
 }

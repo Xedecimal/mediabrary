@@ -9,6 +9,7 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$this->_class = 'tv';
+		$this->state_file = dirname(__FILE__).'/state.dat';
 
 		$this->CheckActive(array('tv', 'tv-episode'));
 	}
@@ -143,13 +144,41 @@ class TV extends MediaLibrary
 
 	# Checks
 
+	function CheckPrepare()
+	{
+		global $_d;
+
+		$this->_state['path'] = 0;
+
+		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
+		{
+			$files = scandir($p);
+			foreach ($files as $f)
+			{
+				if ($f[0] == '.') continue;
+				$this->_state['files'][] = $p.'/'.$f;
+			}
+		}
+		file_put_contents($this->state_file, serialize($this->_state));
+	}
+
 	function Check()
 	{
 		global $_d;
 
-		$this->ds = $this->CollectDS();
-		$this->CheckFilesystem($msgs);
-		$this->CheckDatabase($msgs);
+		$this->_state = unserialize(file_get_contents($this->state_file));
+
+		try
+		{
+			$this->ds = $this->CollectDS();
+			$this->CheckFilesystem($msgs);
+			$this->CheckDatabase($msgs);
+		}
+		catch (Exception $ex)
+		{
+			file_put_contents($this->state_file, serialize($this->_state));
+			throw $ex;
+		}
 
 		/*# Filesystem checks
 
@@ -200,37 +229,16 @@ class TV extends MediaLibrary
 		global $_d;
 
 		# No configured tv series paths, we're done here.
-		if (empty($_d['config']['paths']['tv-series']['paths'])) return;
+		if (empty($this->_state['files'])) return;
 
-		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
-		{
-			foreach (new FilesystemIterator($p) as $fep)
-			{
-				$p = $fep->GetPathname();
-				$f = basename($p);
-				if ($f[0] == '.') continue;
+		$p = array_pop($this->_state['files']);
 
-				$tvse = new TVSeriesEntry($p);
+		$f = basename($p);
+		if ($f[0] == '.') continue;
 
-				# Series does not exist in database.
-				if (empty($this->ds[$tvse->Title]))
-				{
-					$tvse->save_to_db();
-					throw new Exception("New series {$tvse->Title} added to database.");
-				}
+		$tvse = new TVSeriesEntry($p);
 
-				# Path now exists.
-				else if (empty($this->ds[$tvse->Title]->Path))
-				{
-					$tvse->CollectDS();
-					$tvse->Data['path'] = $p;
-					$tvse->save_to_db();
-					throw new Exception("Adding path {$p} to known entry.");
-				}
-
-				$tvse->CheckFilesystem($msgs);
-			}
-		}
+		$tvse->Check();
 	}
 
 	function CheckDatabase(&$msgs)
@@ -409,7 +417,7 @@ class TVSeriesEntry extends MediaEntry
 
 		# Collect cover data
 		$this->NoExt = File::GetFile($this->Filename);
-		$thm_path = VarParser::Parse($_d['config']['paths']['tv-series']['meta'], $this);
+		$thm_path = $this->Path.'/folder.jpg';
 
 		if (file_exists($thm_path))
 			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
@@ -449,16 +457,15 @@ class TVSeriesEntry extends MediaEntry
 
 	function CollectFS()
 	{
-		foreach (new FilesystemIterator($this->Path,
-		FilesystemIterator::SKIP_DOTS) as $fep)
+		foreach (scandir($this->Path) as $fn)
 		{
-			$fn = $fep->GetFilename();
 			if (substr($fn, 0, 1) == '.') continue;
-			$p = $fep->GetPathname();
+			$p = $this->Path.'/'.$fn;
 
 			$ep = new TVEpisodeEntry($p);
 			# Possibly Metadata or unknown file.
-			if (empty($ep->Data['season'])) continue;
+			if (empty($ep->Data['season']))
+				throw new CheckException("Unable to identify episode: {$ep->Path}");
 
 			$this->fs[$ep->Data['season']][$ep->Data['episode']] = $ep;
 		}
@@ -468,17 +475,22 @@ class TVSeriesEntry extends MediaEntry
 	{
 		global $_d;
 
-		$errors = 0;
-
-		$series = $this->CollectDS();
+		/*$series = $this->CollectDS();
 		if (empty($series))
 		{
-			$errors += 1;
-			$msgs['TV'][] = 'Adding missing series in database for '
-				.$this->Title;
-		}
+			$this->Data = array(
+				'path' => $this->Path,
+				'title' => $this->Filename,
+				'type' => 'tv-series'
+			);
+			$_d['entry.ds']->save($this->Data, array('safe' => 1));
+			throw new Exception('Adding missing series in database for '
+				.$this->Title);
+		}*/
 
-		return $errors;
+		$this->CheckFilesystem();
+
+		return;
 	}
 
 	/**
@@ -486,14 +498,16 @@ class TVSeriesEntry extends MediaEntry
 	 *
 	 * @param array $msgs
 	 */
-	function CheckFilesystem(&$msgs)
+	function CheckFilesystem()
 	{
 		global $_d;
 
 		$this->CollectDS();
 		$this->CollectFS();
 
-		if (!empty($this->fs))
+		if (empty($this->fs))
+			throw new Exception("Empty series '{$this->Path}'.");
+
 		foreach ($this->fs as $is => &$eps)
 		{
 			foreach ($eps as $ie => &$ep)
@@ -501,8 +515,8 @@ class TVSeriesEntry extends MediaEntry
 				if (!isset($this->ds[$is][$ie]))
 				{
 					$ep->Data['parent'] = $this->Data['_id'];
-					$ep->save_to_db();
-					throw new Exception("Adding {$this->Title} {$is}x{$ie} to database.");
+					$ep->SaveDS();
+					throw new CheckException("Adding {$this->Title} {$is}x{$ie} to database.");
 				}
 
 				else if (empty($this->ds[$is][$ie]['path']))
@@ -510,7 +524,7 @@ class TVSeriesEntry extends MediaEntry
 					$this->ds[$is][$ie]['path'] = $ep->Path;
 					$_d['entry.ds']->save($this->ds[$is][$ie],
 						array('safe' => 1));
-					throw new Exception("Updated path {$ep->Path} on existing entry.");
+					throw new CheckException("Updated path {$ep->Path} on existing entry.");
 				}
 			}
 		}
@@ -564,7 +578,7 @@ class TVEpisodeEntry extends MediaEntry
 		{
 			$dat = MediaEntry::ScrapeFS($path, TVEpisodeEntry::GetFSPregs());
 			if (!empty($dat['title']))
-				$this->Data['title'] = $dat['title'];
+				$this->Data['title'] = Str::MakeUTF8($dat['title']);
 			if (!empty($dat['series']))
 				$this->Data['series'] = MediaLibrary::CleanString($dat['series']);
 			if (!empty($dat['season']))
