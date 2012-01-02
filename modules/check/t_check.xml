@@ -1,5 +1,7 @@
-<null>
+<div id="check">
 <script type="text/javascript" src="modules/check/_check.js"></script>
+<div id="output"><div id="entry">Progress will be presented here.</div></div>
+<p><a href="#" id="a-scan">Scan Sources</a></p>
 <group>
 <div id="fg-{{id}}" class="group">
 <a href="{{id}}" class="a-fixthese">[{{_d.i18n.Fix_These}}]</a>
@@ -9,4 +11,4 @@
 </div> <!-- #grp-{{id}} -->
 </div> <!-- group -->
 </group>
-</null>
+</div>

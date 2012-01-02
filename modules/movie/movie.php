@@ -192,7 +192,25 @@ class Movie extends MediaLibrary
 		return $ret;
 	}
 
-	function Check(&$msgs)
+	function CheckPrepare()
+	{
+		global $_d;
+
+		unlink($this->state_file);
+		$state['path'] = 0;
+		foreach ($_d['config']['paths']['movie']['paths'] as $p)
+		{
+			$files = scandir($p);
+			foreach ($files as $f)
+			{
+				if ($f[0] == '.') continue;
+				$state['files'][] = $p.'/'.$f;
+			}
+		}
+		file_put_contents($this->state_file, serialize($state));
+	}
+
+	function Check()
 	{
 		global $_d;
 
@@ -201,16 +219,14 @@ class Movie extends MediaLibrary
 		# General Cleanup
 
 		#$_d['entry.ds']->remove(array('type' => 'movie', 'path' => null));
-
-		# Improve our local file cache for fast access.
-		$this->UpdateFSCache();
-
-		$this->_files = $this->CheckFS();
+		$status = $this->CheckFS();
+		throw new Exception("Avoiding the next checks.");
 
 		# Collect database information
 		$this->_ds = array();
-		foreach ($_d['entry.ds']->find(array('type' => 'movie'),
-			$_d['movie.cb.query']['columns']) as $dr)
+		$q['type'] = 'movie';
+		$q['clean']['$exists'] = 0;
+		foreach ($_d['entry.ds']->find($q, $_d['movie.cb.query']['columns']) as $dr)
 		{
 			$paths = isset($dr['paths']) ? $dr['paths'] : array();
 			$paths[] = $dr['path'];
@@ -220,26 +236,14 @@ class Movie extends MediaLibrary
 				# Remove missing items
 				if (empty($p) || !file_exists($p))
 				{
-					$msgs['Cleanup'][] = "Removed database entry for non-existing '"
-						.$p."'";
 					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
-				}
-
-				# This one is already clean, skip it.
-				if (!empty($dr['clean']))
-				{
-					unset($this->_files[$p]);
-					continue;
+					throw new Exception("Removed database entry for non-existing '"
+						.$p."'");
 				}
 
 				$this->_ds[$p] = $dr;
 			}
 		}
-
-		# Make sure our entry cache is up to date.
-		foreach ($this->_files as $p => $movie)
-			$ret = array_merge_recursive($ret,
-				$this->CheckDatabaseExistence($p, $movie, $msgs));
 
 		$toterrs = 0;
 
@@ -279,6 +283,30 @@ class Movie extends MediaLibrary
 		return $ret;
 	}
 
+	function CheckFS()
+	{
+		global $_d;
+
+		$pregs = MovieEntry::GetFSPregs();
+		$exts = MovieEntry::GetExtensions();
+
+		$state = unserialize(file_get_contents($this->state_file));
+
+		if (empty($state['files'])) return;
+
+		$filename = array_pop($state['files']);
+		$cex = null;
+		try
+		{
+			$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
+			$this->CheckDatabaseExistence($filename, $me);
+			$this->CheckFile($filename);
+		}
+		catch (Exception $ex) { $cex = $ex; }
+		file_put_contents($this->state_file, serialize($state));
+		if (!empty($cex)) throw $cex;
+	}
+
 	/*function CheckNextFile()
 	{
 		if (!file_exists($this->state_file))
@@ -309,7 +337,7 @@ class Movie extends MediaLibrary
 	 * @param MovieEntry $movie
 	 * @return array Array of error messages.
 	 */
-	function CheckDatabaseExistence($file, $md, &$msgs)
+	function CheckDatabaseExistence($file, $md)
 	{
 		global $_d;
 
@@ -318,8 +346,16 @@ class Movie extends MediaLibrary
 		# This is multipart, we only keep track of the first item.
 		if (!empty($md->Part)) return $ret;
 
+		$item = $_d['entry.ds']->findOne(array(
+			'path' => Str::MakeUTF8($md->Path)));
+		if (!empty($item)) return $ret;
+
 		if (!isset($this->_ds[$md->Path]))
+		{
+			$md = MovieEntry::FromPath($md->Path);
 			$_d['entry.ds']->save($md->Data, array('safe' => 1));
+			throw new Exception("Added new movie '{$md->Path}' to database.");
+		}
 
 		return $ret;
 	}
@@ -352,39 +388,40 @@ class Movie extends MediaLibrary
 			);
 	}
 
-	function CheckFilename($file, $md, &$msgs)
+	function CheckFile($path)
 	{
 		global $_d;
 
-		$ext = File::ext($file);
+		$me = new MovieEntry($path);
+		$ext = File::ext($me->Path);
 
 		# Filename related
-		if (array_search($ext, array('avi', 'mkv', 'mp4', 'divx')) === false)
+		if (array_search($ext, MovieEntry::GetExtensions()) === false)
 		{
-			$ret['File Name Compliance'][] = "File {$file} has an unknown extension. ($ext)";
+			return array('msg' => "File {$path} has an unknown extension. ($ext)");
 		}
 
 		# Title Related
-		$title = $md->Title;
+		$title = $me->Title;
 
 		$title = Movie::CleanTitleForFile($title);
 
 		# Validate strict naming conventions.
 
-		$next = basename($file, $ext);
-		if (isset($md->Released))
+		$next = basename($path, $ext);
+		if (isset($me->Released))
 		{
-			$date = $md->Released;
+			$date = $me->Released;
 			$year = substr($date, 0, 4);
 		}
 		else $year = 'Unknown';
 
 		# Part files need their CD#
-		if (!empty($md->Part))
+		if (!empty($me->Part))
 		{
 			$preg = '#/'.preg_quote($title, '#').' \('.$year.'\) CD'
-				.$file['fs_part'].'\.(\S+)$#';
-			$target = "$title ($year) CD{$md['part']}.$ext";
+				.$path['fs_part'].'\.(\S+)$#';
+			$target = "$title ($year) CD{$me['part']}.$ext";
 		}
 		else
 		{
@@ -392,22 +429,16 @@ class Movie extends MediaLibrary
 			$target = "$title ($year).$ext";
 		}
 
-		if (!preg_match($preg, $file))
+		if (!preg_match($preg, $me->Path))
 		{
-			$urlfix = "movie/fix?path=".urlencode($file);
-			$bn = basename($file);
-
-			$msgs['Filename Compliance'][] = <<<EOD
-<a href="{$urlfix}" class="a-fix">Fix</a>
-File "$bn" should be "$target"
-EOD;
-			return 1;
+			$urlfix = "movie/fix?path=".urlencode($path);
+			$bn = basename($path);
+			# @TODO: Add errors to the database.
+			throw new Exception("File '$bn' should be '$target'");
 		}
-
-		return 0;
 	}
 
-	function UpdateFSCache()
+	function CollectSingleFileGroup()
 	{
 		global $_d;
 
@@ -426,33 +457,6 @@ EOD;
 					array('safe' => 1, 'upsert' => 1));
 			}
 		}
-	}
-
-	function CheckFS()
-	{
-		global $_d;
-
-		$ret = array();
-		$pregs = MovieEntry::GetFSPregs();
-		$exts = MovieEntry::GetExtensions();
-
-		if (!file_exists($this->state_file)) $state = array('index' => 0);
-		else $state = unserialize(file_get_contents($this->state_file));
-
-		$res = $_d['movie_fs.ds']->find()
-			->skip($state['index']++)
-			->limit(1);
-
-		file_put_contents($this->state_file, serialize($state));
-
-		foreach ($res as $p)
-		{
-			$path = urldecode($p['path']);
-			$me = new MovieEntry($path, $pregs);
-			$ret[$me->Path] = $me;
-		}
-
-		return $ret;
 	}
 
 	function CollectDS()
@@ -514,11 +518,18 @@ class MovieEntry extends MediaEntry
 			$exts = MovieEntry::GetExtensions();
 			$files = glob($path.'/*.{'.implode(',', $exts).'}', GLOB_BRACE);
 			if (count($files) < 1) return;
-			else if (count($files) > 1) var_dump("Invalid movie folder: {$path}");
+			else if (count($files) > 1)
+				throw new Exception("Too many video files in folder: {$path}");
 			else $path = $files[0];
 		}
 
+		# @TODO: Way too much processing on something that needs to be light
+		# weight.
+
 		parent::__construct($path, $pregs);
+
+		foreach ($this->ScrapeFS($path, $this->GetFSPregs()) as $n => $v)
+			$this->$n = $v;
 
 		global $_d;
 
@@ -528,15 +539,15 @@ class MovieEntry extends MediaEntry
 			$qg = File::QuoteGlob($this->Path);
 			$search = preg_replace('/CD\d+/i', '[Cc][Dd]*', $qg);
 			$files = glob($search);
-			$this->Paths = $files;
+			foreach ($files as $f) $this->Paths[] = Str::MakeUTF8($f);
 		}
 		# Just a single movie
-		else $this->Paths[] = $this->Path;
+		else $this->Paths[] = Str::MakeUTF8($this->Path);
 
 		# Default data values for every movie entry.
-		$this->Data['title'] = $this->Title;
+		$this->Data['title'] = Str::MakeUTF8($this->Title);
 		$this->Data['paths'] = $this->Paths;
-		$this->Data['path'] = $this->Path;
+		$this->Data['path'] = Str::MakeUTF8($this->Path);
 		$this->Data['obtained'] = filemtime($this->Path);
 		$this->Data['parent'] = 2;
 		$this->Data['class'] = 'object.item.videoItem.movie';
@@ -567,7 +578,7 @@ class MovieEntry extends MediaEntry
 				1 => 'Title', 2 => 'Released', 3 => 'Part', 4 => 'Ext'),
 
 			# title (date).ext
-			'/\/([^\/]+)\s+\((\d{4})\).*\.([^.]+)$/' => array(
+			'#/([^/]+)\s+\((\d{4})\).*\.([^.]+)$#' => array(
 				1 => 'Title', 2 => 'Released', 3 => 'Ext'),
 
 			# title DDDD.ext

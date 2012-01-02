@@ -1,4 +1,7 @@
 $(function () {
+	$('#a-scan').button();
+	$('#a-scan').click(function () { checkPrepare(); });
+
 	$('.a-fix').click(function () {
 		var up = $(this);
 		$.get($(this).attr('href'), function () {
@@ -34,4 +37,20 @@ $(function () {
 function stepFix()
 {
 	$(window.fixparent).find('.a-fix:first').click();
+}
+
+function checkPrepare() { $.get('check/prepare', function () { checkStep() }); }
+
+function checkStep()
+{
+	$.get('check/one', function (data) {
+		if (data.msg)
+		{
+			var entry = $('<div class="entry"><span class="source">'+data.source
+				+'</span><span class="msg">'+data.msg+'</span></div>');
+			$('#output').append(entry.fadeIn());
+			entry[0].scrollIntoView();
+			checkStep();
+		}
+	}, 'json');
 }

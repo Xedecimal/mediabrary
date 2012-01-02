@@ -9,7 +9,6 @@ class ViewList extends Module
 	private $_sort = array();
 	private $_q = array();
 
-
 	function __construct()
 	{
 		$this->CheckActive($this->Name);
@@ -115,6 +114,8 @@ class ViewList extends Module
 			if (!empty($i['parent']))
 				$i['parentobj'] = $_d['entry.ds']->findOne(array(
 					'_id' => $i['parent']));
+
+			$i['errors'] = !empty($i['errors']);
 
 			$res[] = $i;
 		}

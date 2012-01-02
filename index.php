@@ -12,6 +12,7 @@ require_once('xedlib/classes/module.php');
 require_once('xedlib/classes/hm.php');
 require_once('xedlib/classes/math.php');
 require_once('xedlib/classes/arr.php');
+require_once('xedlib/classes/str.php');
 require_once('xedlib/classes/data/database.php');
 require_once('xedlib/classes/data/data_set.php');
 

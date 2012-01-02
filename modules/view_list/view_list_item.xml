@@ -3,4 +3,5 @@
 	<td>{{released}}</td>
 	<td><a href="{{parentobj.type}}/detail/{{parentobj._id}}" class="a-title">{{parentobj.title}}</a></td>
 	<td>{{index}}</td>
+	<td>{{errors}}</td>
 </tr>

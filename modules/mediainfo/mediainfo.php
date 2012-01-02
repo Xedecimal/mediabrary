@@ -9,6 +9,8 @@ class MediaInfo extends Module
 	{
 		global $_d;
 
+		$this->state_file = 'modules/mediainfo/state.dat';
+
 		$_d['medinfo.ds'] = $_d['db']->medinfo;
 
 		$this->cols = array(
@@ -208,31 +210,44 @@ EOF;
 		return $ret;
 	}
 
-	function Check($a)
+	function CheckPrepare()
+	{
+		$state['index'] = 0;
+		file_put_contents($this->state_file, serialize($state));
+	}
+
+	function Check()
 	{
 		global $_d;
 		$ret = array();
 
+		$state = unserialize(file_get_contents($this->state_file));
+
 		$q['codec.mtime']['$exists'] = 0;
 		$q['path']['$exists'] = 1;
 		$cols['path'] = 1;
-		foreach ($_d['entry.ds']->find($q) as $entry)
+
+		$ents = $_d['entry.ds']->find($q)->skip($state['index']++);
+
+		foreach ($ents as $entry)
 		{
 			MediaInfo::Process($entry);
+			$ret['msg'] = "Processing codec data on {$entry['path']}";
+			file_put_contents($this->state_file, serialize($state));
+			return $ret;
 		}
 
 		# Collect all database mtime values.
 		$dbtimes = array();
 
 		foreach ($_d['entry.ds']->find($q, $cols) as $r)
-			$dbtimes[$r['path']] = $r['codec']['mtime'];
+			$dbtimes[$r['path']] = @$r['codec']['mtime'];
 
 		if (!empty($mtimes))
 		foreach ($mtimes as $p => $t)
 		if (!isset($dbtimes[$p]) || $dbtimes[$p] != $t)
 		{
 			U::VarInfo("Scanning codec info for {$p}");
-
 		}
 
 		return $ret;
@@ -251,7 +266,18 @@ EOF;
 		$cmd_path = escapeshellarg($item['path']);
 		$out = `{$_d['config']['mediainfo']} --Output=XML {$cmd_path}`;
 		if (empty($out)) { var_dump('Error loading media info.'); return; }
-		$sx = simplexml_load_string(preg_replace('/|/', '', $out));
+
+		# simplexml can be a loud mouth.
+		$sx = @simplexml_load_string(preg_replace('/|/', '', $out));
+
+		if (empty($sx))
+		{
+			$msg = "Bad codec data in file '{$item['path']}'.";
+			$item['errors'][] = $msg;
+			$item['codec']['mtime'] = filemtime($item['path']);
+			$_d['entry.ds']->save($item, array('safe' => 1));
+			throw new Exception($msg);
+		}
 
 		$tracks = $sx->File->track;
 

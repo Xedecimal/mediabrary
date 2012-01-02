@@ -11,6 +11,7 @@
 	<th data-col="released">Date</th>
 	<th data-col="parent">Parent</th>
 	<th data-col="index">Sibling Index</th>
+	<th data-col="errors">Issues</th>
 </tr><tr>
 	<td><input type="text" class="in-list-filter" data-col="title" /></td>
 	<td><input type="text" class="in-list-filter" data-col="released" size="5" /></td>

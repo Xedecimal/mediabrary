@@ -67,6 +67,16 @@ class MediaEntry
 		return $ret;
 	}
 
+	static function FromPath($path)
+	{
+		global $_d;
+
+		$item = $_d['entry.ds']->findOne(array('path' => $path));
+		$ret = new MediaEntry($path);
+		$ret->Data = $item;
+		return $ret;
+	}
+
 	static function ScrapeFS($path, $pregs)
 	{
 		// Collect path based metadata.

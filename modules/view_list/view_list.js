@@ -26,8 +26,8 @@ $(function () {
 		}
 	});
 
-	if ($('#table-list tr').length > 2) $('#table-list').tablesorter();
-	$('#table-list').bind('sortEnd', function () {
+	if ($('.table-list tr').length > 2) $('.table-list').tablesorter();
+	$('.table-list').bind('sortEnd', function () {
 		// Send sort columns
 
 		sub['sort'] = {};

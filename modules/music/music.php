@@ -69,7 +69,7 @@ class Music extends MediaLibrary
 		return $t->ParseFile($this->_template);
 	}
 
-	function Check(&$msgs)
+	/*function Check()
 	{
 		global $_d;
 
@@ -85,8 +85,8 @@ class Music extends MediaLibrary
 
 				$_d['entry.ds']->save($e->Data, array('safe' => 1));
 			}
-		}*/
-	}
+		}
+	}*/
 
 	static function CollectFS()
 	{

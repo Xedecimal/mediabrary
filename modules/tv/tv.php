@@ -143,15 +143,13 @@ class TV extends MediaLibrary
 
 	# Checks
 
-	function Check(&$msgs)
+	function Check()
 	{
 		global $_d;
 
-		$errors = 0;
-
 		$this->ds = $this->CollectDS();
-		$errors += $this->CheckFilesystem($msgs);
-		$errors += $this->CheckDatabase($msgs);
+		$this->CheckFilesystem($msgs);
+		$this->CheckDatabase($msgs);
 
 		/*# Filesystem checks
 
@@ -195,8 +193,6 @@ class TV extends MediaLibrary
 
 
 		}*/
-
-		return $errors;
 	}
 
 	function CheckFilesystem(&$msgs)
@@ -219,18 +215,17 @@ class TV extends MediaLibrary
 				# Series does not exist in database.
 				if (empty($this->ds[$tvse->Title]))
 				{
-					$msgs['TV'][] = "Adding series {$tvse->Title} to database.";
 					$tvse->save_to_db();
-					return 1;
+					throw new Exception("New series {$tvse->Title} added to database.");
 				}
 
 				# Path now exists.
 				else if (empty($this->ds[$tvse->Title]->Path))
 				{
-					$msgs['TV'][] = "Adding path {$p} to existing entry.";
 					$tvse->CollectDS();
 					$tvse->Data['path'] = $p;
 					$tvse->save_to_db();
+					throw new Exception("Adding path {$p} to known entry.");
 				}
 
 				$tvse->CheckFilesystem($msgs);
@@ -469,7 +464,7 @@ class TVSeriesEntry extends MediaEntry
 		}
 	}
 
-	function Check(&$msgs)
+	function Check()
 	{
 		global $_d;
 
@@ -506,17 +501,16 @@ class TVSeriesEntry extends MediaEntry
 				if (!isset($this->ds[$is][$ie]))
 				{
 					$ep->Data['parent'] = $this->Data['_id'];
-					//$ep->save_to_db();
-					//$msgs['TV'][] = "Adding {$this->Title} {$is}x{$ie} to database.";
+					$ep->save_to_db();
+					throw new Exception("Adding {$this->Title} {$is}x{$ie} to database.");
 				}
 
 				else if (empty($this->ds[$is][$ie]['path']))
 				{
 					$this->ds[$is][$ie]['path'] = $ep->Path;
-					//var_dump($this->ds[$is][$ie]);
 					$_d['entry.ds']->save($this->ds[$is][$ie],
 						array('safe' => 1));
-					$msgs['TV'][] = "Updated path {$ep->Path} on existing entry.";
+					throw new Exception("Updated path {$ep->Path} on existing entry.");
 				}
 			}
 		}

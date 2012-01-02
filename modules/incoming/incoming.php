@@ -2,7 +2,7 @@
 
 class Incoming extends Module
 {
-	function Check(&$msgs)
+	function Check()
 	{
 		global $_d;
 
