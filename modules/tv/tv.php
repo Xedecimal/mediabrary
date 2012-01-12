@@ -556,14 +556,9 @@ class TVSeriesEntry extends MediaEntry
 		return VarParser::Concat($g, $items);
 	}
 
-	static function FromID($id)
+	static function FromID($id, $type = 'TVSeriesEntry')
 	{
-		global $_d;
-
-		$data = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-		$tvse = new TVSeriesEntry($data['path']);
-		$tvse->Data = $data;
-		return $tvse;
+		return MediaEntry::FromID($id, $type);
 	}
 }
 

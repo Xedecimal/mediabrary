@@ -3,6 +3,7 @@
 class ModCheck extends Module
 {
 	public $Block = 'foot';
+	public $Name = 'check';
 
 	function __construct()
 	{
@@ -40,7 +41,9 @@ class ModCheck extends Module
 
 			$state['module'] = $this->Name;
 			$state['index'] = 0;
-			$_d['state.ds']->save($state);
+			$state['start'] = time();
+			$_d['state.ds']->remove(array('module' => $this->Name));
+			$_d['state.ds']->save($state, array('safe' => 1));
 
 			die();
 		}
@@ -48,6 +51,11 @@ class ModCheck extends Module
 		if (@$_d['q'][1] == 'one')
 		{
 			global $mods;
+
+			set_time_limit(120);
+
+			# This will free up the server for further requests.
+			session_write_close();
 
 			$state = $_d['state.ds']->findOne(array('module' => $this->Name));
 
@@ -59,19 +67,29 @@ class ModCheck extends Module
 
 				$n = $keys[$ix];
 				$m = $mods[$n];
-				try { $ret = $m->Check(); }
-				catch (CheckException $e) { $ret['msg'] = $e->msg; }
+
 				$ret['source'] = $n;
+				try { $ret = $m->Check(); }
+				catch (CheckException $e)
+				{
+					if (!empty($e->source)) $ret['source'] = $e->source;
+					$ret['msg'] = $e->msg;
+				}
 				if (++$state['index'] >= count($keys)) $state['index'] = 0;
 
-				if (empty($ret['msg'])) var_dump($e);
-				if (empty($ret['msg'])) { unset($state['mods'][$n]); continue; }
+				if (empty($ret['msg']))
+				{
+					unset($state['mods'][$n]);
+					$ret['msg'] = 'Finished with this module.';
+				}
 				$_d['state.ds']->save($state);
 
 				die(json_encode($ret));
 			}
 
-			die();
+			$time = U::GetDateOffset($state['start']);
+			die(json_encode(array('source' => $this->Name,
+				'msg' => "Scanned {$_d['entry.ds']->find()->count()} files in $time.", 'stop' => 1)));
 		}
 	}
 
@@ -111,12 +129,23 @@ class ModCheck extends Module
 
 		$t = new Template();
 		$t->ReWrite('error', array(&$this, 'TagError'));
-		return $t->Concat($g, $_d['entry.ds']->find($q, $cols));
+		$items = $_d['entry.ds']->find($q, $cols);
+		foreach ($items as $ix => $i)
+		{
+			if (empty($i['errors']))
+			{
+				unset($i['errors']);
+				# Path is the only column available here!
+				#$_d['entry.ds']->save($i);
+			}
+		}
+		return $t->Concat($g, $items);
 	}
 
 	function TagError($t, $g)
 	{
-		return VarParser::Concat($g, $t->vars['errors']);
+		if (!empty($t->vars['errors']))
+			return VarParser::Concat($g, $t->vars['errors']);
 	}
 }
 

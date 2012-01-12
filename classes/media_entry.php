@@ -9,7 +9,7 @@ class MediaEntry
 	# Metadata
 	public $Title;
 
-	function __construct($path, $parses = null)
+	function __construct($path, $parses = null, $bypass_checks = false)
 	{
 		$this->Path = $path;
 		$this->Filename = basename($path);
@@ -44,31 +44,42 @@ class MediaEntry
 			'path' => Str::MakeUTF8($this->Path)));
 	}
 
-	function SaveDS()
+	function SaveDS($bypass_id = false)
 	{
 		global $_d;
+		if (!isset($this->Data['_id']) && !$bypass_id)
+			throw new Exception('No ID set!');
+		if (!isset($this->Data['title'])) throw new Exception('No title set!');
 		return $_d['entry.ds']->save($this->Data);
+	}
+
+	function Remove()
+	{
+		global $_d;
+
+		if (!isset($this->Data['_id'])) throw new Exception('No ID set.');
+		$_d['entry.ds']->remove(array('_id' => $this->Data['_id']));
 	}
 
 	function Rename($target)
 	{
-		rename($this->Data['path'], $target);
-
 		if (!empty($this->Data['paths']))
 			foreach ($this->Data['paths'] as $ix => $p)
 				if ($p == $this->Data['path'])
 					$this->Data['paths'][$ix] = $target;
 
+		$ret = rename($this->Data['path'], $target);
 		$this->Data['path'] = $target;
-		$this->save_to_db();
+		$this->SaveDS();
+		return $ret;
 	}
 
-	static function FromID($id)
+	static function FromID($id, $type = 'MediaEntry')
 	{
 		global $_d;
 
 		$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-		$ret = new MediaEntry($item['path']);
+		$ret = new $type($item['path'], null, true);
 		$ret->Data = $item;
 		return $ret;
 	}

@@ -1,18 +1,8 @@
 $(function () {
 	$('#a-scan').button();
 	$('#a-scan').click(function () { checkPrepare(); });
-
-	$('.a-fix').click(function () {
-		var up = $(this);
-		$.get($(this).attr('href'), function () {
-			up.html('Complete');
-			if (window.hitall)
-			{
-				up.attr('class', '');
-				stepFix();
-			}
-		});
-		$(this).attr('href', '#').html('<img src="img/load.gif" alt="loading" />');
+	$('.a-fix').button().click(function () {
+		$.get($(this).attr('href'));
 		return false;
 	});
 
@@ -42,20 +32,24 @@ function stepFix()
 window.proceed = true;
 function checkPrepare()
 {
+	$('#output').addClass('loading');
 	$.get('check/prepare', function () { checkStep() });
 }
 
 function checkStep()
 {
 	$.get('check/one', function (data) {
+		if (!data || data.stop)
+		{
+			window.proceed = false;
+			$('#output').removeClass('loading');
+		}
+
 		if (data.msg) {
 			var entry = $('<div class="entry"><span class="source">'+data.source
 				+'</span><span class="msg">'+data.msg+'</span></div>');
-			$('#output').prepend(entry/*.fadeIn()*/);
-			//entry[0].scrollIntoView();
-			checkStep();
-			window.proceed = true;
-			$('#output').addClass('loading');
+			$('#output').prepend(entry);
+			if (window.proceed) checkStep();
 		}
 		else if (window.proceed) { window.proceed = false; checkPrepare(); }
 		else $('#output').removeClass('loading');

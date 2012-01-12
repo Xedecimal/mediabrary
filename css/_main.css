@@ -1,28 +1,16 @@
 body { height: 100%; }
 .hidden { display: none; }
-.main-link
-{
-	float: left;
-	font-weight: bold;
-	width: 200px;
-	height: 300px;
-	text-shadow: 0 1px 3px #000, 1px 0 #000, -1px 0 #000, 0 -1px #000;
-}
-.main-link a
-{
-	position: relative;
-	display: block;
-	width: 160px;
-	height: 260px;
-	padding: 20px;
-}
 
 /* Left Navigation */
 #left { width: 220px; height: 100%; position: fixed; font-size: 12px;
 		border-right: 1px dashed #888; background: #000; z-index: 1; overflow: auto; }
-ul.nav { list-style: none; margin: 0; padding: 5px 10px; }
+
+ul.nav { list-style: none; margin: 0; padding: 0 5px 0 10px; }
+
+#notes { border: 1px solid #222; background: #000; margin-top: 1em;
+	padding: 1em; }
 
 /* Center Area */
-#content { margin: 0 0 0 220px; padding: 1em; height: 100%; }
+#content { margin-left: 220px; padding: 1em; height: 100%; }
 
 .loading { background: url(../img/load.gif) no-repeat bottom; }

@@ -60,8 +60,22 @@ class Movie extends MediaLibrary
 
 		else if (@$_d['q'][1] == 'fix')
 		{
+			if ($_d['q'][2] == 'bad_filename')
+			{
+				$me = MovieEntry::FromID($_d['q'][3]);
+
+				if (empty($me->Data['errors']['bad_filename']['from']) ||
+					$me->Data['path'] !=
+						$me->Data['errors']['bad_filename']['from'])
+				{
+					unset($me->Data['errors']['bad_filename']);
+					$me->SaveDS();
+					die(json_encode(array('msg' => 'Already fixed.')));
+				}
+
+			}
 			# Collect generic information.
-			$src = Server::GetVar('path');
+			/*$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
 
 			# Collect information on this path.
@@ -99,43 +113,16 @@ class Movie extends MediaLibrary
 
 			# Apply Database Transformations
 
-			$_d['entry.ds']->update(array('_id' => $item['_id']),
-				$item);
+			/*$_d['entry.ds']->update(array('_id' => $item['_id']),
+				$item);*/
 
-			die('Fixed');
+			die('Fixer has been unfixed.');
 		}
 
 		else if (@$_d['q'][1] == 'rename')
 		{
-			$path = Server::GetVar('path');
-			$targ = Server::GetVar('target');
-
-			# Update stored paths.
-
-			$item = $_d['entry.ds']->findOne(array('path' => $path));
-			if (!empty($item))
-			{
-				foreach ($item['paths'] as $ix => $p) if ($p == $path)
-					$item['paths'][$ix] = $targ;
-				$item['path'] = $targ;
-				$_d['entry.ds']->save($item);
-			}
-
-			# Update covers or backdrops.
-
-			$pisrc = pathinfo($path);
-			$pidst = pathinfo($targ);
-			$md = $_d['config']['paths']['movie']['meta'];
-
-			$cover = "$md/thm_".$pisrc['filename'];
-			$backd = "$md/bd_".$pisrc['filename'];
-
-			if (file_exists($cover)) rename($cover, "$md/thm_{$pidst['filename']}");
-			if (file_exists($backd)) rename($backd, "$md/bd_{$pidst['filename']}");
-
-			if (!file_exists($pidst['dirname'])) mkdir($pidst['dirname'], 0777, true);
-			rename($path, $targ);
-			die('Fixed');
+			Movie::Rename(Server::GetVar('path'),
+				Server::GetVar('target'));
 		}
 	}
 
@@ -200,14 +187,36 @@ class Movie extends MediaLibrary
 		$state['module'] = $this->Name;
 		$state['files'] = array();
 
+		# Prune this down to find orphans.
+		$ds_items = $_d['entry.ds']->find(array('type' => 'movie'), array('path' => 1));
+		# @TODO: This does not prune files, only directories of entries.
+		foreach ($ds_items as $i) $prunes[dirname($i['path'])] = 1;
+
 		foreach ($_d['config']['paths']['movie']['paths'] as $p)
 		{
 			$files = scandir($p);
 			foreach ($files as $f)
 			{
 				if ($f[0] == '.') continue;
-				$state['files'][] = urlencode($p.'/'.$f);
+				$path = $p.'/'.$f;
+				$state['files'][] = urlencode($path);
+				unset($prunes[$path]);
 			}
+		}
+
+		var_dump($prunes);
+		foreach ($prunes as $path => $remove)
+			$_d['entry.ds']->remove(array('type' => 'movie', 'path' => $path));
+
+		# Prune out clean items.
+		foreach ($state['files'] as $ix => $f)
+		{
+			$filename = urldecode($f);
+
+			$item = $_d['entry.ds']->findOne(array(
+				'path' => new MongoRegex('/^'.preg_quote($filename).'/')
+			));
+			if (!empty($item['clean'])) unset($state['files'][$ix]);
 		}
 
 		$_d['state.ds']->save($state);
@@ -221,12 +230,7 @@ class Movie extends MediaLibrary
 
 		# General Cleanup
 
-		#$_d['entry.ds']->remove(array('type' => 'movie', 'path' => null));
 		$status = $this->CheckFS();
-
-		foreach ($_d['entry.ds']->find() as $i)
-			foreach ($_d['movie.cb.check'] as $cb)
-				call_user_func_array($cb, array(&$md, &$msgs));
 
 		#return;
 		# @TODO: Bring this back to life.
@@ -292,7 +296,6 @@ class Movie extends MediaLibrary
 		global $_d;
 
 		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
-
 		if (empty($state['files'])) return;
 
 		while (!empty($state['files']))
@@ -301,10 +304,18 @@ class Movie extends MediaLibrary
 
 			try
 			{
+				# See if we need to do anything with this entry.
 				$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
+				$me->Root = dirname($filename);
 				$this->CheckDatabaseExistence($filename, $me);
 				$me->LoadDS();
+
+				foreach ($_d['movie.cb.check'] as $cb)
+					call_user_func_array($cb, array(&$me));
+
 				$this->CheckFile($me);
+				$me->Data['clean'] = true;
+				$me->SaveDS();
 			}
 			catch (CheckException $ex) { $cex = $ex; }
 
@@ -337,7 +348,7 @@ class Movie extends MediaLibrary
 			#$p = Str::MakeUTF8($md->Path);
 			#$md = new MovieEntry($p);
 			#file_put_contents('debug.txt', print_r($md->Data), FILE_APPEND);
-			$_d['entry.ds']->save($md->Data);
+			$md->SaveDS(true);
 			throw new CheckException("Added new movie '{$md->Path}' to database.");
 		}
 
@@ -352,24 +363,23 @@ class Movie extends MediaLibrary
 		if (!empty($md->Title) && $md->Title != @$md->Data['title'])
 		{
 			# Save the file title to the database.
-			$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
-				array('$set' => array('title' => $md->Title))
-			);
+			$md->Data['title'] = $md->Title;
+			$md->SaveDS();
 		}
 
 		# The database does not have a release date.
 		if (!empty($md->Released) && $md->Released != @$md->Data['released'])
-			# Save the file title to the database.
-			$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
-				array('$set' => array('released' => $md->Released))
-			);
+		{
+			$md->Data['released'] = $md->Released;
+			$md->SaveDS();
+		}
 
 		# The database has no parent set for a given movie, has to be Movie.
 		if (!empty($md->Data['_id']) && empty($md->Data['parent']))
-			# Save the file title to the database.
-			$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
-				array('$set' => array('parent' => 'Movie'))
-			);
+		{
+			$md->Data['parent'] = 'Movie';
+			$md->SaveDS();
+		}
 	}
 
 	function CheckFile($me)
@@ -421,10 +431,15 @@ class Movie extends MediaLibrary
 		{
 			$urlfix = "movie/fix?path=".urlencode($me->Path);
 			$bn = basename($me->Path);
-			$msg = "File '$bn' should be '$target'";
-			$me->Data['errors']['bad_filename'] = array('type' => 'bad_filename', 'msg' => $msg);
+			$err = array(
+				'source' => $this->Name,
+				'from' => $me->Path,
+				'type' => 'bad_filename',
+				'msg' => "File '$bn' should be '$target'"
+			);
+			$me->Data['errors'][$err['type']] = $err;
 			$me->SaveDS();
-			throw new CheckException($msg, 'bad_filename');
+			throw new CheckException($err['msg'], $err['type'], $this->Name);
 		}
 	}
 
@@ -494,14 +509,19 @@ class Movie extends MediaLibrary
 
 		return $ret;
 	}
+
+	static function Rename($me, $dst) { $me->Rename($dst); }
 }
 
 class MovieEntry extends MediaEntry
 {
 	public $Type = 'movie';
 
-	function __construct($path)
+	function __construct($path, $bypass_checks = false)
 	{
+		if (!file_exists($path) && !$bypass_checks)
+			throw new Exception('File not found.');
+
 		# This is a movie folder
 		if (is_dir($path)) $path = $this->LoadDir($path);
 
@@ -531,7 +551,8 @@ class MovieEntry extends MediaEntry
 		$this->Data['title'] = Str::MakeUTF8($this->Title);
 		$this->Data['paths'] = $this->Paths;
 		$this->Data['path'] = Str::MakeUTF8($this->Path);
-		$this->Data['obtained'] = filemtime($this->Path);
+		if (file_exists($this->Path))
+			$this->Data['obtained'] = filemtime($this->Path);
 		$this->Data['parent'] = 2;
 		$this->Data['class'] = 'object.item.videoItem.movie';
 		if (isset($this->Released))
@@ -543,10 +564,8 @@ class MovieEntry extends MediaEntry
 
 		$thm_path = dirname($this->Path).'/folder.jpg';
 
-		/*if (file_exists($thm_path))
+		if (file_exists($thm_path))
 			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
-		else
-			$this->Image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].'/modules/movie/img/missing.jpg';*/
 	}
 
 	function LoadDir($path)
@@ -576,8 +595,15 @@ class MovieEntry extends MediaEntry
 		}
 
 		if (count($files) < 1)
-			throw new CheckException("Not enough video files in this folder"
+		{
+			if (count(scandir($path)) < 3)
+			{
+				rmdir($path);
+				throw new CheckException("Removed empty movie folder $path.");
+			}
+			else throw new CheckException("Not enough video files in this folder"
 				."{$path}.", 'low_folder');
+		}
 		else if (count($files) > 1)
 			throw new CheckException("Too many video files in folder: {$path}",
 				'high_folder');
@@ -624,6 +650,30 @@ class MovieEntry extends MediaEntry
 	static function GetExtensions()
 	{
 		return array('avi', 'mkv', 'divx', 'mp4');
+	}
+
+	function Rename($dst)
+	{
+		global $_d;
+
+		# Update covers or backdrops.
+
+		$src = $this->Data['path'];
+		$pisrc = pathinfo($src);
+		$pidst = pathinfo($dst);
+
+		if (!file_exists($pidst['dirname']))
+			mkdir($pidst['dirname'], 0777, true);
+
+		$cover = "$pisrc[dirname]/folder.jpg";
+		$backd = "$pisrc[dirname]/backdrop.jpg";
+
+		if (file_exists($cover))
+			rename($cover, "$pidst[dirname]/folder.jpg");
+		if (file_exists($backd))
+			rename($backd, "$pidst[dirname]/backdrop.jpg");
+
+		return parent::Rename($dst);
 	}
 }
 

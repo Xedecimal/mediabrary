@@ -72,7 +72,7 @@ class MediaLibrary extends Module
 
 		if ($trans_the)
 		{
-			// Transpose 'The {title} - {subtitle}
+			// Transpose 'The {title} - {subtitle}'
 			if (preg_match('/^(the) ([^-]+) - (.*)/i', $ret, $m))
 				$ret = $m[2].', '.$m[1].' - '.$m[3];
 
@@ -89,7 +89,7 @@ class MediaLibrary extends Module
 		$reps = array(
 			'/(.*), The/' => 'The \1',
 			'#\[[^\]]+\]#' => '',
-			'#([.]{1} |\.|-|_|brrip)#i' => ' ',
+			'#([.]{1} |\.| - |_|brrip)#i' => ' ',
 			'#\([^)]*\)#' => '',
 			"#cd\d+#i" => '');
 

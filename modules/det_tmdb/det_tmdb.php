@@ -59,6 +59,24 @@ class TMDB extends Module implements Scraper
 
 			die(json_encode($ret));
 		}
+
+		if (@$_d['q'][1] == 'fix')
+		{
+			$type = $_d['q'][2];
+			$me = MovieEntry::FromID($_d['q'][3], 'MovieEntry');
+			if ($type == 'tmdb_bad_filename')
+			{
+				# This is no longer available.
+				if (!file_exists($me->Data['path'])) $me->Remove();
+				else if ($me->Rename($me->Data['errors'][$type]['to']))
+				{
+					unset($me->Data['errors'][$type]);
+					$me->SaveDS();
+					die(json_encode(array('result' => 'success')));
+				}
+			}
+			die();
+		}
 	}
 
 	function Get()
@@ -100,30 +118,56 @@ class TMDB extends Module implements Scraper
 		return $r;
 	}
 
-	function movie_cb_check($md, &$msgs)
+	function movie_cb_check(&$md)
 	{
 		# Check for metadata.
 
+		if (empty($md->Data['title'])) return;
+
 		if (empty($md->Data['details'][$this->Name]))
 		{
-			$p = $md->Path;
-			$uep = rawurlencode($p);
-			throw new CheckException("File {$p} has no {$this->Name} metadata.",
-				'tmdb_metadata');
-			/*$msgs["$this->Name/Metadata"][] = <<<EOF
-<a href="scrape/scrape?type=movie&path=$uep"
-	class="a-fix">Scrape</a>
-EOF;
-			return 1;*/
-		}
+			if (!empty($md->Data['errors']['tmdb_meta'])) return;
 
-		$errors = 0;
+			$st = MediaLibrary::SearchTitle($md->Data['title']);
+			$results = $this->Find($md->Data, $st);
+			if (!empty($results))
+			foreach ($results as $ix => $r)
+			{
+				# Year may be off by one.
+				if (!empty($md->Data['released']) && ($r['date'] < $md->Data['released']-1
+					|| $r['date'] > $md->Data['released']+1)) unset($results[$ix]);
+				else if (strtolower(MediaLibrary::SearchTitle($r['title'])) ==
+					strtolower($st))
+				{
+					$results = array($ix => $r);
+					break;
+				}
+			}
+
+			if (count($results) == 1)
+			{
+				$keys = array_keys($results);
+				$this->Scrape($md, $keys[0]);
+			}
+			else
+			{
+				$err = array(
+					'source' => $this->Name,
+					'type' => 'tmdb_meta',
+					'msg' => "Cannot locate metadata for this entry.");
+				$md->Data['errors']['tmdb_meta'] = $err;
+				$md->SaveDS();
+
+				throw new CheckException("File {$md->Path} has no {$this->Name} metadata.",
+				'tmdb_metadata');
+			}
+		}
 
 		# Check for certification.
 
 		if (empty($md->Data['details'][$this->Name]['certification']))
 		{
-			$uep = urlencode($md->Path);
+			$uep = urlencode($md->Data['path']);
 			$url = "{{app_abs}}/scrape/scrape?path={$uep}";
 			$surl = $md->Data['details'][$this->Name]['url'];
 			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
@@ -133,7 +177,6 @@ EOF;
 - <a href="{$surl}" target="_blank">{$this->Name}</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
-			$errors++;
 		}
 
 		# Check filename compliance.
@@ -144,8 +187,8 @@ EOD;
 			$date = substr($md->Data['details'][$this->Name]['released'], 0, 4);
 		else $date = '';
 
-		$file = $md->Path;
-		$ext = File::ext(basename($md->Path));
+		$file = $md->Data['path'];
+		$ext = File::ext(basename($file));
 
 		$pqr = preg_quote($md->Root);
 
@@ -154,7 +197,7 @@ EOD;
 		{
 			$preg = '#^'.$pqr.'/'.preg_quote($filetitle, '#').'/'.preg_quote($filetitle, '#').' \('.$date.'\) CD'
 				.$file['part'].'\.(\S+)$#';
-			$target = "$filetitle ($date)/$filetitle ($date) CD{$md['part']}.$ext";
+			$target = "$filetitle ($date)/$filetitle ($date) CD{$md->Data['part']}.$ext";
 		}
 		else
 		{
@@ -174,14 +217,16 @@ EOD;
 
 			$fulltarget = $md->Root.'/'.$target;
 
-			$msgs['Filename Compliance/TMDB'][] = <<<EOD
-<a href="{$urlfix}" class="a-fix">Fix</a>
-<a href="{$urlunfix}" class="a-nogo">Unscrape</a>
-File "$file" should be "$fulltarget".
-- <a href="{$tmdburl}" target="_blank">{$this->Name}</a>
-- <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
-EOD;
-			$errors++;
+			$err = array(
+				'source' => $this->Name,
+				'type' => 'tmdb_bad_filename',
+				'from' => $file,
+				'to' => $fulltarget,
+				'msg' => "File '$file' should be '$fulltarget'");
+			$md->Data['errors'][$err['type']] = $err;
+
+			$md->SaveDS();
+			throw new CheckException($err['msg'], $err['type'], $this->Name);
 		}
 
 		# Check for cover.
@@ -190,16 +235,36 @@ EOD;
 
 		if (empty($md->Image))
 		{
-			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
-			$msgs["{$this->Name}/Media"][] = <<<EOD
-<a href="$urlunfix" class="a-nogo">Unscrape</a> Missing cover for {$md->Path}
-- <a href="http://www.themoviedb.org/movie/{$md->Data['details'][$this->Name]['id']}"
-target="_blank">Reference</a>
-EOD;
-			$errors++;
-		}
+			if (dirname($md->Path) == $md->Root)
+				throw new CheckException("Can't write cover for {$md->Path}");
 
-		return $errors;
+			if (empty($md->Data['details'][$this->Name]['images']['image']))
+				throw new CheckException("Could not locate an image for {$md->Path}.", 'tmdb_image', $this->Name);
+			$images = $md->Data['details'][$this->Name]['images']['image'];
+
+			if (!empty($images))
+			foreach ($images as $img)
+			{
+				$atrs = $img['@attributes'];
+				$types[$atrs['type']][$atrs['size']][] = $atrs;
+			}
+
+			foreach ($types as $type => &$sizes)
+				foreach ($sizes as $size => &$imgs)
+					usort($imgs, function ($a, $b) {
+						return ($a['width']+$a['height']) <
+							($b['width']+$b['height']);
+					});
+
+			if (!empty($types['poster']['cover']))
+			{
+				$poster = file_get_contents($types['poster']['cover'][0]['url']);
+				if (!empty($poster))
+					file_put_contents(dirname($md->Path).'/folder.jpg',
+						$poster);
+			}
+			else throw new CheckException("Cannot find a cover for {$md->Path}");
+		}
 	}
 
 	function cb_search_query($q)
@@ -275,12 +340,9 @@ EOD;
 		return $sx_movies;
 	}
 
-	function Find($path, $title)
+	function Find($md, $title)
 	{
 		global $_d;
-
-		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
-		$item = $_d['entry.ds']->findOne(array('path' => $path));
 
 		if (empty($title)) $title = $md->Title;
 
@@ -292,8 +354,11 @@ EOD;
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
 
 		$url = TMDB_FIND.rawurlencode($title);
-		if (!empty($date)) $url .= '+'.$date;
-		$xml = file_get_contents($url);
+		try { $xml = file_get_contents($url);}
+		catch (Exception $ex)
+		{
+			die(json_encode(array('msg' => 'Exceptions work!')));
+		}
 
 		if (empty($xml)) return;
 
@@ -337,12 +402,12 @@ EOD;
 		return file_get_contents(TMDB_INFO.$id);
 	}
 
-	function Scrape(&$item, $id = null)
+	function Scrape(&$me, $id = null)
 	{
 		if ($id == null)
 		{
-			$keys = array_keys($this->Find($item['path']));
-			if (empty($keys)) return $item;
+			$keys = array_keys($this->Find($me->Data['path']));
+			if (empty($keys)) return $me;
 			$id = $keys[0];
 		}
 		# Collect remote data
@@ -350,14 +415,14 @@ EOD;
 
 		# @TODO: Some day do something with the cast maybe.
 		unset($data['movies']['movie']['cast']);
-		$item['details'][$this->Name] = $data['movies']['movie'];
+		$me->Data['details'][$this->Name] = $data['movies']['movie'];
 
 		# Try to set the release date on the movie.
 		if (!empty($data['movies']['movie']['released']))
 		if (preg_match('/(\d{4})/', $data['movies']['movie']['released'], $m))
-			$item['released'] = $m[1];
+			$me->Data['released'] = $m[1];
 
-		global $_d;
+		$me->SaveDS();
 
 		// @TODO: These values are bad, we need to fix this system.
 		//$ra = $obj['value']['rateAvg'];
@@ -369,7 +434,7 @@ EOD;
 		//$item['details'][$this->Name]['score'] =
 		//	(($va * $ra) + ($v * $r) / ($va + $v));
 
-		return $item;
+		return $me;
 	}
 
 	function GetDetails($t, $g, $a)

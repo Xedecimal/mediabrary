@@ -1,18 +1,11 @@
-html, body {
-	font-family: Verdana;
-	margin: 0;
-	padding: 0;
-	height: 100%;
-	background: #000;
-	color: #CCC;
-}
+html, body { font: 14px Verdana; margin: 0; padding: 0; height: 100%;
+	background: #000; color: #CCC; }
 a { color: #FFF; text-decoration: none; }
 a img { border: 0; }
+.ui-widget { font: bold 1em Verdana; }
 
 .hidden { display: none; }
 .clear { clear: both; }
 .ui-icon { display: inline-block; }
 .table-list { font: 10px Verdana; }
 .table-list td { padding: 2px 1em; }
-
-#notes { border: 1px solid #222; position: absolute; bottom: 0; background: #000; padding: 1em; }

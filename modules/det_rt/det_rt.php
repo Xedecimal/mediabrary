@@ -77,11 +77,16 @@ class RottenTomatoes extends Module implements Scraper
 		else if (empty($title))
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
 
-		$title = MediaLibrary::SearchTitle($title);
-
 		# Collect data.
-		$dat = json_decode(file_get_contents(det_rt_find.rawurlencode($title)),
-			true);
+		try
+		{
+			$dat = json_decode(file_get_contents(det_rt_find.rawurlencode($title)),
+				true);
+		}
+		catch (Exception $ex)
+		{
+			var_dump($ex);
+		}
 
 		# Prepare results.
 		$ret = array();
@@ -107,7 +112,7 @@ class RottenTomatoes extends Module implements Scraper
 		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key);
 	}
 
-	function Scrape(&$item, $id = null)
+	function Scrape(&$me, $id = null)
 	{
 		# Auto scrape, try to find a good id.
 		if (empty($id))
@@ -117,7 +122,9 @@ class RottenTomatoes extends Module implements Scraper
 			$ids = array_keys($items);
 			$id = $ids[0];
 		}
-		$item['details'][$this->Name] = json_decode(self::Details($id), true);
+		$me->Data['details'][$this->Name] = json_decode(self::Details($id),
+			true);
+		$me->SaveDS();
 	}
 
 	function GetDetails($t, $g, $a)
@@ -128,24 +135,44 @@ class RottenTomatoes extends Module implements Scraper
 		if (!empty($cc)) return "Rotten Tomatoes: $cc";
 	}
 
-
 	# Callbacks
 
-	function cb_movie_check($md, &$msgs)
+	function cb_movie_check(&$md)
 	{
-		$errors = 0;
+		if (empty($md->Data['title'])) return;
 
 		# Check for RottenTomatoes metadata.
 
 		if (empty($md->Data['details'][$this->Name]))
 		{
+			if (!empty($md->Data['errors']['rt_meta'])) return;
+
 			$p = $md->Path;
 			$uep = rawurlencode($p);
-			$msgs['RottenTomatoes/Metadata'][] = <<<EOF
-<a href="scrape/scrape?type=movie&scraper={$this->Name}&path=$uep"
-	class="a-fix">Scrape</a> File {$p} has no {$this->Name} metadata.
-EOF;
-			return 1;
+			# @TODO: Clean up ziss mess!
+			$st = MediaLibrary::SearchTitle($md->Data['title']);
+			$results = $this->Find($md->Path, $st);
+			foreach ($results as $ix => $r)
+			{
+				# Year may be off by one.
+				if ($r['date'] < $md->Data['released']-1
+					|| $r['date'] > $md->Data['released']+1) unset($results[$ix]);
+				else if (strtolower($r['title']) == strtolower($st)) { $results = array($ix => $r); break; }
+			}
+			$result = array_keys($results);
+			if (count($result) == 1) $this->Scrape($md, $result[0]);
+			else
+			{
+				#var_dump("ST ({$st}) Date ({$md->Data['released']})");
+				#var_dump($results);
+				$err = array(
+					'source' => $this->Name,
+					'type' => 'rt_meta',
+					'msg' => "Cannot locate metadata for this entry.");
+				$md->Data['errors']['rt_meta'] = $err;
+				$md->SaveDS();
+				throw new CheckException("File {$p} has no {$this->Name} metadata.", 'rt_meta');
+			}
 		}
 
 		# Check filename compliance.
@@ -184,7 +211,6 @@ EOF;
 File "$bn" should be "$target".
 - <a href="{$url}" target="_blank">{$this->Name}</a>
 EOD;
-			$errors++;
 		}
 	}
 }

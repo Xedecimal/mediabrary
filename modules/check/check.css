@@ -1,9 +1,6 @@
 #output { border: 1px solid #222; height: 20em; overflow: auto; padding: 1em; }
-#output .source { font-weight: bold; padding: 0 1em; }
-
-#a-check
-{
-	clear: both; display: block; text-align: center; margin: auto;
-}
-
-.a-fix { font-weight: bold; padding: 5px; }
+#output .source { font-weight: bold; padding: 0 0.5em 0; margin: 0 1em 0 0; float: left;
+	width: 4em; text-align: right; border-right: 1px solid #222; }
+#output .entry:hover { background: #222; }
+#a-check { clear: both; display: block; text-align: center; margin: auto; }
+/*.a-fix { font-weight: bold; padding: 5px; }*/

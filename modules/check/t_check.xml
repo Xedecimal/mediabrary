@@ -1,11 +1,14 @@
 <div id="check">
 <script type="text/javascript" src="modules/check/_check.js"></script>
-<div id="output"><div id="entry">Progress will be presented here.</div></div>
+<div id="output"></div>
 <p><a href="#" id="a-scan">Scan Sources</a></p>
 <group>
 <div class="group">
 <p>{{path}}</p>
-<error>{{type}}: {{msg}}</error>
+<ul>
+<error><li><a class="a-fix" href="{{source}}/fix/{{type}}/{{_id}}">Correct</a>
+	{{type}}: {{msg}}</li></error>
+</ul>
 </div> <!-- group -->
 </group>
 </div>
