@@ -204,7 +204,6 @@ class Movie extends MediaLibrary
 			}
 		}
 
-		var_dump($prunes);
 		foreach ($prunes as $path => $remove)
 			$_d['entry.ds']->remove(array('type' => 'movie', 'path' => $path));
 
