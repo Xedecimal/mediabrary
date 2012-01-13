@@ -417,7 +417,8 @@ EOD;
 
 	function Details($id)
 	{
-		return file_get_contents(TMDB_INFO.$id);
+		$ctx = stream_context_create(array('http' => array('timeout' => 3)));
+		return file_get_contents(TMDB_INFO.$id, false, $ctx);
 	}
 
 	function Scrape(&$me, $id = null)

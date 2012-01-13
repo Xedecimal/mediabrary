@@ -80,15 +80,9 @@ class RottenTomatoes extends Module implements Scraper
 			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
 
 		# Collect data.
-		try
-		{
-			$dat = json_decode(file_get_contents(det_rt_find.rawurlencode($title)),
-				true);
-		}
-		catch (Exception $ex)
-		{
-			var_dump($ex);
-		}
+		$ctx = stream_context_create(array('http' => array('timeout' => 3)));
+		$dat = json_decode(file_get_contents(det_rt_find.rawurlencode($title),
+			false, $ctx), true);
 
 		# Prepare results.
 		$ret = array();
@@ -110,8 +104,9 @@ class RottenTomatoes extends Module implements Scraper
 
 	function Details($id)
 	{
-		# Collect Information
-		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key);
+		$ctx = stream_context_create(array('http' => array('timeout' => 3)));
+		return file_get_contents(det_rt_info.$id.'.json?apikey='.det_rt_key,
+			false, $ctx);
 	}
 
 	function Scrape(&$me, $id = null)
