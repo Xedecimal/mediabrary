@@ -138,8 +138,11 @@ class TMDB extends Module implements Scraper
 		{
 			$cache_file = dirname($md->Path).'/.tmdb_cache.json';
 			if (file_exists($cache_file))
+			{
 				$md->Data['details'][$this->Name] =
-					$this->Cleanup(json_decode(file_get_contents($cache_file)));
+					json_decode(file_get_contents($cache_file), true);
+				$this->Cleanup($md->Data['details'][$this->Name]);
+			}
 		}
 
 		if (empty($md->Data['details'][$this->Name]))
