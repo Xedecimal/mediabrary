@@ -52,8 +52,6 @@ class ModCheck extends Module
 		{
 			global $mods;
 
-			set_time_limit(120);
-
 			# This will free up the server for further requests.
 			session_write_close();
 
