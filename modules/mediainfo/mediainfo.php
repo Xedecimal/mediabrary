@@ -279,7 +279,7 @@ EOF;
 			$item['errors']['bad_codec'] = array('type' => 'bad_codec', 'msg' => $msg);
 			$item['codec']['mtime'] = filemtime($item['path']);
 			$_d['entry.ds']->save($item, array('safe' => 1));
-			throw new CheckException('bad_codec', $msg);
+			throw new CheckException($msg, 'bad_codec', $this->Name);
 		}
 
 		$tracks = $sx->File->track;

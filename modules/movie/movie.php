@@ -322,6 +322,7 @@ class Movie extends MediaLibrary
 
 			if (!empty($cex)) throw $cex;
 		}
+		throw new CheckException('Out of files!', 'movie_done', $this->Name);
 	}
 
 	/**
@@ -395,7 +396,7 @@ class Movie extends MediaLibrary
 			$msg = "File {$me->Path} has an unknown extension. ($ext)";
 			$me->Data['errors']['bad_extension'] = array('type' => 'bad_extension', 'msg' => $msg);
 			$me->SaveDS();
-			throw new CheckException('bad_extension', $msg);
+			throw new CheckException($msg, 'bad_extension', $this->Name);
 		}
 
 		# Title Related
@@ -515,6 +516,7 @@ class Movie extends MediaLibrary
 class MovieEntry extends MediaEntry
 {
 	public $Type = 'movie';
+	public $Name = 'MovieEntry';
 
 	function __construct($path, $bypass_checks = false)
 	{
@@ -598,14 +600,14 @@ class MovieEntry extends MediaEntry
 			if (count(scandir($path)) < 3)
 			{
 				rmdir($path);
-				throw new CheckException("Removed empty movie folder $path.");
+				throw new CheckException("Removed empty movie folder $path.", 'movie_cleanup', $this->Name);
 			}
 			else throw new CheckException("Not enough video files in this folder"
-				."{$path}.", 'low_folder');
+				."{$path}.", 'low_folder', $this->Name);
 		}
 		else if (count($files) > 1)
 			throw new CheckException("Too many video files in folder: {$path}",
-				'high_folder');
+				'high_folder', $this->Name);
 
 		return urldecode($files[0]);
 	}

@@ -190,7 +190,7 @@ class RottenTomatoes extends Module implements Scraper
 					'msg' => "Cannot locate metadata for this entry.");
 				$md->Data['errors']['rt_meta'] = $err;
 				$md->SaveDS();
-				throw new CheckException("File {$p} has no {$this->Name} metadata.", 'rt_meta');
+				throw new CheckException("File {$p} has no {$this->Name} metadata.", 'rt_meta', $this->Name);
 			}
 		}
 

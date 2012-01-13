@@ -80,7 +80,8 @@ class ModCheck extends Module
 				if (empty($ret['msg']))
 				{
 					unset($state['mods'][$n]);
-					$ret['msg'] = 'Finished with this module.';
+					$ret['msg'] = "$n is done with it's job.";
+					$ret['source'] = $this->Name;
 				}
 				$_d['state.ds']->save($state);
 

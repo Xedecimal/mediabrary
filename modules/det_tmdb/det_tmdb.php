@@ -177,7 +177,7 @@ class TMDB extends Module implements Scraper
 				$md->SaveDS();
 
 				throw new CheckException("File {$md->Path} has no {$this->Name} metadata.",
-				'tmdb_metadata');
+					'tmdb_metadata', $this->Name);
 			}
 		}
 
@@ -254,7 +254,7 @@ EOD;
 		if (empty($md->Image))
 		{
 			if (dirname($md->Path) == $md->Root)
-				throw new CheckException("Can't write cover for {$md->Path}");
+				throw new CheckException("Can't write cover for {$md->Path}", 'tmdb_cover', $this->Name);
 
 			if (empty($md->Data['details'][$this->Name]['images']['image']))
 				throw new CheckException("Could not locate an image for {$md->Path}.", 'tmdb_image', $this->Name);
@@ -281,7 +281,7 @@ EOD;
 					file_put_contents(dirname($md->Path).'/folder.jpg',
 						$poster);
 			}
-			else throw new CheckException("Cannot find a cover for {$md->Path}");
+			else throw new CheckException("Cannot find a cover for {$md->Path}", 'tmdb_cover', $this->Name);
 		}
 	}
 
