@@ -77,7 +77,10 @@ player:
   # Enter a series of 3 lines per entry for a single translation. This will
   # first match a client location based on the 'client' line. Then if their
   # request starts with 'source', it will replace it with 'target'. eg.
-  # - client: /192.168.*.*/
+  # - client: /192.168.*/
+  #	  source: D:/
+  #	  target: file:///D:/
+  # - client: /192.168.*/
   #   source: c:/movies
   #   target: \\sambashare\c\movies
   #
