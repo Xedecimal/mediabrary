@@ -431,6 +431,7 @@ EOD;
 		}
 		# Collect remote data
 		$data = Arr::FromXML(self::Details($id));
+		$data = $data['movies']['movie'];
 
 		# Cache remote info.
 		$cache_file = dirname($me->Path).'/.tmdb_cache.json';
@@ -442,8 +443,8 @@ EOD;
 		$me->Data['details'][$this->Name] = $data;
 
 		# Try to set the release date on the movie.
-		if (!empty($data['movies']['movie']['released']))
-		if (preg_match('/(\d{4})/', $data['movies']['movie']['released'], $m))
+		if (!empty($data['released']))
+		if (preg_match('/(\d{4})/', $data['released'], $m))
 			$me->Data['released'] = $m[1];
 
 		$me->SaveDS();
@@ -459,6 +460,12 @@ EOD;
 		//	(($va * $ra) + ($v * $r) / ($va + $v));
 
 		return $me;
+	}
+
+	private function Cleanup(&$data)
+	{
+		# @TODO: Some day do something with the cast maybe.
+		unset($data['movies']['movie']['cast']);
 	}
 
 	function GetDetails($t, $g, $a)
