@@ -32,6 +32,8 @@ class RottenTomatoes extends Module implements Scraper
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.year"] = 1;
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.title"] = 1;
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.links.alternate"] = 1;
+
+		$_d['movie.cb.move'][$this->Name] = array($this, 'cb_movie_move');
 		$_d['movie.cb.check'][$this->Name] = array($this, 'cb_movie_check');
 	}
 

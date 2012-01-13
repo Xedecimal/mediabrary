@@ -664,6 +664,9 @@ class MovieEntry extends MediaEntry
 		if (!file_exists($pidst['dirname']))
 			mkdir($pidst['dirname'], 0777, true);
 
+		foreach ($_d['movie.cb.move'] as $cb)
+			call_user_func_array($cb, array($pisrc[dirname], $pidst[dirname]));
+
 		$cover = "$pisrc[dirname]/folder.jpg";
 		$backd = "$pisrc[dirname]/backdrop.jpg";
 

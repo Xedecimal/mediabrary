@@ -34,6 +34,8 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.certification"] = 1;
 
 		$_d['movie.cb.check'][$this->Name] = array($this, 'movie_cb_check');
+		$_d['movie.cb.move'][$this->Name] = array($this, 'movie_cb_move');
+
 		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
 	}
 
@@ -116,6 +118,13 @@ class TMDB extends Module implements Scraper
 		}
 
 		return $r;
+	}
+
+	function movie_cb_move($src_dir, $dst_dir)
+	{
+		$src_cache = $src_dir.'/.tmdb_cache.json';
+		$dst_cache = $src_dir.'/.tmdb_cache.json';
+		if (file_exists($src_cache)) rename($src_cache, $dst_cache);
 	}
 
 	function movie_cb_check(&$md)
