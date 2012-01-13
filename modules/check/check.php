@@ -134,8 +134,8 @@ class ModCheck extends Module
 			if (empty($i['errors']))
 			{
 				unset($i['errors']);
-				# Path is the only column available here!
-				#$_d['entry.ds']->save($i);
+				$up['$unset']['errors'] = 1;
+				$_d['entry.ds']->update($i, $up, array('safe' => 1));
 			}
 		}
 		return $t->Concat($g, $items);
