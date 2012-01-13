@@ -142,6 +142,13 @@ class RottenTomatoes extends Module implements Scraper
 
 	# Callbacks
 
+	function movie_cb_move($src_dir, $dst_dir)
+	{
+		$src_cache = $src_dir.'/.rt_cache.json';
+		$dst_cache = $src_dir.'/.rt_cache.json';
+		if (file_exists($src_cache)) rename($src_cache, $dst_cache);
+	}
+
 	function cb_movie_check(&$md)
 	{
 		if (empty($md->Data['title'])) return;
