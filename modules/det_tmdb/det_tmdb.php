@@ -124,6 +124,15 @@ class TMDB extends Module implements Scraper
 
 		if (empty($md->Data['title'])) return;
 
+		# Do we have a cache?
+		if (empty($md->Data['details'][$this->Name]))
+		{
+			$cache_file = dirname($md->Path).'/.tmdb_cache.json';
+			if (file_exists($cache_file))
+				$md->Data['details'][$this->Name] =
+					$this->Cleanup(json_decode(file_get_contents($cache_file)));
+		}
+
 		if (empty($md->Data['details'][$this->Name]))
 		{
 			if (!empty($md->Data['errors']['tmdb_meta'])) return;
@@ -413,9 +422,14 @@ EOD;
 		# Collect remote data
 		$data = Arr::FromXML(self::Details($id));
 
-		# @TODO: Some day do something with the cast maybe.
-		unset($data['movies']['movie']['cast']);
-		$me->Data['details'][$this->Name] = $data['movies']['movie'];
+		# Cache remote info.
+		$cache_file = dirname($me->Path).'/.tmdb_cache.json';
+		if (dirname($me->Path) != $me->Root)
+			file_put_contents($cache_file, json_encode($data));
+
+		$this->Cleanup($data);
+
+		$me->Data['details'][$this->Name] = $data;
 
 		# Try to set the release date on the movie.
 		if (!empty($data['movies']['movie']['released']))

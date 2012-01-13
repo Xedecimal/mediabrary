@@ -122,8 +122,16 @@ class RottenTomatoes extends Module implements Scraper
 			$ids = array_keys($items);
 			$id = $ids[0];
 		}
-		$me->Data['details'][$this->Name] = json_decode(self::Details($id),
-			true);
+
+		$json_data = self::Details($id);
+
+		# Cache remote info.
+		$cache_file = dirname($me->Path).'/.rt_cache.json';
+		if (dirname($me->Path) != $me->Root)
+			file_put_contents($cache_file, $json_data);
+
+		$me->Data['details'][$this->Name] = json_decode($json_data, true);
+
 		$me->SaveDS();
 	}
 
@@ -142,6 +150,15 @@ class RottenTomatoes extends Module implements Scraper
 		if (empty($md->Data['title'])) return;
 
 		# Check for RottenTomatoes metadata.
+
+		# Do we have a cache?
+		if (empty($md->Data['details'][$this->Name]))
+		{
+			$cache_file = dirname($md->Path).'/.rt_cache.json';
+			if (file_exists($cache_file))
+				$md->Data['details'][$this->Name] =
+					json_decode(file_get_contents($cache_file));
+		}
 
 		if (empty($md->Data['details'][$this->Name]))
 		{
