@@ -124,7 +124,7 @@ class RottenTomatoes extends Module implements Scraper
 
 		# Cache remote info.
 		$cache_file = dirname($me->Path).'/.rt_cache.json';
-		if (dirname($me->Path) != $me->Root)
+		if (dirname($me->Path) != $me->Data['root'])
 			file_put_contents($cache_file, $json_data);
 
 		$me->Data['details'][$this->Name] = json_decode($json_data, true);

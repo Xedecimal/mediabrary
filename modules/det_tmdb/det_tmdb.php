@@ -211,7 +211,7 @@ EOD;
 		$file = $md->Data['path'];
 		$ext = File::ext(basename($file));
 
-		$pqr = preg_quote($md->Root);
+		$pqr = preg_quote($md->Data['root']);
 
 		# Part files need their CD#
 		if (!empty($md->Data['part']))
@@ -229,14 +229,14 @@ EOD;
 		if (!preg_match($preg, $file))
 		{
 			$urlfix = "movie/rename?path=".urlencode($file);
-			$urlfix .= '&amp;target='.urlencode($md->Root.'/'.$target);
+			$urlfix .= '&amp;target='.urlencode($md->Data['root'].'/'.$target);
 			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
 			$bn = basename($file);
 
 			$tmdburl = $md->Data['details'][$this->Name]['url'];
 			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
-			$fulltarget = $md->Root.'/'.$target;
+			$fulltarget = $md->Data['root'].'/'.$target;
 
 			$err = array(
 				'source' => $this->Name,
@@ -256,7 +256,7 @@ EOD;
 
 		if (empty($md->Image))
 		{
-			if (dirname($md->Path) == $md->Root)
+			if (dirname($md->Path) == $md->Data['root'])
 				throw new CheckException("Can't write cover for {$md->Path}", 'tmdb_cover', $this->Name);
 
 			if (empty($md->Data['details'][$this->Name]['images']['image']))
@@ -438,7 +438,7 @@ EOD;
 
 		# Cache remote info.
 		$cache_file = dirname($me->Path).'/.tmdb_cache.json';
-		if (dirname($me->Path) != $me->Root)
+		if (dirname($me->Path) != $me->Data['root'])
 			file_put_contents($cache_file, json_encode($data));
 
 		$this->Cleanup($data);

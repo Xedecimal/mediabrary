@@ -305,7 +305,7 @@ class Movie extends MediaLibrary
 			{
 				# See if we need to do anything with this entry.
 				$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
-				$me->Root = dirname($filename);
+				$me->Data['root'] = dirname($filename);
 				$this->CheckDatabaseExistence($filename, $me);
 				$me->LoadDS();
 
