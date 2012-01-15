@@ -64,16 +64,16 @@ class Movie extends MediaLibrary
 			{
 				$me = MovieEntry::FromID($_d['q'][3]);
 
-				if (empty($me->Data['errors']['bad_filename']['from']) ||
-					$me->Data['path'] !=
-						$me->Data['errors']['bad_filename']['from'])
+				$errs = $me->Data['errors'];
+				if (empty($errs['bad_filename']['from'])
+				|| $me->Data['path'] != $errs['bad_filename']['from'])
 				{
 					unset($me->Data['errors']['bad_filename']);
 					$me->SaveDS();
 					die(json_encode(array('msg' => 'Already fixed.')));
 				}
-
 			}
+
 			# Collect generic information.
 			/*$src = Server::GetVar('path');
 			preg_match('#^(.*?)([^/]*)\.(.*)$#', $src, $m);
@@ -653,6 +653,13 @@ class MovieEntry extends MediaEntry
 		return array('avi', 'mkv', 'divx', 'mp4');
 	}
 
+	/**
+	 * This method will rename just the folder and move caches of this entry.
+	 *
+	 * @global array $_d General data
+	 * @param string $dst Destination path.
+	 * @return boolean Successful (1) or not (0).
+	 */
 	function Rename($dst)
 	{
 		global $_d;
@@ -663,8 +670,12 @@ class MovieEntry extends MediaEntry
 		$pisrc = pathinfo($src);
 		$pidst = pathinfo($dst);
 
+		# Make the destination folder
 		if (!file_exists($pidst['dirname']))
 			mkdir($pidst['dirname'], 0777, true);
+		# Rename without case sensitivity
+		else if ($pisrc['dirname'] != $pidst['dirname'])
+			rename($pisrc['dirname'], $pidst['dirname']);
 
 		foreach ($_d['movie.cb.move'] as $cb) call_user_func_array($cb,
 			array($pisrc['dirname'], $pidst['dirname']));
