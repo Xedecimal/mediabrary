@@ -6,7 +6,7 @@ setlocale(LC_ALL, 'en_US.utf8');
 
 # Libraries
 require_once('xedlib/classes/server.php');
-Server::HandleErrors();
+#Server::HandleErrors();
 Server::SanitizeEnvironment();
 require_once('xedlib/classes/module.php');
 require_once('xedlib/classes/hm.php');

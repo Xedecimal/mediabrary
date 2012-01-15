@@ -132,9 +132,10 @@ class Movie extends MediaLibrary
 
 		# Main Page
 
-		$ret = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
+		$ret['head'] = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
+		$ret['head'] = '<script type="text/javascript" src="modules/movie/_movie.js"></script>';
 
-		if (!$this->Active) return;
+		if (!$this->Active) return $ret;
 
 		$_d['movie.cb.query']['limit'] = 50;
 		$query = $_d['movie.cb.query'];
@@ -160,8 +161,8 @@ class Movie extends MediaLibrary
 
 		$this->_template = 'modules/movie/t_movie.xml';
 		$t = new Template();
-		$ret .= $t->ParseFile($this->_template);
-		$ret .= $_d['movie.add'];
+		$ret['movie'] = $t->ParseFile($this->_template);
+		$ret['movie'] .= $_d['movie.add'];
 
 		return $ret;
 	}

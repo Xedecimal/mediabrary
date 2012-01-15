@@ -57,6 +57,15 @@ class RottenTomatoes extends Module implements Scraper
 		}
 	}
 
+	function Get()
+	{
+		global $_d;
+
+		$ret['head'] = '<script type="text/javascript" src="modules/det_rt/rt_check.js"></script>';
+
+		if (@$_d['q'][0] == 'check') return $ret;
+	}
+
 	# Scraper implementation
 
 	public $Link = 'http://www.rottentomatoes.com';
