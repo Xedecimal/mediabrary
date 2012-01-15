@@ -68,12 +68,15 @@ class TMDB extends Module implements Scraper
 			$me = MovieEntry::FromID($_d['q'][3], 'MovieEntry');
 			if ($type == 'tmdb_bad_filename')
 			{
+				$to = $me->Data['errors'][$type]['to'];
 				# This is no longer available.
 				if (!file_exists($me->Data['path'])) $me->Remove();
-				else if ($me->Rename($me->Data['errors'][$type]['to']))
+				else if ($me->Rename($to))
 				{
-					unset($me->Data['errors'][$type]);
-					$me->SaveDS();
+					$q['_id'] = $me->Data['_id'];
+					$u['$set']['path'] = $to;
+					$u['$unset']['errors'][$type] = 1;
+					$_d['entry.ds']->update($q, $u);
 					die(json_encode(array('result' => 'success')));
 				}
 			}
