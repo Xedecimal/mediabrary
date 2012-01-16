@@ -88,9 +88,14 @@ class TMDB extends Module implements Scraper
 	{
 		global $_d;
 
-		$r['head'] = '<script type="text/javascript" src="'.
-			Module::P('det_tmdb/tmdb.js').'"></script>';
+		$js = Module::P('det_tmdb/tmdb.js');
+		$r['head'] = '<script type="text/javascript" src="'.$js.'"></script>';
 
+		if (@$_d['q'][0] == 'check')
+		{
+			$jsc = Module::P('det_tmdb/tmdb_check.js');
+			$r['head'] .= '<script type="text/javascript" src="'.$jsc.'"></script>';
+		}
 		if (@$_d['q'][1] == 'find2')
 		{
 			$title = MediaLibrary::SearchTitle(Server::GetVar('title'));

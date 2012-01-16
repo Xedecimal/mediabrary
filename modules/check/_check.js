@@ -33,12 +33,12 @@ window.proceed = true;
 function checkPrepare()
 {
 	$('#output').addClass('loading');
-	$.get('check/prepare', function () { checkStep() });
+	$.get(app_abs+'/check/prepare', function () { checkStep() });
 }
 
 function checkStep()
 {
-	$.get('check/one', function (data) {
+	$.get(app_abs+'/check/one', function (data) {
 		if (!data || data.stop)
 		{
 			window.proceed = false;

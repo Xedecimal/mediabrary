@@ -25,5 +25,5 @@ function movieDetail(id)
 		title: 'Movie Details',
 
 		close: function () { $('#detail-dialog').remove(); }
-	}).load('movie/detail/'+id);
+	}).load(app_abs+'/movie/detail/'+id);
 }

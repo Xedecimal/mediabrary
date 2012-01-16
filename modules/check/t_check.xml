@@ -6,7 +6,7 @@
 <div class="group">
 <p>{{path}}</p>
 <ul>
-<error><li><a class="a-fix" href="{{source}}/fix/{{type}}/{{_id}}">Correct</a>
+<error><li><a class="a-fix" href="{{app_abs}}/{{source}}/fix/{{type}}/{{_id}}">Correct</a>
 	{{type}}: {{msg}}</li></error>
 </ul>
 </div> <!-- group -->

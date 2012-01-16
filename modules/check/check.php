@@ -71,7 +71,7 @@ class ModCheck extends Module
 				catch (CheckException $e)
 				{
 					if (!empty($e->source)) $ret['source'] = $e->source;
-					$ret['msg'] = $e->msg;
+					$ret['msg'] = urlencode($e->msg);
 				}
 				if (++$state['index'] >= count($keys)) $state['index'] = 0;
 
@@ -83,7 +83,8 @@ class ModCheck extends Module
 				}
 				$_d['state.ds']->save($state);
 
-				die(json_encode($ret));
+				$end = json_encode($ret);
+				die($end);
 			}
 
 			$time = U::GetDateOffset($state['start']);
