@@ -9,14 +9,14 @@ $(function () {
 	});
 
 	$('.a-movie-item').live('click', function () {
-		movieDetail($(this).attr('href'));
+		movieDetail($(this).attr('href').match(/([^/?]+)\?.*$/)[1]);
 		return false;
 	});
 
 	$('#movie-items').load('movie/items');
 });
 
-function moveieDetail(id)
+function movieDetail(id)
 {
 	$('<div id="detail-dialog" />').dialog({
 		width: '80%',
