@@ -135,6 +135,7 @@ class RottenTomatoes extends Module implements Scraper
 		if (dirname($me->Path) != $me->Data['root'])
 			file_put_contents($cache_file, $json_data);
 
+		unset($me->Data['errors']['rt_meta']);
 		$me->Data['details'][$this->Name] = json_decode($json_data, true);
 
 		$me->SaveDS();
@@ -169,7 +170,7 @@ class RottenTomatoes extends Module implements Scraper
 			$cache_file = dirname($md->Path).'/.rt_cache.json';
 			if (file_exists($cache_file))
 				$md->Data['details'][$this->Name] =
-					json_decode(file_get_contents($cache_file));
+					json_decode(file_get_contents($cache_file), true);
 		}
 
 		if (empty($md->Data['details'][$this->Name]))
@@ -180,13 +181,20 @@ class RottenTomatoes extends Module implements Scraper
 			$uep = rawurlencode($p);
 			# @TODO: Clean up ziss mess!
 			$st = MediaLibrary::SearchTitle($md->Data['title']);
-			$results = $this->Find($md->Path, $st);
+			$results = $this->Find($md, $st);
+			foreach ($results as $ix => &$r)
+			{
+				similar_text($r['title'], $st, $p);
+				$r['sim'] = $p;
+			}
+			uasort($results, function ($a, $b) { return $a['sim'] < $b['sim']; });
 			foreach ($results as $ix => $r)
 			{
 				# Year may be off by one.
 				if ($r['date'] < $md->Data['released']-1
 					|| $r['date'] > $md->Data['released']+1) unset($results[$ix]);
-				else if (strtolower($r['title']) == strtolower($st)) { $results = array($ix => $r); break; }
+				else if (MediaLibrary::TitleMatch($r['title'], $st))
+				{ $results = array($ix => $r); break; }
 			}
 			$result = array_keys($results);
 			if (count($result) == 1) $this->Scrape($md, $result[0]);

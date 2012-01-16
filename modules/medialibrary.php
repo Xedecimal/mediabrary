@@ -96,6 +96,12 @@ class MediaLibrary extends Module
 		return trim(preg_replace(array_keys($reps), array_values($reps), $title));
 	}
 
+	static function TitleMatch($title1, $title2)
+	{
+		similar_text('A Christmas Carol', "Disney's A Christmas Carol", $p);
+		return ($p > 74.9);
+	}
+
 	static function CleanString($str)
 	{
 		return trim($str);
