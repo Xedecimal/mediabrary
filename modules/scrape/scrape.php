@@ -48,13 +48,9 @@ class Scrape extends Module
 			$path = Server::GetVar('path');
 			$type = Server::GetVar('type');
 
-			$auto = false;
-
 			# This is automated
 			if (empty($ids))
 			{
-				$auto = true;
-
 				$md = MediaEntry::GetEntryByType($path, $type);
 
 				$scraper = Server::GetVar('scraper');
@@ -68,7 +64,7 @@ class Scrape extends Module
 
 			# Collect generic information
 			$q['path'] = $path;
-			$item = new MediaEntry($path);
+			$item = MediaEntry::GetEntryByType($path, $type);
 			$ds = $_d['entry.ds']->findOne($q);
 			$ds['type'] = $type;
 			if (!empty($ds)) $item->Data += $ds;
@@ -80,12 +76,13 @@ class Scrape extends Module
 			# Save details
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));
 
-			# TODO: Save first cover on auto-scrape.
-			if ($auto)
+			$cover = Server::GetVar('cover');
+			if (!empty($cover))
 			{
-				$item->NoExt = basename($item->Filename, '.'.$item->Ext);
-				$dst = VarParser::Parse($_d['config']['paths'][$type]['meta'], $item);
-				file_put_contents($dst, file_get_contents(Server::GetVar('cover')));
+				$item->SaveCover($cover);
+				#$item->NoExt = basename($item->Filename, '.'.$item->Ext);
+				#$dst = VarParser::Parse($_d['config']['paths'][$type]['meta'], $item);
+				#file_put_contents($dst, file_get_contents($cover));
 			}
 
 			die(json_encode($item));

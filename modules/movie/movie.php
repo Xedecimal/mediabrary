@@ -691,6 +691,13 @@ class MovieEntry extends MediaEntry
 
 		return parent::Rename($dst);
 	}
+
+	function SaveCover($url)
+	{
+		if ($this->Data['root'] != dirname($this->Path))
+			file_put_contents(dirname($this->Path).'/folder.jpg',
+				file_get_contents($url));
+	}
 }
 
 Module::Register('Movie');

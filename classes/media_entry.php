@@ -74,6 +74,11 @@ class MediaEntry
 		return $ret;
 	}
 
+	function SaveCover($url)
+	{
+		throw new Exception('I have no idea where to save a cover for this type.');
+	}
+
 	static function FromID($id, $type = 'MediaEntry')
 	{
 		global $_d;
@@ -125,7 +130,6 @@ class MediaEntry
 				return new MovieEntry($path, MovieEntry::GetFSPregs());
 		}
 	}
-
 }
 
 ?>
