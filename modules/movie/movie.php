@@ -191,7 +191,13 @@ class Movie extends MediaLibrary
 		# Prune this down to find orphans.
 		$ds_items = $_d['entry.ds']->find(array('type' => 'movie'), array('path' => 1));
 		# @TODO: This does not prune files, only directories of entries.
-		foreach ($ds_items as $i) $prunes[dirname($i['path'])] = 1;
+		foreach ($ds_items as $i)
+		{
+			$dp = dirname($i['path']);
+			if (in_array($dp, $_d['config']['paths']['movie']['paths']))
+				$prunes[$i['path']] = $i['_id'];
+			else $prunes[$dp] = $i['_id'];
+		}
 
 		foreach ($_d['config']['paths']['movie']['paths'] as $p)
 		{
@@ -205,8 +211,8 @@ class Movie extends MediaLibrary
 			}
 		}
 
-		foreach ($prunes as $path => $remove)
-			$_d['entry.ds']->remove(array('type' => 'movie', 'path' => $path));
+		foreach ($prunes as $path => $id)
+			$_d['entry.ds']->remove(array('_id' => new MongoID($id)));
 
 		# Prune out clean items.
 		foreach ($state['files'] as $ix => $f)
