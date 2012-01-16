@@ -1,8 +1,8 @@
 <?php
 
-session_start();
-
+date_default_timezone_set('America/Los_Angeles');
 setlocale(LC_ALL, 'en_US.utf8');
+session_start();
 
 # Libraries
 require_once('xedlib/classes/server.php');
@@ -23,8 +23,6 @@ require_once('xedlib/3rd/spyc.php');
 require_once('modules/medialibrary.php');
 require_once('classes/media_entry.php');
 require_once('classes/check_exception.php');
-
-date_default_timezone_set('America/Los_Angeles');
 
 if (!file_exists('config/config.yml'))
 	copy('config/default.yml', 'config/config.yml');
