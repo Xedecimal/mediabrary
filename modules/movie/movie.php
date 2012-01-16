@@ -502,10 +502,14 @@ class Movie extends MediaLibrary
 
 		foreach ($cur as $i)
 		{
-			if (empty($i['paths'])) continue;
-			$add = new MovieEntry($i['paths'][0]);
-			$add->Data = $i;
-			$ret[$i['paths'][0]] = $add;
+			if (empty($i['path'])) continue;
+			try
+			{
+				$add = new MovieEntry($i['path']);
+				$add->Data = $i;
+				$ret[$i['paths'][0]] = $add;
+			}
+			catch (Exception $ex) { }
 		}
 
 		return $ret;
