@@ -1,6 +1,6 @@
 $(function () {
-	$('a[href^="RottenTomatoes/fix/rt_meta"]').click(function () {
-		moveieDetail($(this).attr('href').match(/\/([^/]+)$/)[1]);
+	$('a[href^="'+app_abs+'/RottenTomatoes/fix/rt_meta"]').click(function () {
+		movieDetail($(this).attr('href').match(/\/([^/]+)$/)[1]);
 		return false;
 	});
 });

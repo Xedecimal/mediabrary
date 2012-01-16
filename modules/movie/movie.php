@@ -206,7 +206,7 @@ class Movie extends MediaLibrary
 			$files = scandir($p);
 			foreach ($files as $f)
 			{
-				if ($f[0] == '.') continue;
+				if ($f == '.' || $f == '..') continue;
 				$path = $p.'/'.$f;
 				$state['files'][] = urlencode($path);
 				unset($prunes[$path]);
