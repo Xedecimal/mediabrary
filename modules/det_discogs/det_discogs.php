@@ -44,9 +44,8 @@ class Discogs extends Module implements Scraper
 	function GetName() { return $this->Name; }
 	function CanAuto() { return false; }
 
-	function Find($path, $title)
+	function Find(&$ae, $title)
 	{
-		$ae = new ArtistEntry($path);
 		$opts['http']['header'] = Discogs::HTTP_HEADER;
 		$cx = stream_context_create($opts);
 		$t = !empty($title) ? $title : $ae->Title;

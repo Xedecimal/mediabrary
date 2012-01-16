@@ -49,10 +49,8 @@ class OFDB extends Module implements Scraper
 	function CanAuto() { return false; }
 	function GetName() { return 'OFDB'; }
 
-	function Find($path, $title)
+	function Find(&$md, $title)
 	{
-		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
-
 		if (empty($title)) $title = $md->Title;
 
 		$ctx = stream_context_create(array('http' => array('timeout' => 5)));
@@ -86,12 +84,12 @@ class OFDB extends Module implements Scraper
 		return file_get_contents(OFDB_DETAIL.$id);
 	}
 
-	function Scrape(&$item, $id = null)
+	function Scrape(&$me, $id = null)
 	{
 		$data = json_decode(self::Details($id), true);
 		unset($data['ofdbgw']['resultat']['besetzung']);
 		unset($data['ofdbgw']['resultat']['fassungen']);
-		$item['details'][$this->Name] = $data['ofdbgw']['resultat'];
+		$me->Data['details'][$this->Name] = $data['ofdbgw']['resultat'];
 	}
 
 	function GetDetails($t, $g, $a) { }

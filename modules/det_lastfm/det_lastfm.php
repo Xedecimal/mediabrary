@@ -16,7 +16,7 @@ class LastFM extends Module implements Scraper
 
 	}
 
-	public function Find($path, $title) { }
+	public function Find(&$ae, $title) { }
 
 	function GetCovers($item) {}
 

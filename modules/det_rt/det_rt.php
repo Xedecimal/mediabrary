@@ -75,18 +75,17 @@ class RottenTomatoes extends Module implements Scraper
 
 	function GetName() { return 'Rotten Tomatoes'; }
 
-	function Find($path, $title)
+	function Find(&$md, $title)
 	{
 		global $_d;
 
-		$md = new MovieEntry($path, MovieEntry::GetFSPregs());
-		$item = $_d['entry.ds']->findOne(array('path' => $path));
+		$item = $_d['entry.ds']->findOne(array('path' => $md->Path));
 
 		if (empty($title)) $title = $md->Title;
 
 		if (empty($title) && !empty($item['title'])) $title = $item['title'];
 		else if (empty($title))
-			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
+			$fs = MediaEntry::ScrapeFS($md->Path, MovieEntry::GetFSPregs());
 
 		# Collect data.
 		$ctx = stream_context_create(array('http' => array('timeout' => 3)));

@@ -364,7 +364,7 @@ EOD;
 		return $sx_movies;
 	}
 
-	function Find($md, $title)
+	function Find(&$md, $title)
 	{
 		global $_d;
 

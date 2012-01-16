@@ -34,6 +34,9 @@ class Scrape extends Module
 			$this->type = $_GET['type'];
 			$this->title = Server::GetVar('title', '');
 
+			if ($this->type == 'movie')
+				$this->_item = new MovieEntry($this->path);
+
 			$t->Set('path', $this->path);
 			$t->Set('title', $this->title);
 			die($t->ParseFile(Module::L('scrape/find.xml')));
@@ -72,13 +75,13 @@ class Scrape extends Module
 
 			# Collect scraper information
 			foreach ($ids as $sc => $id)
-				$_d['scrape.scrapers'][$type][$sc]->Scrape($item->Data, $id);
+				$_d['scrape.scrapers'][$type][$sc]->Scrape($item, $id);
 
 			# Save details
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));
 
 			# TODO: Save first cover on auto-scrape.
-			if (!$auto)
+			if ($auto)
 			{
 				$item->NoExt = basename($item->Filename, '.'.$item->Ext);
 				$dst = VarParser::Parse($_d['config']['paths'][$type]['meta'], $item);
@@ -174,7 +177,7 @@ EOF;
 
 	function TagFindResult($t, $g)
 	{
-		$res = $this->_scraper->Find($this->path, $this->title);
+		$res = $this->_scraper->Find($this->_item, $this->title);
 		if (!empty($res)) return VarParser::Concat($g, $res);
 	}
 
@@ -193,7 +196,7 @@ interface Scraper
 {
 	function GetName();
 	function CanAuto();
-	function Find($path, $title);
+	function Find(&$me, $title);
 	function GetCovers($item);
 	function Details($id);
 	function Scrape(&$item, $id = null);

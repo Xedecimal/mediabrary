@@ -23,9 +23,9 @@ class TVRage extends Module implements Scraper
 	public $Link = 'http://www.tvrage.com';
 	public $Icon = 'modules/det_tvrage/img/tv-rage.png';
 
-	function Find($path, $title)
+	function Find(&$tvse, $title)
 	{
-		$sid = $this->GetSID($path, $title);
+		$sid = $this->GetSID($tvse->Path, $title);
 	}
 
 	function GetCovers($item) {}

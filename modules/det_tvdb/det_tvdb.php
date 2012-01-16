@@ -114,13 +114,11 @@ class TVDB extends Module implements Scraper
 			return 'Unable to write tvdb metadata.';
 	}
 
-	function Find($path, $title)
+	function Find(&$tvse, $title)
 	{
 		global $_d;
 
 		$info = array();
-
-		$tvse = new TVSeriesEntry($path);
 
 		if (is_file($path)) $p = dirname($path);
 		else $p = $path;
