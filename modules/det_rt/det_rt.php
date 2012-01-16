@@ -2,13 +2,6 @@
 
 require_once(dirname(__FILE__).'/../scrape/scrape.php');
 
-# API KEY: 6psypq3q5u3wf9f2be38t5fd
-
-# http://api.rottentomatoes.com/api/public/v1.0.json?apikey=6psypq3q5u3wf9f2be38t5fd
-# http://api.rottentomatoes.com/api/public/v1.0/movies.json
-# http://api.rottentomatoes.com/api/public/v1.0/movies.json?apikey=6psypq3q5u3wf9f2be38t5fd&q=Hitch
-# http://api.rottentomatoes.com/api/public/v1.0/movies/<id>.json
-
 define('det_rt_key', '6psypq3q5u3wf9f2be38t5fd');
 define('det_rt_url', 'http://api.rottentomatoes.com/api/public/v1.0/movies');
 define('det_rt_find', det_rt_url.'.json?apikey='.det_rt_key.'&q=');
@@ -61,7 +54,8 @@ class RottenTomatoes extends Module implements Scraper
 	{
 		global $_d;
 
-		$ret['head'] = '<script type="text/javascript" src="modules/det_rt/rt_check.js"></script>';
+		$js = Module::P('modules/det_rt/rt_check.js');
+		$ret['head'] = '<script type="text/javascript" src="'.$js.'"></script>';
 
 		if (@$_d['q'][0] == 'check') return $ret;
 	}
@@ -184,8 +178,8 @@ class RottenTomatoes extends Module implements Scraper
 			$results = $this->Find($md, $st);
 			foreach ($results as $ix => &$r)
 			{
-				similar_text($r['title'], $st, $p);
-				$r['sim'] = $p;
+				similar_text($r['title'], $st, $sp);
+				$r['sim'] = $sp;
 			}
 			uasort($results, function ($a, $b) { return $a['sim'] < $b['sim']; });
 			foreach ($results as $ix => $r)
@@ -200,8 +194,6 @@ class RottenTomatoes extends Module implements Scraper
 			if (count($result) == 1) $this->Scrape($md, $result[0]);
 			else
 			{
-				#var_dump("ST ({$st}) Date ({$md->Data['released']})");
-				#var_dump($results);
 				$err = array(
 					'source' => $this->Name,
 					'type' => 'rt_meta',

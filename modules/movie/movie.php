@@ -132,8 +132,10 @@ class Movie extends MediaLibrary
 
 		# Main Page
 
-		$ret['head'] = '<link type="text/css" rel="stylesheet" href="modules/movie/css.css" />';
-		$ret['head'] .= '<script type="text/javascript" src="modules/movie/_movie.js"></script>';
+		$css = Module::P('modules/movie/movie.css');
+		$ret['head'] = '<link type="text/css" rel="stylesheet" href="'.$css.'" />';
+		$js = Module::P('modules/movie/movie.js');
+		$ret['head'] .= '<script type="text/javascript" src="'.$js.'"></script>';
 
 		if (!$this->Active) return $ret;
 

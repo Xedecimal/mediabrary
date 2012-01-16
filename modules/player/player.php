@@ -36,6 +36,7 @@ class ModPlayer extends Module
 		{
 			$t = new Template($_d);
 			$t->use_getvar = true;
+			header('Content-Type: application/javascript');
 			die($t->ParseFile(Module::L('player/player.js')));
 		}
 

@@ -107,7 +107,8 @@ class ModCheck extends Module
 
 		if ($_d['q'][0] != 'check') return $r;
 
-		$r['head'] = '<link type="text/css" rel="stylesheet" href="modules/check/check.css" />';
+		$css = Module::P('modules/check/check.css');
+		$r['head'] = '<link type="text/css" rel="stylesheet" href="'.$css.'" />';
 		global $mods;
 
 		$errors = 0;
