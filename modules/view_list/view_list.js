@@ -1,6 +1,6 @@
 var page_loading = false;
 var sub = urlParms;
-sub['page'] = 0;
+sub = { page: 0 };
 
 $(function () {
 	$('.a-title').live('click', function () {
@@ -57,5 +57,5 @@ $(function () {
 
 function clearItems() {
 	sub['page'] = 0;
-	$('#table-list tbody').load('view_list/items', sub);
+	$('.table-list tbody').load('view_list/items', sub);
 }
