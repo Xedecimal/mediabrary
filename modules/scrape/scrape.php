@@ -36,6 +36,8 @@ class Scrape extends Module
 
 			if ($this->type == 'movie')
 				$this->_item = new MovieEntry($this->path);
+			if ($this->type == 'tv-series')
+				$this->_item = new TVSeriesEntry($this->path);
 
 			$t->Set('path', $this->path);
 			$t->Set('title', $this->title);

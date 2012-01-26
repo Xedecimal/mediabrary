@@ -12,6 +12,10 @@ class TVDB extends Module implements Scraper
 	# http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/banners.xml
 
 	# Module extension
+	function __construct()
+	{
+		$this->CheckActive($this->Name);
+	}
 
 	function Link()
 	{
@@ -40,11 +44,21 @@ class TVDB extends Module implements Scraper
 			foreach ($xp as $ban)
 			{
 				$fn = (string)$ban->BannerPath;
-				file_put_contents('temp/'.basename($fn), file_get_contents('http://thetvdb.com/banners/'.$fn));
-				$ret['covers'][] = 'temp/'.basename($fn);
+				#file_put_contents('temp/'.basename($fn), file_get_contents('http://thetvdb.com/banners/'.$fn));
+				$ret['covers'][] = 'http://'.$_SERVER['HTTP_HOST']
+					.$_d['app_abs'].'/'.$this->Name.'/cover?p='.$fn;
 			}
 
 			die(json_encode($ret));
+		}
+
+		# Bypass referrer security on tvdb.
+		if (@$_d['q'][1] == 'cover')
+		{
+			session_write_close();
+			header('Content-Type: image/jpeg');
+			echo file_get_contents('http://thetvdb.com/banners/'.$_GET['p']);
+			die();
 		}
 	}
 
@@ -108,7 +122,7 @@ class TVDB extends Module implements Scraper
 
 	public function Scrape(&$item, $id = null)
 	{
-		$dst = $item['path'].'/.info.xml';
+		$dst = $item->Data['path'].'/.info.xml';
 		$src = self::_tvdb_api."/series/{$id}/all/en.xml";
 		if (!@file_put_contents($dst, file_get_contents($src)))
 			return 'Unable to write tvdb metadata.';
@@ -119,9 +133,6 @@ class TVDB extends Module implements Scraper
 		global $_d;
 
 		$info = array();
-
-		if (is_file($tvse->Path)) $p = dirname($path);
-		else $p = $path;
 
 		# Manually specified title.
 		if (empty($title)) $title = $tvse->Title;

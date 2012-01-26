@@ -111,7 +111,7 @@ class TMDB extends Module implements Scraper
 			$_d['entry.ds']->remove(array('_id' => new MongoID(Server::GetVar('id'))));
 			die();
 		}
-		else if (@$_d['q'][1] == 'cover')
+		/*else if (@$_d['q'][1] == 'cover')
 		{
 			$id = $_d['q'][2];
 			$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
@@ -119,7 +119,7 @@ class TMDB extends Module implements Scraper
 				.File::GetFile(basename($item['fs_path']));
 			file_put_contents($dst, file_get_contents(Server::GetVar('image')));
 			die(json_encode($item));
-		}
+		}*/
 		else if (@$_d['q'][1] == 'fixCover')
 		{
 			if ($this->FixCover($_POST['path'])) die('Fixed!');

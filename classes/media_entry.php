@@ -137,6 +137,8 @@ class MediaEntry
 		{
 			case 'movie':
 				return new MovieEntry($path, MovieEntry::GetFSPregs());
+			case 'tv-series':
+				return new TVSeriesEntry($path);
 		}
 	}
 }

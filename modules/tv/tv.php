@@ -566,6 +566,10 @@ class TVSeriesEntry extends MediaEntry
 	{
 		return MediaEntry::FromID($id, $type);
 	}
+
+	function SaveCover($url) {
+		file_put_contents($this->Path.'/folder.jpg', file_get_contents($url));
+	}
 }
 
 class TVEpisodeEntry extends MediaEntry
