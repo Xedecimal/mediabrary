@@ -38,6 +38,7 @@ $(function () {
 		clearItems();
 	});
 
+	// Endless pages
 	$(window).scroll(function (e) {
 		if (page_loading) return;
 		var target = $('.table-list tr:last');
@@ -48,8 +49,10 @@ $(function () {
 			page_loading = true;
 			sub['page']++;
 			$.get('view_list/items', sub, function (d) {
-				$('.table-list tbody').append(d);
-				page_loading = false;
+				if (d) {
+					$('.table-list tbody').append(d);
+					page_loading = false;
+				}
 			})
 		}
 	});
