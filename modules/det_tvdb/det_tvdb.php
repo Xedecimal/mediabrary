@@ -120,7 +120,7 @@ class TVDB extends Module implements Scraper
 
 		$info = array();
 
-		if (is_file($path)) $p = dirname($path);
+		if (is_file($tvse->Path)) $p = dirname($path);
 		else $p = $path;
 
 		# Manually specified title.
@@ -152,7 +152,7 @@ class TVDB extends Module implements Scraper
 
 	# Callbacks
 
-	function cb_tv_check_series($series, &$msgs)
+	function cb_tv_check_series(&$series)
 	{
 		global $_d;
 
@@ -168,8 +168,6 @@ class TVDB extends Module implements Scraper
 				# No record of this entry, let us make it.
 				if (empty($series->ds[$s][$e]))
 				{
-					$msgs['TVDB/Metadata'][] = "Adding missing database entry for {$series->Title} of $s $e.";
-
 					$tve = new TVEpisodeEntry(null);
 					$tve->Data['details'][$this->Name] = $ep['details'][$this->Name];
 					if (!empty($ep['aired']))
@@ -183,7 +181,9 @@ class TVDB extends Module implements Scraper
 					$tve->Title = $ep['title'];
 					$tve->Data['parent'] = $series->Data['_id'];
 					$dbep = $tve->Data;
-					$tve->SaveDS();
+					$tve->SaveDS(true);
+					echo "Added missing episode data for {$series->Title} of $s $e from TVDB.";
+					flush();
 				}
 				else $dbep = $series->ds[$s][$e];
 

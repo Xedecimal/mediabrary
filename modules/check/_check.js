@@ -1,6 +1,6 @@
 $(function () {
 	$('#a-scan').button();
-	$('#a-scan').click(function () { checkPrepare(); });
+	$('#a-scan').click(function () { checkPrepare(); return false; });
 	$('.a-fix').button().click(function () {
 		$.get($(this).attr('href'));
 		return false;

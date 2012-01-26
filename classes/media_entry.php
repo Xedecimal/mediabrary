@@ -48,8 +48,17 @@ class MediaEntry
 	{
 		global $_d;
 		if (!isset($this->Data['_id']) && !$bypass_id)
-			throw new Exception('No ID set!');
-		if (!isset($this->Data['title'])) throw new Exception('No title set!');
+		{
+			# LoadDir from movie can cause empty data if no movie files exist.
+			return false;
+		}
+		if (empty($this->Data['title']) && empty($this->Data['index']))
+		{
+			#echo Server::GetCallstack();
+			#throw new Exception('No title or index set!');
+			return false;
+		}
+
 		return $_d['entry.ds']->save($this->Data);
 	}
 

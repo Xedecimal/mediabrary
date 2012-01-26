@@ -187,8 +187,9 @@ class TMDB extends Module implements Scraper
 				$md->Data['errors']['tmdb_meta'] = $err;
 				$md->SaveDS();
 
-				throw new CheckException("File {$md->Path} has no {$this->Name} metadata.",
-					'tmdb_metadata', $this->Name);
+				echo "File {$md->Path} has no {$this->Name} TMDB metadata.";
+				flush();
+				return;
 			}
 		}
 
@@ -255,21 +256,31 @@ EOD;
 			$md->Data['errors'][$err['type']] = $err;
 
 			$md->SaveDS();
-			throw new CheckException($err['msg'], $err['type'], $this->Name);
+			echo $err['msg'];
 		}
 
 		# Check for cover.
 
 		global $_d;
 
-		if (empty($md->Image))
-		{
-			if (dirname($md->Path) == $md->Data['root'])
-				throw new CheckException("Can't write cover for {$md->Path}", 'tmdb_cover', $this->Name);
+		$this->CheckCover($md);
+	}
 
-			if (empty($md->Data['details'][$this->Name]['images']['image']))
-				throw new CheckException("Could not locate an image for {$md->Path}.", 'tmdb_image', $this->Name);
-			$images = $md->Data['details'][$this->Name]['images']['image'];
+	function CheckCover(&$me)
+	{
+		if (empty($me->Image))
+		{
+			if (dirname($me->Path) == $me->Data['root'])
+				throw new CheckException("Can't write cover for {$me->Path}", 'tmdb_cover', $this->Name);
+
+			if (empty($me->Data['details'][$this->Name]['images']['image']))
+			{
+				echo "Could not locate an image for {$me->Path} from TMDB.";
+				flush();
+				return;
+			}
+
+			$images = $me->Data['details'][$this->Name]['images']['image'];
 
 			if (!empty($images))
 			foreach ($images as $img)
@@ -289,10 +300,10 @@ EOD;
 			{
 				$poster = file_get_contents($types['poster']['cover'][0]['url']);
 				if (!empty($poster))
-					file_put_contents(dirname($md->Path).'/folder.jpg',
+					file_put_contents(dirname($me->Path).'/folder.jpg',
 						$poster);
 			}
-			else throw new CheckException("Cannot find a cover for {$md->Path}", 'tmdb_cover', $this->Name);
+			else throw new CheckException("Cannot find a cover for {$me->Path}", 'tmdb_cover', $this->Name);
 		}
 	}
 

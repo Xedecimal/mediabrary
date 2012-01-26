@@ -29,6 +29,20 @@ class ModCheck extends Module
 
 		global $_d;
 
+		if (@$_d['q'][1] == 'run')
+		{
+			global $mods;
+
+			set_time_limit(120);
+			session_write_close();
+
+			foreach ($mods as $n => $m)
+			{
+				if (method_exists($m, 'Check')) $m->Check();
+				flush();
+			}
+		}
+
 		if (@$_d['q'][1] == 'prepare')
 		{
 			global $mods;

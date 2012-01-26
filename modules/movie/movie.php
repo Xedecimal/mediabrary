@@ -192,6 +192,7 @@ class Movie extends MediaLibrary
 
 		# Prune this down to find orphans.
 		$ds_items = $_d['entry.ds']->find(array('type' => 'movie'), array('path' => 1));
+
 		# @TODO: This does not prune files, only directories of entries.
 		foreach ($ds_items as $i)
 		{
@@ -238,6 +239,7 @@ class Movie extends MediaLibrary
 
 		# General Cleanup
 
+		$this->CheckPrepare();
 		$status = $this->CheckFS();
 
 		#return;
@@ -309,30 +311,24 @@ class Movie extends MediaLibrary
 		while (!empty($state['files']))
 		{
 			$filename = urldecode(array_pop($state['files']));
+			echo "Checking file: {$filename}<br/>";
+			flush();
 
-			try
-			{
-				# See if we need to do anything with this entry.
-				$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
-				$me->Data['root'] = dirname($filename);
-				$this->CheckDatabaseExistence($filename, $me);
-				$me->LoadDS();
+			# See if we need to do anything with this entry.
+			$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
+			$me->Data['root'] = dirname($filename);
+			$this->CheckDatabaseExistence($filename, $me);
+			$me->LoadDS();
 
-				foreach ($_d['movie.cb.check'] as $cb)
-					call_user_func_array($cb, array(&$me));
+			foreach ($_d['movie.cb.check'] as $cb)
+				call_user_func_array($cb, array(&$me));
 
-				$this->CheckFile($me);
-				$me->Data['clean'] = true;
-				$me->SaveDS();
-			}
-			catch (CheckException $ex) { $cex = $ex; }
+			$this->CheckFile($me);
+			$me->Data['clean'] = true;
+			$me->SaveDS();
 
 			$_d['state.ds']->save($state);
-
-			if (!empty($cex)) throw $cex;
 		}
-
-		throw new CheckException('Out of files!', 'movie_done', $this->Name);
 	}
 
 	/**
@@ -353,13 +349,15 @@ class Movie extends MediaLibrary
 			'path' => Str::MakeUTF8($md->Path)));
 		if (!empty($item)) return $ret;
 
+		if (empty($md->Path)) return;
 		if (!isset($this->_ds[$md->Path]))
 		{
 			#$p = Str::MakeUTF8($md->Path);
 			#$md = new MovieEntry($p);
 			#file_put_contents('debug.txt', print_r($md->Data), FILE_APPEND);
 			$md->SaveDS(true);
-			throw new CheckException("Added new movie '{$md->Path}' to database.");
+			echo "Added new movie '{$md->Path}' to database.";
+			flush();
 		}
 
 		return $ret;
@@ -406,7 +404,8 @@ class Movie extends MediaLibrary
 			$msg = "File {$me->Path} has an unknown extension. ($ext)";
 			$me->Data['errors']['bad_extension'] = array('type' => 'bad_extension', 'msg' => $msg);
 			$me->SaveDS();
-			throw new CheckException($msg, 'bad_extension', $this->Name);
+			echo $msg;
+			flush();
 		}
 
 		# Title Related
@@ -449,7 +448,8 @@ class Movie extends MediaLibrary
 			);
 			$me->Data['errors'][$err['type']] = $err;
 			$me->SaveDS();
-			throw new CheckException($err['msg'], $err['type'], $this->Name);
+			echo $err['msg'];
+			flush();
 		}
 	}
 
@@ -616,14 +616,13 @@ class MovieEntry extends MediaEntry
 				rmdir($path);
 				throw new CheckException("Removed empty movie folder $path.", 'movie_cleanup', $this->Name);
 			}
-			else throw new CheckException("Not enough video files in this folder"
-				."{$path}.", 'low_folder', $this->Name);
+			else echo "Not enough video files in this folder $path.";
 		}
 		else if (count($files) > 1)
 			throw new CheckException("Too many video files in folder: {$path}",
 				'high_folder', $this->Name);
 
-		return urldecode($files[0]);
+		if (!empty($files)) return urldecode($files[0]);
 	}
 
 	static function GetFSPregs()

@@ -35,7 +35,7 @@ class TV extends MediaLibrary
 
 		$_d['entry-types']['tv-episode'] = array('text' => 'TV Episode',
 			'icon' => '<img src="'.Module::P('tv/img/tv-episode.png').'" />');
-		}
+	}
 
 	function Prepare()
 	{
@@ -120,26 +120,25 @@ class TV extends MediaLibrary
 			$this->_missing_image = 'modules/tv/img/missing.jpg';
 			die(parent::Get());
 		}
-		else
+
+		$missings = array();
+		// += overlaps episodes, combine instead.
+		# @TODO: Missing episodes should be in check.
+		/*foreach (TV::GetAllSeries() as $series)
 		{
-			$missings = array();
-			// += overlaps episodes, combine instead.
-			foreach (TV::GetAllSeries() as $series)
-			{
-				$add = ModTVEpisode::GetMissingEpisodes($series);
-				if (!empty($add)) $missings = array_merge($missings, $add);
-			}
+			$add = ModTVEpisode::GetMissingEpisodes($series);
+			if (!empty($add)) $missings = array_merge($missings, $add);
+		}*/
 
-			$needed = null;
-			foreach ($missings as $missing)
-				$needed .= "<div>Missing: $missing</div>\r\n";
+		$needed = null;
+		foreach ($missings as $missing)
+			$needed .= "<div>Missing: $missing</div>\r\n";
 
-			$this->_template = 'modules/tv/t_tv.xml';
-			$t = new Template();
-			$t->Set($this->_vars);
-			$t->Set('needed', $needed);
-			return $t->ParseFile($this->_template);
-		}
+		$this->_template = 'modules/tv/t_tv.xml';
+		$t = new Template();
+		$t->Set($this->_vars);
+		$t->Set('needed', $needed);
+		return $t->ParseFile($this->_template);
 	}
 
 	# Checks
@@ -148,7 +147,10 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		$this->_state['path'] = 0;
+		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
+		$state['path'] = 0;
+		$state['module'] = $this->Name;
+		$state['files'] = array();
 
 		if (!empty($_d['config']['paths']['tv-series']['paths']))
 		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
@@ -157,29 +159,24 @@ class TV extends MediaLibrary
 			foreach ($files as $f)
 			{
 				if ($f[0] == '.') continue;
-				$this->_state['files'][] = $p.'/'.$f;
+				$state['files'][] = $p.'/'.$f;
 			}
 		}
-		file_put_contents($this->state_file, serialize($this->_state));
+
+		$_d['state.ds']->save($state);
 	}
 
 	function Check()
 	{
 		global $_d;
 
-		$this->_state = unserialize(file_get_contents($this->state_file));
+		# Removed temp to fix movies.
 
-		try
-		{
-			$this->ds = $this->CollectDS();
-			$this->CheckFilesystem($msgs);
-			$this->CheckDatabase($msgs);
-		}
-		catch (Exception $ex)
-		{
-			file_put_contents($this->state_file, serialize($this->_state));
-			throw $ex;
-		}
+		# $this->_state = $_d['state.ds']->findOne(array('module' => $this->Name));
+
+		# $this->ds = $this->CollectDS();
+		# $this->CheckFilesystem($msgs);
+		# $this->CheckDatabase($msgs);
 
 		/*# Filesystem checks
 
@@ -232,14 +229,19 @@ class TV extends MediaLibrary
 		# No configured tv series paths, we're done here.
 		if (empty($this->_state['files'])) return;
 
-		$p = array_pop($this->_state['files']);
-
-		$f = basename($p);
-		if ($f[0] == '.') continue;
-
-		$tvse = new TVSeriesEntry($p);
-
-		$tvse->Check();
+		while (!empty($this->_state['files']))
+		{
+			$p = array_pop($this->_state['files']);
+			$f = basename($p);
+			if ($f == '.' || $f == '..') continue;
+			$tvse = new TVSeriesEntry($p);
+			try { $tvse->Check(); }
+			catch (CheckException $ce)
+			{
+				if ($ce->action == ACTION_SKIP) continue;
+				else throw $ce;
+			}
+		}
 	}
 
 	function CheckDatabase(&$msgs)
@@ -407,6 +409,7 @@ Module::Register('TV');
 class TVSeriesEntry extends MediaEntry
 {
 	public $Type = 'tv-series';
+	public $Name = 'TVSeries';
 
 	function __construct($path)
 	{
@@ -452,8 +455,7 @@ class TVSeriesEntry extends MediaEntry
 			'parent' => $this->Data['_id']
 		))->sort(array('index' => 1));
 
-		foreach ($eps as $ep)
-			$this->ds[$ep['season']][$ep['episode']] = $ep;
+		foreach ($eps as $ep) $this->ds[$ep['season']][$ep['episode']] = $ep;
 	}
 
 	function CollectFS()
@@ -466,7 +468,7 @@ class TVSeriesEntry extends MediaEntry
 			$ep = new TVEpisodeEntry($p);
 			# Possibly Metadata or unknown file.
 			if (empty($ep->Data['season']))
-				throw new CheckException('episode_unknown', "Unable to identify episode: {$ep->Path}");
+				throw new CheckException("Unable to identify episode: {$ep->Path}", ACTION_SKIP, $this->Name);
 
 			$this->fs[$ep->Data['season']][$ep->Data['episode']] = $ep;
 		}
@@ -476,8 +478,9 @@ class TVSeriesEntry extends MediaEntry
 	{
 		global $_d;
 
-		/*$series = $this->CollectDS();
-		if (empty($series))
+		$series = $this->CollectDS();
+
+		if (empty($this->Data))
 		{
 			$this->Data = array(
 				'path' => $this->Path,
@@ -485,9 +488,9 @@ class TVSeriesEntry extends MediaEntry
 				'type' => 'tv-series'
 			);
 			$_d['entry.ds']->save($this->Data, array('safe' => 1));
-			throw new Exception('Adding missing series in database for '
+			throw new CheckException('Adding missing series in database for '
 				.$this->Title);
-		}*/
+		}
 
 		$this->CheckFilesystem();
 
@@ -507,7 +510,7 @@ class TVSeriesEntry extends MediaEntry
 		$this->CollectFS();
 
 		if (empty($this->fs))
-			throw new Exception("Empty series '{$this->Path}'.");
+			throw new CheckException("Empty series '{$this->Path}'.");
 
 		foreach ($this->fs as $is => &$eps)
 		{
@@ -516,8 +519,10 @@ class TVSeriesEntry extends MediaEntry
 				if (!isset($this->ds[$is][$ie]))
 				{
 					$ep->Data['parent'] = $this->Data['_id'];
-					$ep->SaveDS();
-					throw new CheckException(0, "Adding {$this->Title} {$is}x{$ie} to database.");
+					echo "Adding {$this->Title} {$is}x{$ie} to database.";
+					flush();
+					$ep->SaveDS(true);
+					$this->ds[$is][$ie] = $ep->Data;
 				}
 
 				else if (empty($this->ds[$is][$ie]['path']))
@@ -525,14 +530,15 @@ class TVSeriesEntry extends MediaEntry
 					$this->ds[$is][$ie]['path'] = $ep->Path;
 					$_d['entry.ds']->save($this->ds[$is][$ie],
 						array('safe' => 1));
-					throw new CheckException(0, "Updated path {$ep->Path} on existing entry.");
+					echo "Need to update path {$ep->Path} on existing entry.";
+					flush();
 				}
 			}
 		}
 
 		if (!empty($_d['tv.cb.check.series']))
 		foreach ($_d['tv.cb.check.series'] as $cb)
-			call_user_func_array($cb, array(&$this, &$msgs));
+			call_user_func_array($cb, array(&$this));
 	}
 
 	static function CheckDS(&$msgs)
@@ -568,11 +574,12 @@ class TVEpisodeEntry extends MediaEntry
 
 	function __construct($path)
 	{
-		parent::__construct($path);
+		parent::__construct($path, TVEpisodeEntry::GetFSPregs());
 
 		if (!empty($path))
 		{
 			$dat = MediaEntry::ScrapeFS($path, TVEpisodeEntry::GetFSPregs());
+			$this->Data['path'] = $path;
 			if (!empty($dat['title']))
 				$this->Data['title'] = Str::MakeUTF8($dat['title']);
 			if (!empty($dat['series']))
@@ -665,6 +672,13 @@ class TVEpisodeEntry extends MediaEntry
 				2 => 'title',
 				3 => 'season',
 				4 => 'episode'),
+			# path/{series}/S{SS}E{EE}{title}.ext
+			'#/([^/]+)/S(\d{2})E(\d{2})(.*)\..*$#' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'title'
+			),
 			# path/{series}/{S}{EE} {title}.ext
 			'#/([^/]+)/(\d+)(\d{2}) (.*)\..*$#' => array(
 				1 => 'series',
@@ -710,16 +724,18 @@ class ModTVEpisode extends MediaLibrary
 		$exts = TVEpisodeEntry::GetExtensions();
 
 		$ret = array();
-		foreach (new FilesystemIterator($series,
-		FilesystemIterator::SKIP_DOTS) as $f)
+		foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+			$series, FilesystemIterator::KEY_AS_PATHNAME
+			| FilesystemIterator::SKIP_DOTS)) as $p => $f)
 		{
+			#$p = $f->getPathname();
+			var_dump($p);
 			if (substr($f->GetFilename(), 0, 1) == '.') continue;
 
-			$pi = pathinfo($f->GetPathname());
+			$pi = pathinfo($p);
 
 			if (!in_array($pi['extension'], $exts)) continue;
 
-			$p = $f->GetPathname();
 			$i = MediaEntry::ScrapeFS($p, TVEpisodeEntry::GetFSPregs());
 
 			if (!isset($i['episode']))
