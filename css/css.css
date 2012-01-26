@@ -1,6 +1,7 @@
 html, body { font: 14px Verdana; margin: 0; padding: 0; height: 100%;
 	background: #000; color: #CCC; }
 a { color: #FFF; text-decoration: none; }
+img { vertical-align: bottom; }
 a img { border: 0; }
 .ui-widget { font: bold 1em Verdana; }
 
