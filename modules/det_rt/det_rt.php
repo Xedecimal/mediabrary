@@ -192,7 +192,7 @@ class RottenTomatoes extends Module implements Scraper
 			{
 				echo "<p>File {$p} has no {$this->Name} metadata.</p>";
 				flush();
-				return false;
+				return true;
 			}
 		}
 

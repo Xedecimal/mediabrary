@@ -237,15 +237,14 @@ EOD;
 			$urlfix = $_d['app_abs']."/movie/rename?path=".urlencode($file);
 			$urlfix .= '&amp;target='.urlencode($md->Data['root'].'/'.$target);
 			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
-			$bn = basename($file);
-
-			$tmdburl = $md->Data['details'][$this->Name]['url'];
-			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
 			$fulltarget = $md->Data['root'].'/'.$target;
 
-			echo "<p><a href='$urlfix' target='_blank'>Fix</a> File '$file' should be '$fulltarget'</p>";
-			flush();
+			$this->OutErr("File '$file' should be '$fulltarget'", $md, array(
+				'Fix' => $urlfix,
+				'Unfix' => $urlunfix
+			));
+
 			$clean = false;
 		}
 
@@ -265,8 +264,7 @@ EOD;
 
 			if (empty($me->Data['details'][$this->Name]['images']['image']))
 			{
-				echo "<p>Could not locate an image for {$me->Path} from TMDB.</p>";
-				flush();
+				$this->OutErr("Could not locate a cover.", $me);
 				return false;
 			}
 
@@ -536,6 +534,29 @@ EOF;
 		}*/
 
 		return VarParser::Concat($g, $ret);
+	}
+
+	private function OutErr($msg, $me, $links = array())
+	{
+		echo $msg;
+
+		if (!empty($me->Data['details'][$this->Name]['url']))
+			echo ' - <a class="button" href="'
+				.$me->Data['details'][$this->Name]['url']
+				.'" target="_blank">TMDB</a>';
+		if (!empty($me->Data['details'][$this->Name]['imdb_id']))
+			echo ' - <a class="button" href="http://www.imdb.com/title/'
+				.$me->Data['details'][$this->Name]['imdb_id']
+				.'" target="_blank">IMDB</a>';
+		if (!empty($me->Data['_id']))
+			echo ' - <a class="button a-movie-item" href="movie/detail/'
+				.$me->Data['_id'].'?path='.$me->Path.'">Details</a>';
+		foreach ($links as $t => $l)
+		{
+			echo ' - <a class="button" href="'.$l.'">'.$t.'</a>';
+		}
+		echo "</p>\r\n";
+		flush();
 	}
 }
 

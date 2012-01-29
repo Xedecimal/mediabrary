@@ -1,7 +1,7 @@
 <div id="check">
 <script type="text/javascript" src="modules/check/_check.js"></script>
 <div id="output"></div>
-<p><a href="#" id="a-scan">Scan Sources</a></p>
+<p><a href="#" class="button" id="a-scan">Scan Sources</a></p>
 <group>
 <div class="group">
 <p>{{path}}</p>
