@@ -41,6 +41,8 @@ class ModCheck extends Module
 				if (method_exists($m, 'Check')) $m->Check();
 				flush();
 			}
+
+			die();
 		}
 
 		if (@$_d['q'][1] == 'prepare')

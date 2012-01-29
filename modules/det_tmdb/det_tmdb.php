@@ -131,7 +131,7 @@ class TMDB extends Module implements Scraper
 	function movie_cb_move($src_dir, $dst_dir)
 	{
 		$src_cache = $src_dir.'/.tmdb_cache.json';
-		$dst_cache = $src_dir.'/.tmdb_cache.json';
+		$dst_cache = $dst_dir.'/.tmdb_cache.json';
 		if (file_exists($src_cache)) rename($src_cache, $dst_cache);
 	}
 
@@ -139,7 +139,9 @@ class TMDB extends Module implements Scraper
 	{
 		# Check for metadata.
 
-		if (empty($md->Data['title'])) return;
+		$clean = true;
+
+		if (empty($md->Data['title'])) return false;
 
 		# Do we have a cache?
 		if (empty($md->Data['details'][$this->Name]))
@@ -155,8 +157,6 @@ class TMDB extends Module implements Scraper
 
 		if (empty($md->Data['details'][$this->Name]))
 		{
-			if (!empty($md->Data['errors']['tmdb_meta'])) return;
-
 			$st = MediaLibrary::SearchTitle($md->Data['title']);
 			$results = $this->Find($md->Data, $st);
 			if (!empty($results))
@@ -180,34 +180,29 @@ class TMDB extends Module implements Scraper
 			}
 			else
 			{
-				$err = array(
-					'source' => $this->Name,
-					'type' => 'tmdb_meta',
-					'msg' => "Cannot locate metadata for this entry.");
-				$md->Data['errors']['tmdb_meta'] = $err;
-				$md->SaveDS();
-
-				echo "File {$md->Path} has no {$this->Name} TMDB metadata.";
+				$url = "movie/detail/{$md->Data['_id']}?path={$md->Path}";
+				echo "<p>Entry <a class=\"a-movie-item\" href=\"$url\">{$md->Path}</a> has no {$this->Name} metadata.</p>\r\n";
 				flush();
-				return;
+				return false;
 			}
 		}
 
-		# Check for certification.
+		# @TODO: Check for certification.
 
-		if (empty($md->Data['details'][$this->Name]['certification']))
+		/*if (empty($md->Data['details'][$this->Name]['certification']))
 		{
 			$uep = urlencode($md->Data['path']);
 			$url = "{{app_abs}}/scrape/scrape?path={$uep}";
 			$surl = $md->Data['details'][$this->Name]['url'];
 			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
 
-			$msgs["{$this->Name}/Certification"][] = <<<EOD
+			echo <<<EOD
 <a href="{$url}" class="a-fix">Scrape</a> No certification for {$md->Title}
 - <a href="{$surl}" target="_blank">{$this->Name}</a>
 - <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
 EOD;
-		}
+			$clean = false;
+		}*/
 
 		# Check filename compliance.
 
@@ -235,9 +230,11 @@ EOD;
 			$target = "$filetitle ($date)/$filetitle ($date).$ext";
 		}
 
+		global $_d;
+
 		if (!preg_match($preg, $file))
 		{
-			$urlfix = "movie/rename?path=".urlencode($file);
+			$urlfix = $_d['app_abs']."/movie/rename?path=".urlencode($file);
 			$urlfix .= '&amp;target='.urlencode($md->Data['root'].'/'.$target);
 			$urlunfix = $this->Name."/remove?id={$md->Data['_id']}";
 			$bn = basename($file);
@@ -247,23 +244,16 @@ EOD;
 
 			$fulltarget = $md->Data['root'].'/'.$target;
 
-			$err = array(
-				'source' => $this->Name,
-				'type' => 'tmdb_bad_filename',
-				'from' => $file,
-				'to' => $fulltarget,
-				'msg' => "File '$file' should be '$fulltarget'");
-			$md->Data['errors'][$err['type']] = $err;
-
-			$md->SaveDS();
-			echo $err['msg'];
+			echo "<p><a href='$urlfix' target='_blank'>Fix</a> File '$file' should be '$fulltarget'</p>";
+			flush();
+			$clean = false;
 		}
 
 		# Check for cover.
 
-		global $_d;
+		if (!$this->CheckCover($md)) $clean = false;
 
-		$this->CheckCover($md);
+		return $clean;
 	}
 
 	function CheckCover(&$me)
@@ -271,13 +261,13 @@ EOD;
 		if (empty($me->Image))
 		{
 			if (dirname($me->Path) == $me->Data['root'])
-				throw new CheckException("Can't write cover for {$me->Path}", 'tmdb_cover', $this->Name);
+				echo "<p>Can't write TMDB cover for {$me->Path}</p>";
 
 			if (empty($me->Data['details'][$this->Name]['images']['image']))
 			{
-				echo "Could not locate an image for {$me->Path} from TMDB.";
+				echo "<p>Could not locate an image for {$me->Path} from TMDB.</p>";
 				flush();
-				return;
+				return false;
 			}
 
 			$images = $me->Data['details'][$this->Name]['images']['image'];
@@ -300,11 +290,20 @@ EOD;
 			{
 				$poster = file_get_contents($types['poster']['cover'][0]['url']);
 				if (!empty($poster))
+				{
 					file_put_contents(dirname($me->Path).'/folder.jpg',
 						$poster);
+
+					return true;
+				}
 			}
-			else throw new CheckException("Cannot find a cover for {$me->Path}", 'tmdb_cover', $this->Name);
+			else
+			{
+				echo "<p>Cannot find a cover for {$me->Path}</p>";
+				return false;
+			}
 		}
+		return true;
 	}
 
 	function cb_search_query($q)
@@ -458,7 +457,9 @@ EOD;
 		# Cache remote info.
 		$cache_file = dirname($me->Path).'/.tmdb_cache.json';
 		if (dirname($me->Path) != $me->Data['root'])
+		{
 			file_put_contents($cache_file, json_encode($data));
+		}
 
 		$this->Cleanup($data);
 

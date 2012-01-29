@@ -170,13 +170,11 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		# Removed temp to fix movies.
+		#$this->_state = $_d['state.ds']->findOne(array('module' => $this->Name));
 
-		# $this->_state = $_d['state.ds']->findOne(array('module' => $this->Name));
-
-		# $this->ds = $this->CollectDS();
-		# $this->CheckFilesystem($msgs);
-		# $this->CheckDatabase($msgs);
+		#$this->ds = $this->CollectDS();
+		#$this->CheckFilesystem($msgs);
+		#$this->CheckDatabase($msgs);
 
 		/*# Filesystem checks
 

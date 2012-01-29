@@ -121,8 +121,10 @@ class Movie extends MediaLibrary
 
 		else if (@$_d['q'][1] == 'rename')
 		{
-			Movie::Rename(Server::GetVar('path'),
-				Server::GetVar('target'));
+			$me = new MovieEntry(Server::GetVar('path'));
+			$me->LoadDS();
+			$me->Rename(Server::GetVar('target'));
+			die();
 		}
 	}
 
@@ -164,7 +166,6 @@ class Movie extends MediaLibrary
 		$this->_template = 'modules/movie/t_movie.xml';
 		$t = new Template();
 		$ret['movie'] = $t->ParseFile($this->_template);
-		$ret['movie'] .= $_d['movie.add'];
 
 		return $ret;
 	}
@@ -184,17 +185,21 @@ class Movie extends MediaLibrary
 	function CheckPrepare()
 	{
 		global $_d;
+	}
 
-		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
-		$state['path'] = 0;
-		$state['module'] = $this->Name;
-		$state['files'] = array();
+	function Check()
+	{
+		global $_d;
 
-		# Prune this down to find orphans.
-		$ds_items = $_d['entry.ds']->find(array('type' => 'movie'), array('path' => 1));
+		$this->fs = $this->CollectFS();
+
+		$this->ds = $_d['entry.ds']->find(array('type' => 'movie'),
+			array('path' => 1));
+
+		### Remove database entries that do not exist on the filesystem.
 
 		# @TODO: This does not prune files, only directories of entries.
-		foreach ($ds_items as $i)
+		foreach ($this->ds as $i)
 		{
 			$dp = dirname($i['path']);
 			if (in_array($dp, $_d['config']['paths']['movie']['paths']))
@@ -202,44 +207,30 @@ class Movie extends MediaLibrary
 			else $prunes[$dp] = $i['_id'];
 		}
 
-		foreach ($_d['config']['paths']['movie']['paths'] as $p)
-		{
-			$files = scandir($p);
-			foreach ($files as $f)
-			{
-				if ($f == '.' || $f == '..') continue;
-				$path = $p.'/'.$f;
-				$state['files'][] = urlencode($path);
-				unset($prunes[$path]);
-			}
-		}
+		foreach ($this->fs as $p => $up) unset($prunes[$p]);
 
 		foreach ($prunes as $path => $id)
-			$_d['entry.ds']->remove(array('_id' => new MongoID($id)));
-
-		# Prune out clean items.
-		foreach ($state['files'] as $ix => $f)
 		{
-			$filename = urldecode($f);
+			$_d['entry.ds']->remove(array('_id' => new MongoID($id)));
+		}
+
+		### Ignore all clean items.
+
+		foreach (array_keys($this->fs) as $f)
+		{
+			$filename = $f;
 
 			$item = $_d['entry.ds']->findOne(array(
 				'path' => new MongoRegex('/^'.preg_quote($filename).'/')
 			));
-			if (!empty($item['clean'])) unset($state['files'][$ix]);
+
+			if (!empty($item['clean'])) unset($this->fs[$f]);
 		}
-
-		$_d['state.ds']->save($state);
-	}
-
-	function Check()
-	{
-		global $_d;
 
 		$ret = array();
 
 		# General Cleanup
 
-		$this->CheckPrepare();
 		$status = $this->CheckFS();
 
 		#return;
@@ -305,29 +296,29 @@ class Movie extends MediaLibrary
 	{
 		global $_d;
 
-		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
-		if (empty($state['files'])) return;
-
-		while (!empty($state['files']))
+		if (empty($this->fs)) return;
+		foreach (array_keys($this->fs) as $filename)
 		{
-			$filename = urldecode(array_pop($state['files']));
-			echo "Checking file: {$filename}<br/>";
-			flush();
-
 			# See if we need to do anything with this entry.
 			$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
 			$me->Data['root'] = dirname($filename);
 			$this->CheckDatabaseExistence($filename, $me);
 			$me->LoadDS();
 
+			$clean = true;
+
+			if (!$this->CheckFile($me)) $clean = false;
+
 			foreach ($_d['movie.cb.check'] as $cb)
-				call_user_func_array($cb, array(&$me));
+				if (!call_user_func_array($cb, array(&$me))) $clean = false;
 
-			$this->CheckFile($me);
-			$me->Data['clean'] = true;
-			$me->SaveDS();
-
-			$_d['state.ds']->save($state);
+			if ($clean)
+			{
+				echo "<p>Marking '{$me->Path}' as clean.</p>\r\n";
+				flush();
+				$me->Data['clean'] = true;
+				$me->SaveDS();
+			}
 		}
 	}
 
@@ -356,7 +347,7 @@ class Movie extends MediaLibrary
 			#$md = new MovieEntry($p);
 			#file_put_contents('debug.txt', print_r($md->Data), FILE_APPEND);
 			$md->SaveDS(true);
-			echo "Added new movie '{$md->Path}' to database.";
+			echo "<p>Added new movie '{$md->Path}' to database.</p>";
 			flush();
 		}
 
@@ -394,18 +385,20 @@ class Movie extends MediaLibrary
 	{
 		global $_d;
 
+		$clean = true;
+
 		#$me = MovieEntry::FromPath($path);
 		#$me = new MovieEntry($path);
 		$ext = File::ext($me->Path);
 
+		if (empty($me->Path)) continue;
+
 		# Filename related
 		if (array_search($ext, MovieEntry::GetExtensions()) === false)
 		{
-			$msg = "File {$me->Path} has an unknown extension. ($ext)";
-			$me->Data['errors']['bad_extension'] = array('type' => 'bad_extension', 'msg' => $msg);
-			$me->SaveDS();
-			echo $msg;
+			echo "<p>File {$me->Path} has an unknown extension. ($ext)</p>\r\n";
 			flush();
+			$clean = false;
 		}
 
 		# Title Related
@@ -440,17 +433,12 @@ class Movie extends MediaLibrary
 		{
 			$urlfix = "movie/fix?path=".urlencode($me->Path);
 			$bn = basename($me->Path);
-			$err = array(
-				'source' => $this->Name,
-				'from' => $me->Path,
-				'type' => 'bad_filename',
-				'msg' => "File '$bn' should be '$target'"
-			);
-			$me->Data['errors'][$err['type']] = $err;
-			$me->SaveDS();
-			echo $err['msg'];
+			echo "File '$bn' should be '$target'";
 			flush();
+			$clean = false;
 		}
+
+		return $clean;
 	}
 
 	function CollectSingleFileGroup()
@@ -472,6 +460,23 @@ class Movie extends MediaLibrary
 					array('upsert' => 1));
 			}
 		}
+	}
+
+	function CollectFS()
+	{
+		global $_d;
+
+		foreach ($_d['config']['paths']['movie']['paths'] as $p)
+		{
+			$files = scandir($p);
+			foreach ($files as $f)
+			{
+				if ($f == '.' || $f == '..') continue;
+				$ret[$p.'/'.$f] = 1;
+			}
+		}
+
+		return $ret;
 	}
 
 	function CollectDS()
@@ -524,7 +529,10 @@ class Movie extends MediaLibrary
 		return $ret;
 	}
 
-	static function Rename($me, $dst) { $me->Rename($dst); }
+	static function Rename($src, $dst)
+	{
+		$me->Rename($dst);
+	}
 }
 
 class MovieEntry extends MediaEntry
@@ -599,8 +607,16 @@ class MovieEntry extends MediaEntry
 			}
 		}
 		$exts = MovieEntry::GetExtensions();
-		$files = glob($path.'/*.{'.implode(',', $exts).'}', GLOB_BRACE);
-		foreach ($files as &$f) $f = urlencode($f);
+		$files = array();
+		$sf = scandir($path);
+
+		foreach ($sf as &$f)
+		{
+			$pos = strrpos($f, '.');
+			if ($pos === false) continue;
+			if (in_array(substr($f, $pos+1), $exts))
+				$files[] = urlencode($path.'/'.$f);
+		}
 
 		if (!empty($dat))
 		{
@@ -609,18 +625,20 @@ class MovieEntry extends MediaEntry
 			$_d['fs.ds']->save($dat);
 		}
 
-		if (count($files) < 1)
+		if (empty($files))
 		{
 			if (count(scandir($path)) < 3)
 			{
 				rmdir($path);
-				throw new CheckException("Removed empty movie folder $path.", 'movie_cleanup', $this->Name);
+				echo "<p>Removed empty movie folder $path.</p>\r\n";
 			}
-			else echo "Not enough video files in this folder $path.";
+			else echo "<p>Not enough video files in this folder $path.</p>\r\n";
 		}
 		else if (count($files) > 1)
-			throw new CheckException("Too many video files in folder: {$path}",
-				'high_folder', $this->Name);
+		{
+			echo "<p>Too many video files in folder: {$path}</p>";
+			flush();
+		}
 
 		if (!empty($files)) return urldecode($files[0]);
 	}
@@ -686,6 +704,7 @@ class MovieEntry extends MediaEntry
 		# Make the destination folder
 		if (!file_exists($pidst['dirname']))
 			mkdir($pidst['dirname'], 0777, true);
+
 		# Rename without case sensitivity
 		else if ($pisrc['dirname'] != $pidst['dirname'])
 			rename($pisrc['dirname'], $pidst['dirname']);

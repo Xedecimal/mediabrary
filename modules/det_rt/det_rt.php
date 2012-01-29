@@ -129,9 +129,7 @@ class RottenTomatoes extends Module implements Scraper
 		if (dirname($me->Path) != $me->Data['root'])
 			file_put_contents($cache_file, $json_data);
 
-		unset($me->Data['errors']['rt_meta']);
 		$me->Data['details'][$this->Name] = json_decode($json_data, true);
-
 		$me->SaveDS();
 	}
 
@@ -148,13 +146,13 @@ class RottenTomatoes extends Module implements Scraper
 	function cb_movie_move($src_dir, $dst_dir)
 	{
 		$src_cache = $src_dir.'/.rt_cache.json';
-		$dst_cache = $src_dir.'/.rt_cache.json';
+		$dst_cache = $dst_dir.'/.rt_cache.json';
 		if (file_exists($src_cache)) rename($src_cache, $dst_cache);
 	}
 
 	function cb_movie_check(&$md)
 	{
-		if (empty($md->Data['title'])) return;
+		if (empty($md->Data['title'])) return false;
 
 		# Check for RottenTomatoes metadata.
 
@@ -169,8 +167,6 @@ class RottenTomatoes extends Module implements Scraper
 
 		if (empty($md->Data['details'][$this->Name]))
 		{
-			if (!empty($md->Data['errors']['rt_meta'])) return;
-
 			$p = $md->Path;
 			$uep = rawurlencode($p);
 			# @TODO: Clean up ziss mess!
@@ -194,15 +190,9 @@ class RottenTomatoes extends Module implements Scraper
 			if (count($result) == 1) $this->Scrape($md, $result[0]);
 			else
 			{
-				$err = array(
-					'source' => $this->Name,
-					'type' => 'rt_meta',
-					'msg' => "Cannot locate metadata for this entry.");
-				$md->Data['errors']['rt_meta'] = $err;
-				$md->SaveDS();
-				echo "File {$p} has no {$this->Name} metadata.";
+				echo "<p>File {$p} has no {$this->Name} metadata.</p>";
 				flush();
-				return;
+				return false;
 			}
 		}
 
@@ -243,6 +233,9 @@ File "$bn" should be "$target".
 - <a href="{$url}" target="_blank">{$this->Name}</a>
 EOD;
 		}
+
+		# @TODO: Make this more strict.
+		return true;
 	}
 }
 
