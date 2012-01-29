@@ -1,9 +1,9 @@
 $(function () {
-	$('#a-scan').button().click(function () {
+	$('#a-scan').click(function () {
 		startProcess('check/run');
 		return false;
 	});
-	$('.a-fix').button().click(function () {
+	$('.a-fix').click(function () {
 		$.get($(this).attr('href'));
 		return false;
 	});
