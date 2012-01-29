@@ -199,6 +199,8 @@ class Movie extends MediaLibrary
 		### Remove database entries that do not exist on the filesystem.
 
 		# @TODO: This does not prune files, only directories of entries.
+		$prunes = array();
+
 		foreach ($this->ds as $i)
 		{
 			$dp = dirname($i['path']);
@@ -391,7 +393,7 @@ class Movie extends MediaLibrary
 		#$me = new MovieEntry($path);
 		$ext = File::ext($me->Path);
 
-		if (empty($me->Path)) continue;
+		if (empty($me->Path)) return false;
 
 		# Filename related
 		if (array_search($ext, MovieEntry::GetExtensions()) === false)
