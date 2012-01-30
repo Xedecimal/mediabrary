@@ -23,7 +23,7 @@ class MediaEntry
 				if (preg_match($preg, $path, $m))
 				{
 					foreach ($matches as $idx => $col) $this->$col = $m[$idx];
-					$this->DebugMatched = $mx;
+					$this->Data['preg_matched'] = $DebugMatched = $mx;
 					break;
 				}
 				$mx++;
