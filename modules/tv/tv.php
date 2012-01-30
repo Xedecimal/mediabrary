@@ -9,7 +9,12 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$this->_class = 'tv';
-		$this->state_file = dirname(__FILE__).'/state.dat';
+
+		$_d['tv.cb.ignore'][] = '/^\.$/';
+		$_d['tv.cb.ignore'][] = '/^\.\.$/';
+		$_d['tv.cb.ignore'][] = '/folder\.jpg/';
+		$_d['tv.cb.ignore'][] = '/backdrop\.jpg/';
+		$_d['tv.cb.ignore'][] = '/\.regions\.yml/';
 
 		$this->CheckActive(array('tv', 'tv-episode'));
 	}
@@ -82,8 +87,8 @@ class TV extends MediaLibrary
 			$path = Server::GetVar('path');
 			$target = Server::GetVar('target');
 
-			$md = new TVEpisodeEntry($path);
-			$md->CollectDS();
+			$md = new MediaEntry($path);
+			$md->LoadDS();
 
 			if (!$md->Rename($target)) die('Error!');
 			else die('Done.');
@@ -146,27 +151,16 @@ class TV extends MediaLibrary
 	function Check()
 	{
 		global $_d;
-
-		$this->fs = $this->CollectFS();
-		$this->ds = $this->CollectDS();
 		$this->CheckFilesystem($msgs);
 		$this->CheckDatabase($msgs);
-
 	}
 
 	function CheckFilesystem(&$msgs)
 	{
 		global $_d;
 
-		foreach ($this->fs as $tvse)
-		{
-			try { $tvse->Check(); }
-			catch (CheckException $ce)
-			{
-				if ($ce->action == ACTION_SKIP) continue;
-				else throw $ce;
-			}
-		}
+		$this->fs = $this->CollectFS();
+		foreach ($this->fs as $tvse) $tvse->Check();
 	}
 
 	function CheckDatabase(&$msgs)
@@ -179,11 +173,11 @@ class TV extends MediaLibrary
 
 		foreach ($ds as $s => $series)
 		{
-			$series->CollectDS();
-
-			if (!file_exists($series->Path))
+			if (!file_exists($series->Path)
+			|| basename(realpath($series->Path)) != basename($series->Path))
 			{
-				$_d['entry.ds']->remove(array('_id' => $series->Data['_id']));
+				TV::OutErr("Removing orphan series: {$series->Path}");
+				$series->Remove();
 			}
 
 			if (!empty($series->ds))
@@ -345,18 +339,15 @@ class TVSeriesEntry extends MediaEntry
 
 	function CollectFS()
 	{
-		$ignores = array(
-			'/^\.$/',
-			'/^\.\.$/',
-			'/folder\.jpg/',
-			'/backdrop\.jpg/');
+		global $_d;
+
+		$ignores = $_d['tv.cb.ignore'];
 
 		$ret = array();
 		foreach (scandir($this->Path) as $fn)
 		{
 			$skip = false;
-			foreach ($ignores as $i)
-				if (preg_match($i, $fn)) $skip = true;
+			foreach ($ignores as $i) if (preg_match($i, $fn)) $skip = true;
 			if ($skip) continue;
 
 			$p = $this->Path.'/'.$fn;
@@ -382,6 +373,16 @@ class TVSeriesEntry extends MediaEntry
 		$this->fs = $this->CollectFS();
 		$this->CollectDS();
 
+		$this->CheckSelf();
+		$this->CheckOrphans();
+		$this->CheckFilesystem();
+		$this->CheckDataset();
+
+		return;
+	}
+
+	function CheckSelf()
+	{
 		# Has this series already been added to db?
 		if (empty($this->Data))
 		{
@@ -391,68 +392,38 @@ class TVSeriesEntry extends MediaEntry
 				'type' => 'tv-series'
 			);
 			$_d['entry.ds']->save($this->Data, array('safe' => 1));
-			throw new CheckException('Adding missing series in database for '
+			TV::OutErr('Adding missing series in database for '
 				.$this->Title);
 		}
+	}
 
-		# Make sure all episodes for this series are imported into the db.
-		foreach ($this->fs as $sn => $eps)
+	function CheckOrphans()
+	{
+		global $_d;
+
+		$this->prunes = array();
+		$changed = false;
+
+		foreach ($this->ds as $sn => $season)
 		{
-			$eps = array();
-
-			# Foreach identified filesystem season and episode
-			foreach ($eps as $een => $ep)
+			foreach ($season as $en => $ep)
 			{
-				# Check Database Existence
-				if (empty($this->ds[$esn][$een]['path']))
+				# Check filesystem for this db entry.
+				if (!empty($ep['path']))
 				{
-					var_dump($esn);
-					TV::OutErr("Adding missing '{$ep->Path}' to database.");
-					$ep->save_to_db();
+					$this->prunes[$ep['path']] = 1;
+					/*if (!file_exists($ep['path']))
+					{
+						TV::OutErr("Removed orphan {$ep['path']}");
+						$_d['entry.ds']->remove(array('_id' => $ep['_id']));
+						$changed = true;
+					}*/
 				}
-
-				if (empty($ep->Data['index'])) continue;
-
-				if (!empty($_d['tv.cb.check.episode']))
-				foreach ($_d['tv.cb.check.episode'] as $cb)
-					$errors += call_user_func_array($cb, array(&$p, &$msgs));
 			}
 		}
 
-		# Validate Database.
-
-		$fs = $this->CollectFS();
-
-		$dseps = array();
-		$cr = $_d['entry.ds']->find(array('type' => 'tv-episode'));
-
-		foreach ($cr as $ent)
-		{
-			$s = $ent['series'];
-			$se = $ent['season'];
-			$ep = $ent['episode'];
-
-			if (isset($dseps[$s][$se][$ep]))
-			{
-				$e1 = $dseps[$s][$se][$ep];
-				$e2 = $ent;
-
-				# Remove duplicates
-
-				if (empty($e1['path'])) $id = $e1['_id'];
-				else $id = $e2['_id'];
-				$_d['entry.ds']->remove(array(
-					'type' => 'tv-episode', '_id' => $id), array('safe' => 1));
-
-				$msgs['Duplicates'][] = "Found duplicate: {$s} {$se} {$ep}. Removed {$id}";
-			}
-
-			$dseps[$s][$se][$ep] = $ent;
-		}
-
-		$this->CheckFilesystem();
-
-		return;
+		# Something changed, reload the dataset.
+		if ($changed) $this->CollectDS();
 	}
 
 	/**
@@ -463,9 +434,6 @@ class TVSeriesEntry extends MediaEntry
 	function CheckFilesystem()
 	{
 		global $_d;
-
-		$this->CollectDS();
-		$this->CollectFS();
 
 		if (empty($this->fs))
 			throw new CheckException("Empty series '{$this->Path}'.");
@@ -483,20 +451,36 @@ class TVSeriesEntry extends MediaEntry
 					$this->ds[$is][$ie] = $ep->Data;
 				}
 
-				else if (empty($this->ds[$is][$ie]['path']))
+				else if (empty($ep->Data['path']))
 				{
-					$this->ds[$is][$ie]['path'] = $ep->Path;
-					$_d['entry.ds']->save($this->ds[$is][$ie],
-						array('safe' => 1));
-					echo "Need to update path {$ep->Path} on existing entry.";
+					$ep->Data['path'] = $ep->Path;
+					$ep->SaveDS();
+					echo "Updated path {$ep->Path} on existing entry.";
 					flush();
 				}
+
+				else unset($this->prunes[$ep->Data['path']]);
 			}
+		}
+
+		foreach (array_keys($this->prunes) as $p)
+		{
+			$_d['entry.ds']->remove(array('path' => $p));
 		}
 
 		if (!empty($_d['tv.cb.check.series']))
 		foreach ($_d['tv.cb.check.series'] as $cb)
 			call_user_func_array($cb, array(&$this));
+	}
+
+	function CheckDataset()
+	{
+		foreach ($this->ds as $sn => $season)
+		{
+			foreach ($season as $en => $ep)
+			{
+			}
+		}
 	}
 
 	function TagItem($t, $g, $a)
@@ -523,6 +507,19 @@ class TVSeriesEntry extends MediaEntry
 
 	function SaveCover($url) {
 		file_put_contents($this->Path.'/folder.jpg', file_get_contents($url));
+	}
+
+	# MediaEntry Overloads
+
+	function Remove()
+	{
+		global $_d;
+
+		# Remove all episodes for this series.
+		$_d['entry.ds']->remove(array(
+			'parent' => new MongoID($this->Data['_id'])));
+
+		parent::Remove();
 	}
 }
 
@@ -568,11 +565,11 @@ class TVEpisodeEntry extends MediaEntry
 			# Includes Series, Season, Episode, Title
 
 			# path/{series}/{series} - S{season}E{episode} - {title}.ext
-			'#/([^/]+)/([^/-]+)\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
-				2 => 'series',
-				3 => 'season',
-				4 => 'episode',
-				5 => 'title'),
+			'#/([^/]+)/[^/-]+\s+-\s*S([0-9]+)E([0-9\-]+)\s*-\s*(.*)\.[^.]+$#i' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'title'),
 			# path/{series}/{series} Season {season} Episode {episode} - {title}.ext
 			'#/([^/]+)/([^/-]+)\s*Season ([0-9]{1,3})\s+Episode ([0-9]{1,3})\s*-\s*(.*)\.[^.]+$#i' => array(
 				2 => 'series',
@@ -598,14 +595,14 @@ class TVEpisodeEntry extends MediaEntry
 				3 => 'episode',
 				4 => 'title'),
 			# path/{series}/{series} - S##.E## - {title}
-			'#/([^/]+)/.*\s+-\s+S(\d{2})\.E(\d{2})\s+-\s+(.*)\.([^.]+)#' => array(
+			'#/([^/]+)/[^/]+\s+-\s+S(\d{2})\.E(\d{2})\s+-\s+(.*)\.([^.]+)#' => array(
 				1 => 'series',
 				2 => 'season',
 				3 => 'episode',
 				4 => 'title',
 				5 => 'ext'),
 			# path/{series}/series - S##xE## - {title}
-			'#/([^/]+)/.*?(\d{1,2})x(\d{1,2})#' => array(
+			'#/([^/]+)/[^/]+(\d{1,2})x(\d{1,2})#' => array(
 				1 => 'series',
 				2 => 'season',
 				3 => 'episode'),

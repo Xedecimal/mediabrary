@@ -21,6 +21,7 @@ class TVDB extends Module implements Scraper
 	{
 		global $_d;
 
+		$_d['tv.cb.ignore'][] = '/\.tvdb_cache\.json/';
 		$_d['tv.cb.check.series'][$this->Name] = array(&$this, 'cb_tv_check_series');
 	}
 
@@ -113,8 +114,7 @@ class TVDB extends Module implements Scraper
 		return $ret;*/
 	}
 
-	public function GetDetails($t, $g, $a) {
-	}
+	public function GetDetails($t, $g, $a) { }
 
 	public function GetName() {
 
@@ -122,9 +122,11 @@ class TVDB extends Module implements Scraper
 
 	public function Scrape(&$item, $id = null)
 	{
-		$dst = $item->Data['path'].'/.info.xml';
+		$dst = $item->Data['path'].'/.tvdb_cache.json';
 		$src = self::_tvdb_api."/series/{$id}/all/en.xml";
-		if (!@file_put_contents($dst, file_get_contents($src)))
+		$xml = file_get_contents($src);
+		$arr = Arr::FromXML($xml);
+		if (!@file_put_contents($dst, json_encode($arr)))
 			return 'Unable to write tvdb metadata.';
 	}
 
@@ -171,6 +173,8 @@ class TVDB extends Module implements Scraper
 
 		$tvdbeps = TVDB::GetInfo($series->Path);
 
+		$this->CheckSeriesFilename($series, $tvdbeps);
+
 		if (!empty($tvdbeps['eps']))
 		foreach ($tvdbeps['eps'] as $s => $eps)
 		{
@@ -200,11 +204,11 @@ class TVDB extends Module implements Scraper
 				# Check series.
 				$errors += $this->CheckDetails($msgs, $dbep, $ep);
 
-				# This entry is in the filesystem.
+				# This tv-episode is in the filesystem.
 				if (!empty($dbep['path']))
 				{
 					# Check filename.
-					$errors += $this->CheckFilename($msgs, $dbep, $ep);
+					$errors += $this->CheckFilename($tvdbeps, $dbep, $ep);
 				}
 			}
 		}
@@ -224,6 +228,7 @@ class TVDB extends Module implements Scraper
 			TV::OutErr("Adding metadata for {$ep['path']}", $nep);
 		}
 
+		# Release Date
 		if (!empty($ep['details'][$this->Name]['FirstAired']))
 		{
 			if (empty($ep['released']))
@@ -243,7 +248,16 @@ class TVDB extends Module implements Scraper
 		}
 	}
 
-	function CheckFilename(&$msgs, $ep, $dvdbep)
+	function CheckSeriesFilename(&$series, &$data)
+	{
+		$src = dirname($series->Path).'/'.basename(realpath($series->Path));
+		$title = MediaLibrary::CleanTitleForFile($data['Series']['SeriesName']);
+		$dst = dirname($series->Path).'/'.$title;
+		$url = Module::L('tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst));
+		if ($src != $dst) TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst'");
+	}
+
+	function CheckFilename(&$series, $ep, $dvdbep)
 	{
 		if (empty($ep['details'][$this->Name])) return;
 
@@ -251,10 +265,10 @@ class TVDB extends Module implements Scraper
 
 		if (!empty($epname))
 			$epname = MediaLibrary::CleanTitleForFile($epname, false);
-		if (!empty($eps['series']))
-			$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
 
-		$preg = '@([^/]+)/('.preg_quote($ep['series'],'@')
+		$sn = MediaLibrary::CleanTitleForFile($series['Series']['SeriesName']);
+
+		$preg = '@([^/]+)/('.preg_quote($sn,'@')
 			.') - S([0-9]{2,3})E([0-9]{2,3}) - '
 			.preg_quote($epname, '@').'\.([^.]+)$@';
 
@@ -265,7 +279,7 @@ class TVDB extends Module implements Scraper
 			$ext = File::ext($ep['path']);
 			$fns = sprintf('%02d', $ep['season']);
 			$fne = sprintf('%02d', $ep['episode']);
-			$fname = "{$ep['series']} - S{$fns}E{$fne} - {$epname}";
+			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
 			$url = Module::L('tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext"));
 			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"", $ep);
 			return false;
@@ -283,13 +297,15 @@ class TVDB extends Module implements Scraper
 	{
 		global $_d;
 
-		$sc = "$path/.info.dat";
+		$sc = "$path/.tvdb_cache.json";
 		if (file_exists($sc))
 		{
-			$info = unserialize(file_get_contents($sc));
-			if (isset($info['sid'])) return $info['sid'];
+			$info = json_decode(file_get_contents($sc), true);
+			if (isset($info['Series']['id']))
+				return $info['Series']['id'];
 		}
 		else $info = array();
+		var_dump('NO SID!');
 		$file_title = "$path/.title.txt";
 		if (file_exists($file_title)) $realname = file_get_contents($file_title);
 		else $realname = basename($path);
@@ -300,7 +316,6 @@ class TVDB extends Module implements Scraper
 		$sid = (int)$sids[0];
 		if (empty($sid)) return -1;
 		$info['sid'] = $sid;
-		file_put_contents($path.'/.info.dat', serialize($info));
 		return $sid;
 	}
 
@@ -314,28 +329,32 @@ class TVDB extends Module implements Scraper
 			return null;
 		}
 
-		$infoloc = "$series/.tvdb.xml";
+		$infoloc = "$series/.tvdb_cache.json";
 		if ($download || !file_exists($infoloc))
 		{
-			$url = 'http://www.thetvdb.com/api/138419DAB0A9141D/series/'
-				.$sid.'/all/en.xml';
-			file_put_contents($infoloc, file_get_contents($url));
+			$url = self::_tvdb_api.'/series/'.$sid.'/all/en.xml';
+			$xml = file_get_contents($url);
+			$arr = Arr::FromXML($xml);
+			if (!empty($arr)) file_put_contents($infoloc, json_encode($arr));
 		}
-		$xml = file_get_contents($infoloc);
-		return Arr::FromXML($xml);
+
+		return json_decode(file_get_contents($infoloc), true);
 	}
 
 	static function GetInfo($series)
 	{
 		$info = TVDB::GetXML($series);
-		if (empty($info['Episode'])) return array();
+
+		if (empty($info)) return $info;
+
+		$ret['Series'] = $info['Series'];
+
 		foreach ($info['Episode'] as $ep)
 		{
 			$sn = (int)$ep['SeasonNumber'];
 			$en = (int)$ep['EpisodeNumber'];
 
-			foreach (array_keys($ep) as $k)
-				if (empty($ep[$k])) unset($ep[$k]);
+			foreach (array_keys($ep) as $k) if (empty($ep[$k])) unset($ep[$k]);
 
 			$item['details']['TVDB'] = $ep;
 
