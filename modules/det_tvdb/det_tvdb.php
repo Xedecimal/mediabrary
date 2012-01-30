@@ -193,8 +193,7 @@ class TVDB extends Module implements Scraper
 					$tve->Data['parent'] = $series->Data['_id'];
 					$dbep = $tve->Data;
 					$tve->SaveDS(true);
-					echo "Added missing episode data for {$series->Title} of $s $e from TVDB.";
-					flush();
+					TV::OutErr("Added missing episode data for {$series->Title} of $s $e from TVDB.", $tve);
 				}
 				else $dbep = $series->ds[$s][$e];
 
@@ -222,7 +221,7 @@ class TVDB extends Module implements Scraper
 			$nep->CollectDS();
 			$nep->Data['details'][$this->Name] = $tvdbep['details'][$this->Name];
 			$nep->SaveDS();
-			$msgs['TVDB'][] = "Adding metadata for {$ep['path']}";
+			TV::OutErr("Adding metadata for {$ep['path']}", $nep);
 		}
 
 		if (!empty($ep['details'][$this->Name]['FirstAired']))
@@ -233,14 +232,14 @@ class TVDB extends Module implements Scraper
 				$nep->CollectDS();
 				$nep->Data['released'] = $ep['details'][$this->Name]['FirstAired'];
 				$nep->SaveDS();
-				$msgs['TVDB'][] = "Filled release date for {$ep['path']}";
+				TV::OutErr("Filled release date for {$ep['path']}", $nep);
 			}
 
 			# Already aired, missing.
 			if (empty($ep['path'])
 				&& !empty($ep['season'])
 				&& strtotime($ep['details'][$this->Name]['FirstAired']) < time())
-				$msgs['TVDB'][] = "Missing episode {$ep['series']} {$ep['season']}x{$ep['episode']}";
+				TV::OutErr("Missing episode {$ep['series']} {$ep['season']}x{$ep['episode']}", $ep);
 		}
 	}
 
@@ -268,8 +267,8 @@ class TVDB extends Module implements Scraper
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "{$ep['series']} - S{$fns}E{$fne} - {$epname}";
 			$url = Module::L('tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext"));
-			$msgs['Filename Compliance'][] = "<a href=\"$url\" class=\"a-fix\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"";
-			return 1;
+			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"", $ep);
+			return false;
 		}
 	}
 
