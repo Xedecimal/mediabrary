@@ -3,8 +3,8 @@ $(function () {
 		startProcess('check/run');
 		return false;
 	});
-	$('.a-fix').click(function () {
-		$.get($(this).attr('href'));
+	$('.a-fix').live('click', function () {
+		$(this).load($(this).attr('href'));
 		return false;
 	});
 
