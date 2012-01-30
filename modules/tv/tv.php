@@ -143,96 +143,23 @@ class TV extends MediaLibrary
 
 	# Checks
 
-	function CheckPrepare()
-	{
-		global $_d;
-
-		$state = $_d['state.ds']->findOne(array('module' => $this->Name));
-		$state['path'] = 0;
-		$state['module'] = $this->Name;
-		$state['files'] = array();
-
-		if (!empty($_d['config']['paths']['tv-series']['paths']))
-		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
-		{
-			$files = scandir($p);
-			foreach ($files as $f)
-			{
-				if ($f[0] == '.') continue;
-				$state['files'][] = $p.'/'.$f;
-			}
-		}
-
-		$_d['state.ds']->save($state);
-	}
-
 	function Check()
 	{
 		global $_d;
 
-		#$this->_state = $_d['state.ds']->findOne(array('module' => $this->Name));
+		$this->fs = $this->CollectFS();
+		$this->ds = $this->CollectDS();
+		$this->CheckFilesystem($msgs);
+		$this->CheckDatabase($msgs);
 
-		#$this->ds = $this->CollectDS();
-		#$this->CheckFilesystem($msgs);
-		#$this->CheckDatabase($msgs);
-
-		/*# Filesystem checks
-
-		foreach ($fs as $p => $s)
-		{
-			$eps = array();
-
-			$epfs = $s->CollectEpisodes();
-
-			$this->CheckDatabaseSeries($msgs, $ds, $s);
-
-			# Each Episode
-
-			foreach (new FilesystemIterator($p,
-			FilesystemIterator::SKIP_DOTS) as $fep)
-			{
-				if (substr($fep->GetFilename(), 0, 1) == '.') continue;
-
-				$episode = str_replace('\\', '/', $fep->GetPathname());
-
-				$ep = new TVEpisodeEntry($fep->GetPathname());
-				$es = @$ep->Data['series'];
-				$ese = @$ep->Data['season'];
-				$eep = @$ep->Data['episode'];
-
-				# Check Database Existence
-
-				if (!empty($es) && empty($dseps[$es][$ese][$eep]['path']))
-				{
-					$msgs['TV/Metadata'][] = "Adding missing '{$ep->Path}' to database.";
-
-					$ep->save_to_db();
-				}
-
-				if (empty($ep->Data['index'])) continue;
-
-				if (!empty($_d['tv.cb.check.episode']))
-				foreach ($_d['tv.cb.check.episode'] as $cb)
-					$errors += call_user_func_array($cb, array(&$p, &$msgs));
-			}
-
-
-		}*/
 	}
 
 	function CheckFilesystem(&$msgs)
 	{
 		global $_d;
 
-		# No configured tv series paths, we're done here.
-		if (empty($this->_state['files'])) return;
-
-		while (!empty($this->_state['files']))
+		foreach ($this->fs as $tvse)
 		{
-			$p = array_pop($this->_state['files']);
-			$f = basename($p);
-			if ($f == '.' || $f == '..') continue;
-			$tvse = new TVSeriesEntry($p);
 			try { $tvse->Check(); }
 			catch (CheckException $ce)
 			{
@@ -247,39 +174,6 @@ class TV extends MediaLibrary
 		global $_d;
 
 		$ds = $this->CollectDS();
-
-		# Validate Database.
-
-		/*$fs = $this->CollectFS();
-
-		# We'll collect our own data for more rigorous checks.
-
-		$dseps = array();
-		$cr = $_d['entry.ds']->find(array('type' => 'tv-episode'));
-
-		foreach ($cr as $ent)
-		{
-			$s = $ent['series'];
-			$se = $ent['season'];
-			$ep = $ent['episode'];
-
-			if (isset($dseps[$s][$se][$ep]))
-			{
-				$e1 = $dseps[$s][$se][$ep];
-				$e2 = $ent;
-
-				# Remove duplicates
-
-				if (empty($e1['path'])) $id = $e1['_id'];
-				else $id = $e2['_id'];
-				$_d['entry.ds']->remove(array(
-					'type' => 'tv-episode', '_id' => $id), array('safe' => 1));
-
-				$msgs['Duplicates'][] = "Found duplicate: {$s} {$se} {$ep}. Removed {$id}";
-			}
-
-			$dseps[$s][$se][$ep] = $ent;
-		}*/
 
 		# Database checks
 
@@ -305,22 +199,6 @@ class TV extends MediaLibrary
 					}
 				}
 			}
-		}
-	}
-
-	/**
-	 * Check a tv series.
-	 * @param array $ds Results from mogno find()
-	 * @param TVSeriesEntry $s Entry to check.
-	 */
-	function CheckDatabaseSeries(&$msgs, &$ds, $s)
-	{
-		global $_d;
-
-		if (!isset($ds[$s->Path]))
-		{
-			$_d['entry.ds']->save($s->Data, array('safe' => 1));
-			$msgs['TV'][] = 'Adding missing series in database for '.$s->Title;
 		}
 	}
 
@@ -359,11 +237,12 @@ class TV extends MediaLibrary
 		# Existing series filesystem entries
 
 		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
-			foreach (new FilesystemIterator($p,
-				FilesystemIterator::SKIP_DOTS) as $f)
+		foreach (scandir($p) as $f)
 		{
-			$se = new TVSeriesEntry($f->GetPathname());
-			$ret[$f->GetPathname()] = $se;
+			if ($f == '.' || $f == '..') continue;
+			$sp = $p.'/'.$f;
+			$se = new TVSeriesEntry($sp);
+			$ret[$sp] = $se;
 		}
 
 		ksort($ret);
@@ -399,6 +278,12 @@ class TV extends MediaLibrary
 				$ret[] = $fx;
 
 		return $ret;
+	}
+
+	static function OutErr($msg, $me = null)
+	{
+		echo "<p>$msg</p>\r\n";
+		flush();
 	}
 }
 
@@ -443,11 +328,13 @@ class TVSeriesEntry extends MediaEntry
 	{
 		global $_d;
 
+		# Collect this series.
 		$this->Data = $_d['entry.ds']->findOne(array(
 			'type' => $this->Type,
 			'path' => $this->Path
 		));
 
+		# Collect all these episodes.
 		$eps = $_d['entry.ds']->find(array(
 			'type' => 'tv-episode',
 			'parent' => $this->Data['_id']
@@ -458,26 +345,44 @@ class TVSeriesEntry extends MediaEntry
 
 	function CollectFS()
 	{
+		$ignores = array(
+			'/^\.$/',
+			'/^\.\.$/',
+			'/folder\.jpg/',
+			'/backdrop\.jpg/');
+
+		$ret = array();
 		foreach (scandir($this->Path) as $fn)
 		{
-			if (substr($fn, 0, 1) == '.') continue;
+			$skip = false;
+			foreach ($ignores as $i)
+				if (preg_match($i, $fn)) $skip = true;
+			if ($skip) continue;
+
 			$p = $this->Path.'/'.$fn;
 
 			$ep = new TVEpisodeEntry($p);
+
 			# Possibly Metadata or unknown file.
 			if (empty($ep->Data['season']))
-				throw new CheckException("Unable to identify episode: {$ep->Path}", ACTION_SKIP, $this->Name);
+			{
+				TV::OutErr("Unable to identify episode: {$ep->Path}", $ep);
+				continue;
+			}
 
-			$this->fs[$ep->Data['season']][$ep->Data['episode']] = $ep;
+			$ret[$ep->Data['season']][$ep->Data['episode']] = $ep;
 		}
+		return $ret;
 	}
 
 	function Check()
 	{
 		global $_d;
 
-		$series = $this->CollectDS();
+		$this->fs = $this->CollectFS();
+		$this->CollectDS();
 
+		# Has this series already been added to db?
 		if (empty($this->Data))
 		{
 			$this->Data = array(
@@ -488,6 +393,61 @@ class TVSeriesEntry extends MediaEntry
 			$_d['entry.ds']->save($this->Data, array('safe' => 1));
 			throw new CheckException('Adding missing series in database for '
 				.$this->Title);
+		}
+
+		# Make sure all episodes for this series are imported into the db.
+		foreach ($this->fs as $sn => $eps)
+		{
+			$eps = array();
+
+			# Foreach identified filesystem season and episode
+			foreach ($eps as $een => $ep)
+			{
+				# Check Database Existence
+				if (empty($this->ds[$esn][$een]['path']))
+				{
+					var_dump($esn);
+					TV::OutErr("Adding missing '{$ep->Path}' to database.");
+					$ep->save_to_db();
+				}
+
+				if (empty($ep->Data['index'])) continue;
+
+				if (!empty($_d['tv.cb.check.episode']))
+				foreach ($_d['tv.cb.check.episode'] as $cb)
+					$errors += call_user_func_array($cb, array(&$p, &$msgs));
+			}
+		}
+
+		# Validate Database.
+
+		$fs = $this->CollectFS();
+
+		$dseps = array();
+		$cr = $_d['entry.ds']->find(array('type' => 'tv-episode'));
+
+		foreach ($cr as $ent)
+		{
+			$s = $ent['series'];
+			$se = $ent['season'];
+			$ep = $ent['episode'];
+
+			if (isset($dseps[$s][$se][$ep]))
+			{
+				$e1 = $dseps[$s][$se][$ep];
+				$e2 = $ent;
+
+				# Remove duplicates
+
+				if (empty($e1['path'])) $id = $e1['_id'];
+				else $id = $e2['_id'];
+				$_d['entry.ds']->remove(array(
+					'type' => 'tv-episode', '_id' => $id), array('safe' => 1));
+
+				$msgs['Duplicates'][] = "Found duplicate: {$s} {$se} {$ep}. Removed {$id}";
+			}
+
+			$dseps[$s][$se][$ep] = $ent;
 		}
 
 		$this->CheckFilesystem();
@@ -537,10 +497,6 @@ class TVSeriesEntry extends MediaEntry
 		if (!empty($_d['tv.cb.check.series']))
 		foreach ($_d['tv.cb.check.series'] as $cb)
 			call_user_func_array($cb, array(&$this));
-	}
-
-	static function CheckDS(&$msgs)
-	{
 	}
 
 	function TagItem($t, $g, $a)
@@ -641,6 +597,18 @@ class TVEpisodeEntry extends MediaEntry
 				2 => 'season',
 				3 => 'episode',
 				4 => 'title'),
+			# path/{series}/{series} - S##.E## - {title}
+			'#/([^/]+)/.*\s+-\s+S(\d{2})\.E(\d{2})\s+-\s+(.*)\.([^.]+)#' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode',
+				4 => 'title',
+				5 => 'ext'),
+			# path/{series}/{series} - S##xE## - {title}
+			'#/([^/]+)/.*?(\d{1,2})x(\d{1,2})$#' => array(
+				1 => 'series',
+				2 => 'season',
+				3 => 'episode'),
 
 			# Includes Series, Season, Episode
 
