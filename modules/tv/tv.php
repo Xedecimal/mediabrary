@@ -85,7 +85,7 @@ class TV extends MediaLibrary
 			$md = new TVEpisodeEntry($path);
 			$md->CollectDS();
 
-			if ($md->Rename($target)) die('Error!');
+			if (!$md->Rename($target)) die('Error!');
 			else die('Done.');
 		}
 	}
@@ -194,7 +194,7 @@ class TV extends MediaLibrary
 					if (!empty($episode['path']))
 					if (!file_exists($episode['path']))
 					{
-						$msgs['Orphans'][] = "Removing {$episode['path']}";
+						TV::OutErr("Removing {$episode['path']}");
 						$_d['entry.ds']->remove(array('_id' => $episode['_id']));
 					}
 				}
@@ -604,8 +604,8 @@ class TVEpisodeEntry extends MediaEntry
 				3 => 'episode',
 				4 => 'title',
 				5 => 'ext'),
-			# path/{series}/{series} - S##xE## - {title}
-			'#/([^/]+)/.*?(\d{1,2})x(\d{1,2})$#' => array(
+			# path/{series}/series - S##xE## - {title}
+			'#/([^/]+)/.*?(\d{1,2})x(\d{1,2})#' => array(
 				1 => 'series',
 				2 => 'season',
 				3 => 'episode'),
@@ -613,7 +613,7 @@ class TVEpisodeEntry extends MediaEntry
 			# Includes Series, Season, Episode
 
 			# path/{series}/{series} S{SSS}E{EEE}.ext
-			'#/[^/]+/([^/]+)S(\d{1,3})E(\d{1,3}).*\.(.{3})$#' => array(
+			'#/([^/]+)/[^/]+S(\d{1,3})E(\d{1,3}).*\.(.{3})$#' => array(
 				1 => 'series',
 				2 => 'season',
 				3 => 'episode',
