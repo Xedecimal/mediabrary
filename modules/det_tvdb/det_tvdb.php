@@ -255,8 +255,9 @@ class TVDB extends Module implements Scraper
 		if (!empty($eps['series']))
 			$eps['series'] = MediaLibrary::CleanTitleForFile($eps['series'], false);
 
-		$preg = "@([^/]+)/({$ep['series']}) - S([0-9]{2,3})E([0-9]{2,3}) - "
-			.preg_quote($epname).'\.([^.]+)$@';
+		$preg = '@([^/]+)/('.preg_quote($ep['series'],'@')
+			.') - S([0-9]{2,3})E([0-9]{2,3}) - '
+			.preg_quote($epname, '@').'\.([^.]+)$@';
 
 		# <series> / <series> - S<season>E<episode> - <title>.avi
 		if (!preg_match($preg, $ep['path']))
