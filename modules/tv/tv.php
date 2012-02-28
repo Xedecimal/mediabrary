@@ -383,6 +383,8 @@ class TVSeriesEntry extends MediaEntry
 
 	function CheckSelf()
 	{
+		global $_d;
+
 		# Has this series already been added to db?
 		if (empty($this->Data))
 		{
@@ -404,6 +406,7 @@ class TVSeriesEntry extends MediaEntry
 		$this->prunes = array();
 		$changed = false;
 
+		if (!empty($this->ds))
 		foreach ($this->ds as $sn => $season)
 		{
 			foreach ($season as $en => $ep)
