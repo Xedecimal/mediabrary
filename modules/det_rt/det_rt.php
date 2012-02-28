@@ -181,8 +181,8 @@ class RottenTomatoes extends Module implements Scraper
 			foreach ($results as $ix => $r)
 			{
 				# Year may be off by one.
-				if ($r['date'] < $md->Data['released']-1
-					|| $r['date'] > $md->Data['released']+1) unset($results[$ix]);
+				if ($r['date'] < @$md->Data['released']-1
+					|| $r['date'] > @$md->Data['released']+1) unset($results[$ix]);
 				else if (MediaLibrary::TitleMatch($r['title'], $st))
 				{ $results = array($ix => $r); break; }
 			}
