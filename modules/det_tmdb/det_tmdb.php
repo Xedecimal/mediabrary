@@ -553,7 +553,7 @@ EOF;
 				.$me->Data['_id'].'?path='.$me->Path.'">Details</a>';
 		foreach ($links as $t => $l)
 		{
-			echo ' - <a class="button" href="'.$l.'">'.$t.'</a>';
+			echo ' - <a class="a-fix button" href="'.$l.'">'.$t.'</a>';
 		}
 		echo "</p>\r\n";
 		flush();
