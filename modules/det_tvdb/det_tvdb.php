@@ -126,6 +126,7 @@ class TVDB extends Module implements Scraper
 		$src = self::_tvdb_api."/series/{$id}/all/en.xml";
 		$xml = file_get_contents($src);
 		$arr = Arr::FromXML($xml);
+		$arr['Series']['scraped'] = time();
 		if (!@file_put_contents($dst, json_encode($arr)))
 			return 'Unable to write tvdb metadata.';
 	}
@@ -172,6 +173,15 @@ class TVDB extends Module implements Scraper
 		$errors = 0;
 
 		$tvdbeps = TVDB::GetInfo($series->Path);
+
+		# After a week scrape a new version.
+		$scraped = @$tvdbeps['Series']['scraped'];
+		if (empty($scraped) || time() > $scraped + 604800)
+		{
+			$off = U::GetDateOffset($scraped);
+			TV::OutErr("Series: {$series->Title} hasn't been scraped for $off. Scraping from TVDB.");
+			$this->Scrape($series, $tvdbeps['Series']['id']);
+		}
 
 		$this->CheckSeriesFilename($series, $tvdbeps);
 
