@@ -347,7 +347,8 @@ class TVSeriesEntry extends MediaEntry
 		foreach (scandir($this->Path) as $fn)
 		{
 			$skip = false;
-			foreach ($ignores as $i) if (preg_match($i, $fn)) $skip = true;
+			foreach ($ignores as $i)
+				if (preg_match($i, $fn)) { $skip = true; break; }
 			if ($skip) continue;
 
 			$p = $this->Path.'/'.$fn;
@@ -453,11 +454,12 @@ class TVSeriesEntry extends MediaEntry
 					$ep->SaveDS(true);
 					$this->ds[$is][$ie] = $ep->Data;
 				}
-
-				else if (empty($ep->Data['path']))
+				else if (empty($this->ds[$is][$ie]['path']))
 				{
-					$ep->Data['path'] = $ep->Path;
-					$ep->SaveDS();
+					$dep = new TVEpisodeEntry($ep->Path);
+					$dep->CollectDS();
+					$dep->Data['path'] = $ep->Path;
+					$dep->SaveDS();
 					echo "Updated path {$ep->Path} on existing entry.";
 					flush();
 				}
@@ -558,7 +560,9 @@ class TVEpisodeEntry extends MediaEntry
 
 		$this->Data = $_d['entry.ds']->findOne(array(
 			'type' => $this->Type,
-			'path' => $this->Path
+			'series' => $this->series,
+			'season' => (int)$this->season,
+			'episode' => (int)$this->episode
 		));
 	}
 
