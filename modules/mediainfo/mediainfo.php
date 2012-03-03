@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__).'/../../3rd/getid3/getid3.php');
+
 class MediaInfo extends Module
 {
 	public $Name = 'mediainfo';
@@ -8,8 +10,6 @@ class MediaInfo extends Module
 	function __construct()
 	{
 		global $_d;
-
-		$this->state_file = 'modules/mediainfo/state.dat';
 
 		$_d['medinfo.ds'] = $_d['db']->medinfo;
 
@@ -21,34 +21,28 @@ class MediaInfo extends Module
 			'fsize' => array('short' => 'FS',
 				'title' => 'File Size'),
 
-			'General.Duration' => array('short' => 'D',
+			'duration' => array('short' => 'D',
 				'title' => 'Duration'),
-			'General.Format' => array('short' => 'Format',
+			'fileformat' => array('short' => 'Format',
 				'title' => 'Internal File Format'),
-			'General.Format_Info' => array('short' => 'FI',
-				'title' => 'Format Info'),
-			'General.Overall_bit_rate' => array('short' => 'OBR',
+			'bitrate' => array('short' => 'OBR',
 				'title' => 'Overall Bit Rate'),
 
-			'Video.Bits__Pixel_Frame_' => array('short' => 'BPPF',
-				'title' => 'Bits per Pixel per Frame'),
-			'Video.Bit_rate' => array('short' => 'VBR',
+			'video.bits_per_sample' => array('short' => 'BPS',
+				'title' => 'Bits per Sample'),
+			'video.bitrate' => array('short' => 'VBR',
 				'title' => 'Video Bit Rate'),
-			'Video.Codec_ID' => array('short' => 'CID',
+			'video.codec' => array('short' => 'CID',
 				'title' => 'Video Codec ID'),
-			'Video.Display_aspect_ratio' => array('short' => 'AR',
+			'video.pixel_aspect_ratio' => array('short' => 'AR',
 				'title' => 'Aspect Ratio'),
-			'Video.Duration' => array('short' => 'VD',
-				'title' => 'Video Duration'),
-			'Video.Format' => array('short' => 'VF',
+			'video.dataformat' => array('short' => 'VF',
 				'title' => 'Video Format'),
-			'Video.Frame_rate' => array('short' => 'FR',
+			'video.frame_rate' => array('short' => 'FR',
 				'title' => 'Frame Rate'),
-			'Video.Height' => array('short' => 'Y',
+			'video.resolution_y' => array('short' => 'Y',
 				'title' => 'Vertical Resolution'),
-			'Video.Stream_size' => array('short' => 'VSS',
-				'title' => 'Video Stream Size'),
-			'Video.Width' => array('short' => 'X',
+			'video.resolution_x' => array('short' => 'X',
 				'title' => 'Horizontal Resolution'),
 
 			'Audio.Bit_rate' => array('short' => 'ABR',
@@ -57,8 +51,6 @@ class MediaInfo extends Module
 				'title' => 'Audio Bit Rate Mode'),
 			'Audio.Channel_s_' => array('short' => 'AC',
 				'title' => 'Audio Channels'),
-			'Audio.Duration' => array('short' => 'AD',
-				'title' => 'Audio Duration'),
 			'Audio.Format' => array('short' => 'AF',
 				'title' => 'Audio Format'),
 			'Audio.Format_profile' => array('short' => 'AFP',
@@ -121,7 +113,7 @@ class MediaInfo extends Module
 			$r['head'] = <<<EOF
 <link type="text/css" rel="stylesheet" href="modules/mediainfo/css.css" />
 <script type="text/javascript" src="xedlib/js/jquery.tablesorter.js"></script>
-<script type="text/javascript" src="modules/mediainfo/js.js"></script>
+<script type="text/javascript" src="modules/mediainfo/mediainfo.js"></script>
 EOF;
 		}
 
@@ -210,18 +202,9 @@ EOF;
 		return $ret;
 	}
 
-	function CheckPrepare()
-	{
-		$state['index'] = 0;
-		file_put_contents($this->state_file, serialize($state));
-	}
-
 	function Check()
 	{
 		global $_d;
-		$ret = array();
-
-		$state = unserialize(file_get_contents($this->state_file));
 
 		$q['codec.mtime']['$exists'] = 0;
 		$q['path']['$exists'] = 1;
@@ -230,14 +213,13 @@ EOF;
 		$q['$or'][]['type'] = 'music-track';
 		$cols['path'] = 1;
 
-		$ents = $_d['entry.ds']->find($q)->skip($state['index']++);
+		$ents = $_d['entry.ds']->find($q);
 
 		foreach ($ents as $entry)
 		{
 			MediaInfo::Process($entry);
-			$ret['msg'] = "Processing codec data on {$entry['path']}";
-			file_put_contents($this->state_file, serialize($state));
-			return $ret;
+			echo "<p>Processed codec data on {$entry['path']}</p>";
+			flush();
 		}
 
 		# Collect all database mtime values.
@@ -250,10 +232,9 @@ EOF;
 		foreach ($mtimes as $p => $t)
 		if (!isset($dbtimes[$p]) || $dbtimes[$p] != $t)
 		{
-			U::VarInfo("Scanning codec info for {$p}");
+			echo "<p>TODO: Scan changed codec info for {$p}</p>";
+			flush();
 		}
-
-		return $ret;
 	}
 
 	function cb_detail_entry($t, $g, $a)
@@ -262,76 +243,39 @@ EOF;
 		MediaInfo::Process($t->vars['Data']);
 	}
 
-	function Process($item)
+	static function Process($item)
 	{
 		global $_d;
 
-		$cmd_path = escapeshellarg($item['path']);
-		$out = `{$_d['config']['mediainfo']} --Output=XML {$cmd_path}`;
-		if (empty($out)) { var_dump('Error loading media info.'); return; }
+		$getid3 = new GetID3;
 
-		# simplexml can be a loud mouth.
-		$sx = @simplexml_load_string(preg_replace('/|/', '', $out));
+		$out = $getid3->analyze($item['path']);
+		if (empty($out)) { echo 'Error loading media info.'; return; }
 
-		if (empty($sx))
+		if (empty($out))
 		{
-			$msg = "Bad codec data in file '{$item['path']}'.";
-			$item['errors']['bad_codec'] = array('type' => 'bad_codec', 'msg' => $msg);
-			$item['codec']['mtime'] = filemtime($item['path']);
-			$_d['entry.ds']->save($item, array('safe' => 1));
-			throw new CheckException($msg, 'bad_codec', $this->Name);
+			echo "<p>Bad codec data in file '{$item['path']}'.</p>";
+			flush();
+			#$item['codec']['mtime'] = filemtime($item['path']);
+			#$_d['entry.ds']->save($item, array('safe' => 1));
 		}
 
-		$tracks = $sx->File->track;
+		$item['details']['Audio Quality'] = @$out['audio']['bitrate'] * .005;
+		$item['details']['Video Quality'] = @$out['video']['bitrate'] * .00075;
 
-		if (!empty($tracks))
-		{
-			foreach ($tracks as $t)
-			{
-				$type = $t['type'];
+		$res['audio'] = $out['audio'];
+		$res['video'] = $out['video'];
+		$res['duration'] = $out['playtime_seconds'];
+		$res['fileformat'] = $out['fileformat'];
+		$res['bitrate'] = $out['bitrate'];
 
-				switch ($type)
-				{
-					case 'Video':
-						$vq = ((int)str_replace(' ', '', $t->Bit_rate) * .00075);
-						$stars = str_repeat('<img src="img/vote.png">', $vq * 5);
-						$item['details']['Video Quality'] = $stars." ({$vq} of {$t->Bit_rate})";
-						break;
-					case 'Audio':
-						$aq = ((int)str_replace(' ', '', $t->Bit_rate) * .005);
-						$stars = str_repeat('<img src="img/vote.png">', $aq * 5);
-						$item['details']['Audio Quality'] = $stars." ({$aq} of {$t->Bit_rate})";
-						break;
-				}
-
-				foreach ($t as $n => $v)
-				{
-					$name = $type.'.'.$n;
-					if (!array_key_exists($name, $this->cols)) continue;
-					switch ($name)
-					{
-						case 'General.Overall_bit_rate':
-						case 'Video.Bit_rate':
-						case 'Video.Frame_rate':
-						case 'Video.Width':
-						case 'Video.Height':
-						case 'Video.Resolution':
-						case 'Audio.Bit_rate':
-						case 'Audio.Channel_s_':
-							$value = preg_replace('#(\s*|kbps|pixels|bits|fps|channels|channel)#i', '', $v);
-							break;
-						default: $value = (string)$v;
-					}
-					$item['codec'][$name] = $value;
-				}
-			}
-			$item['codec']['mtime'] = filemtime($item['path']);
-			$item['codec']['fsize'] = filesize($item['path']);
-			$_d['entry.ds']->save($item, array('safe' => 1));
-		}
+		$item['codec'] = $res;
+		$item['codec']['mtime'] = filemtime($item['path']);
+		$item['codec']['fsize'] = filesize($item['path']);
+		$_d['entry.ds']->save($item, array('safe' => 1));
 	}
 }
 
-#Module::Register('MediaInfo');
+Module::Register('MediaInfo');
 
 ?>

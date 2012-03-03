@@ -17,7 +17,7 @@
 <tbody>
 <item>
 	<tr>
-		<td><a href="mediainfo/process/{{_id}}" class="a-process">Refresh</a></td>
+		<td><a href="mediainfo/process/{{_id}}" class="a-process button">Refresh</a></td>
 		<icol><td class="{{class}}">{{data}}</td></icol>
 	</tr>
 </item>
