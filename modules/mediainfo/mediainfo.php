@@ -332,6 +332,6 @@ EOF;
 	}
 }
 
-#Module::Register('MediaInfo');
+Module::Register('MediaInfo');
 
 ?>
