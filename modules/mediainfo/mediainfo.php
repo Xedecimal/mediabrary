@@ -252,10 +252,11 @@ EOF;
 		$out = $getid3->analyze($item['path']);
 		if (empty($out)) { echo 'Error loading media info.'; return; }
 
-		if (empty($out))
+		if (empty($out) || !empty($out['error']))
 		{
 			echo "<p>Bad codec data in file '{$item['path']}'.</p>";
 			flush();
+			return;
 			#$item['codec']['mtime'] = filemtime($item['path']);
 			#$_d['entry.ds']->save($item, array('safe' => 1));
 		}
@@ -263,6 +264,8 @@ EOF;
 		$item['details']['Audio Quality'] = @$out['audio']['bitrate'] * .005;
 		$item['details']['Video Quality'] = @$out['video']['bitrate'] * .00075;
 
+		if (empty($out['audio']))
+			var_dump($out);
 		$res['audio'] = $out['audio'];
 		$res['video'] = $out['video'];
 		$res['duration'] = $out['playtime_seconds'];
