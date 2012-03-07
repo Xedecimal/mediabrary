@@ -1,5 +1,6 @@
 $(function () {
 	$('#a-scan').click(function () {
+		$('#output').addClass('loading');
 		startProcess('check/run');
 		return false;
 	});
@@ -81,6 +82,7 @@ function handleResponse() {
     if (http.readyState != 4 && http.readyState != 3) return;
     if (http.readyState == 3 && http.status != 200) return;
     if (http.readyState == 4 && http.status != 200) {
+		$('#output').removeClass('loading');
         clearInterval(pollTimer);
         inProgress = false;
     }
@@ -99,7 +101,10 @@ function handleResponse() {
     }
 
     if (http.readyState == 4 && prevDataLength == http.responseText.length)
+	{
+		$('#output').removeClass('loading');
         clearInterval(pollTimer);
+	}
 
     inProgress = false;
 }

@@ -3,3 +3,4 @@
 	width: 10em; text-align: right; border-right: 1px solid #222; }
 #output .entry:hover { background: #222; }
 #a-check { clear: both; display: block; text-align: center; margin: auto; }
+#output.loading { background: #300; }
