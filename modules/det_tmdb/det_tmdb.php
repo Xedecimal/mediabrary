@@ -486,7 +486,8 @@ EOD;
 	private function Cleanup(&$data)
 	{
 		# @TODO: Some day do something with the cast maybe.
-		unset($data['movies']['movie']['cast']);
+		unset($data['cast']);
+		unset($data['images']);
 	}
 
 	function GetDetails($t, $g, $a)
