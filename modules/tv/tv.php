@@ -230,7 +230,7 @@ class TV extends MediaLibrary
 
 		# Existing series filesystem entries
 
-		foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
+		foreach ($_d['config']['paths']['tv'] as $p)
 		foreach (scandir($p) as $f)
 		{
 			if ($f == '.' || $f == '..') continue;
