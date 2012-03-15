@@ -269,6 +269,8 @@ class TVDB extends Module implements Scraper
 
 	function CheckFilename(&$series, $ep, $dvdbep)
 	{
+		global $_d;
+
 		if (empty($ep['details'][$this->Name])) return;
 
 		$epname = @$ep['details'][$this->Name]['EpisodeName'];
@@ -290,7 +292,7 @@ class TVDB extends Module implements Scraper
 			$fns = sprintf('%02d', $ep['season']);
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
-			$url = Module::L('tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext"));
+			$url = $_d['app_abs'].'/tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext");
 			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"", $ep);
 			return false;
 		}
