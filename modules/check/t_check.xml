@@ -2,13 +2,4 @@
 <script type="text/javascript" src="modules/check/_check.js"></script>
 <p><a href="#" class="button" id="a-scan">Scan Sources</a></p>
 <div id="output"></div>
-<group>
-<div class="group">
-<p>{{path}}</p>
-<ul>
-<error><li><a class="a-fix" href="{{app_abs}}/{{source}}/fix/{{type}}/{{_id}}">Correct</a>
-	{{type}}: {{msg}}</li></error>
-</ul>
-</div> <!-- group -->
-</group>
 </div>

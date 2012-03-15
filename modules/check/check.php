@@ -20,7 +20,14 @@ class ModCheck extends Module
 	{
 		global $_d;
 
-		$_d['nav.links'][t('Tools').'/'.t('Check_Everything')] = '{{app_abs}}/check';
+		$_d['nav.links'][t('Tools').'/'.t('Check')] = '{{app_abs}}/check';
+
+		global $mods;
+		foreach ($mods as $n => $m)
+		{
+			if (method_exists($m, 'Check'))
+				$_d['nav.links'][t('Tools').'/'.t('Check').'/'.$n] = '{{app_abs}}/check/'.$m->Name;
+		}
 	}
 
 	function Prepare()
@@ -115,50 +122,16 @@ class ModCheck extends Module
 	{
 		global $_d;
 
-		$r = array();
-		$q['errors']['$exists'] = 1;
-		$c = $_d['entry.ds']->find($q)->count();
-		if ($c > 0)
-			$r['notify'] = "<a href=\"{{app_abs}}/check\"><img
-			src=\"{{app_abs}}/img/exclamation.png\" alt=\"Error\"
-			style=\"vertical-align: bottom\" /> {$c} media files have errors
-			that require your attention.</a>";
-
-		if ($_d['q'][0] != 'check') return $r;
+		if ($_d['q'][0] != 'check') return;
 
 		$css = Module::P('modules/check/check.css');
 		$r['head'] = '<link type="text/css" rel="stylesheet" href="'.$css.'" />';
 		global $mods;
 
-		$errors = 0;
-
 		$t = new Template();
 		$t->ReWrite('group', array(&$this, 'TagGroup'));
 		$r['check'] = $t->ParseFile('modules/check/t_check.xml');
 		return $r;
-	}
-
-	function TagGroup($t, $g)
-	{
-		global $_d;
-
-		$q['errors']['$exists'] = 1;
-		$cols['path'] = 1;
-		$cols['errors'] = 1;
-
-		$t = new Template();
-		$t->ReWrite('error', array(&$this, 'TagError'));
-		$items = $_d['entry.ds']->find($q, $cols);
-		foreach ($items as $ix => $i)
-		{
-			if (empty($i['errors']))
-			{
-				unset($i['errors']);
-				$up['$unset']['errors'] = 1;
-				$_d['entry.ds']->update($i, $up, array('safe' => 1));
-			}
-		}
-		return $t->Concat($g, $items);
 	}
 
 	function TagError($t, $g)
