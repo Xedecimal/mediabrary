@@ -435,7 +435,7 @@ class Movie extends MediaLibrary
 		{
 			$urlfix = "movie/fix?path=".urlencode($me->Path);
 			$bn = basename($me->Path);
-			echo "File '$bn' should be '$target'";
+			echo "<p>File '$bn' should be '$target'</p>";
 			flush();
 			$clean = false;
 		}
