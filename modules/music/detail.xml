@@ -1,4 +1,5 @@
 <div id="detail-wrap">
+<input type="hidden" id="detail-id" value="{{Data._id}}" />
 <input type="hidden" id="detail-type" value="music-artist" />
 <input type="hidden" id="detail-path" value="{{Path}}" />
 <callback ds="_d" name="cb.detail.buttons" type="music-artist" />
