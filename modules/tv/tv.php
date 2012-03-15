@@ -528,6 +528,8 @@ class TVSeriesEntry extends MediaEntry
 	}
 }
 
+MediaEntry::RegisterType('tv-series', 'TVSeriesEntry');
+
 class TVEpisodeEntry extends MediaEntry
 {
 	public $Type = 'tv-episode';
@@ -681,6 +683,8 @@ class TVEpisodeEntry extends MediaEntry
 		return array('avi');
 	}
 }
+
+MediaEntry::RegisterType('tv-episode', 'TVEpisodeEntry');
 
 class ModTVEpisode extends MediaLibrary
 {

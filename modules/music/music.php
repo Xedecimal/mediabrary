@@ -175,6 +175,8 @@ class ArtistEntry extends MediaEntry
 	}
 }
 
+MediaEntry::RegisterType('music-artist', 'ArtistEntry');
+
 class AlbumEntry extends MediaEntry
 {
 	public $Type = 'music-album';
@@ -199,6 +201,8 @@ class AlbumEntry extends MediaEntry
 	}
 }
 
+MediaEntry::RegisterType('music-album', 'AlbumEntry');
+
 class TrackEntry extends MediaEntry
 {
 	public $Type = 'music-track';
@@ -211,6 +215,6 @@ class TrackEntry extends MediaEntry
 	}
 }
 
-Module::Register('Music');
+MediaEntry::RegisterType('music-trac', 'TrackEntry');
 
 ?>
