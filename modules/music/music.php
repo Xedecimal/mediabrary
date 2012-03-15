@@ -3,11 +3,12 @@
 class Music extends MediaLibrary
 {
 	public $Name = 'music';
+	public $Names = array('music', 'music-artist', 'music-album', 'music-track');
 
 	function __construct()
 	{
 		parent::__construct();
-		$this->CheckActive($this->Name);
+		$this->CheckActive($this->Names);
 
 		global $_d;
 
@@ -21,7 +22,7 @@ class Music extends MediaLibrary
 		# No music artists configured, we're done here.
 		if (empty($_d['config']['paths']['music-artist'])) return;
 
-		$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
+		//$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/music/img/missing.jpg';
 	}
@@ -30,8 +31,8 @@ class Music extends MediaLibrary
 	{
 		global $_d;
 
-		$_d['nav.links']['Media/Music/Grid'] = '{{app_abs}}/music/grid';
-		#$_d['nav.links']['Media/List/Music'] = '{{app_abs}}/music/list';
+		$_d['nav.links']['Media/Music'] = '{{app_abs}}/music/grid';
+		#$_d['nav.links']['List/Music'] = '{{app_abs}}/music/list';
 	}
 
 	function Prepare()
@@ -42,8 +43,7 @@ class Music extends MediaLibrary
 
 		if (@$_d['q'][1] == 'detail')
 		{
-			$p = $_GET['path'];
-			$ae = new ArtistEntry($p);
+			$ae = ArtistEntry::FromID($_d['q'][2]);
 			$t = new Template();
 			$t->Set($ae);
 			die($t->ParseFile(Module::L('music/detail.xml')));
@@ -58,9 +58,8 @@ class Music extends MediaLibrary
 
 		if (@$_d['q'][1] == 'items')
 		{
-			$this->_items = $this->CollectFS();
-			$type = $_d['q'][2];
-			$this->_template = Module::L('music/item-'.$type.'.xml');
+			$this->_items = ArtistEntry::CollectDS();
+			$this->_template = Module::L('music/item-grid.xml');
 			die(parent::Get());
 		}
 
@@ -69,24 +68,24 @@ class Music extends MediaLibrary
 		return $t->ParseFile($this->_template);
 	}
 
-	/*function Check()
+	function Check()
 	{
 		global $_d;
 
 		$fs = Music::CollectFS();
 		$ds = Music::CollectDS();
 
-		# @TODO: Bring this back when things are looking better.
-		/*foreach ($fs as $p => $e)
+		foreach ($fs as $p => $e)
 		{
 			if (empty($ds[$p]))
 			{
-				$msgs['Music/Metadata'][] = "Adding missing metadata on {$p}";
-
 				$_d['entry.ds']->save($e->Data, array('safe' => 1));
+				Check::Out("Added missing metadata on {$p}");
 			}
+
+			$e->Check();
 		}
-	}*/
+	}
 
 	static function CollectFS()
 	{
@@ -104,7 +103,7 @@ class Music extends MediaLibrary
 
 			$ae = new ArtistEntry($f->GetPathname());
 			$ret[$ae->Path] = $ae;
-			$ret += $ae->CollectFS($f);
+			//$ret += $ae->CollectFS($f);
 		}
 
 		return $ret;
@@ -139,6 +138,8 @@ class Music extends MediaLibrary
 	}
 }
 
+Module::Register('Music');
+
 class ArtistEntry extends MediaEntry
 {
 	public $Type = 'music-artist';
@@ -170,8 +171,35 @@ class ArtistEntry extends MediaEntry
 		return $ret;
 	}
 
-	function CollectDS()
+	static function CollectDS()
 	{
+		global $_d;
+
+		$cr = $_d['entry.ds']->find(array('type' => 'music-artist'));
+
+		$ret = array();
+		foreach ($cr as $i)
+		{
+			$ae = new ArtistEntry($i['path']);
+			$ae->Data = $i;
+			$ret[$i['path']] = $ae;
+		}
+		return $ret;
+	}
+
+	function Check()
+	{
+		global $_d;
+
+		if (!empty($_d['music.cb.check.artist']))
+		foreach ($_d['music.cb.check.artist'] as $cb)
+			call_user_func_array($cb, array(&$this));
+	}
+
+	# MediaEntry
+	function SaveCover($url)
+	{
+		file_put_contents($this->Data['path'].'/cover.jpg', file_get_contents($url));
 	}
 }
 
