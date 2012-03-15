@@ -269,7 +269,7 @@ EOF;
 		if (empty($out['audio']))
 			var_dump($out);
 		$res['audio'] = $out['audio'];
-		$res['video'] = $out['video'];
+		if (!empty($out['video'])) $res['video'] = $out['video'];
 		$res['duration'] = $out['playtime_seconds'];
 		$res['fileformat'] = $out['fileformat'];
 		$res['bitrate'] = $out['bitrate'];
