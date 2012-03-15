@@ -500,6 +500,8 @@ class Movie extends MediaLibrary
 		$m = is_array($_d['movie.cb.query']['match']) ?
 			$_d['movie.cb.query']['match'] : array();
 
+		$m['type'] = 'movie';
+
 		# Collect our data
 		$cur = $_d['entry.ds']->find($m, $_d['movie.cb.query']['columns']);
 
