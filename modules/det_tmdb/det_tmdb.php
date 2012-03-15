@@ -265,7 +265,6 @@ EOD;
 				return;
 			}
 
-			$bigdata =
 			if (empty($me->Data['details'][$this->Name]['images']['image']))
 			{
 				$this->OutErr("Could not locate a cover.", $me);
