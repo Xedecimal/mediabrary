@@ -42,7 +42,7 @@ $(function () {
 		var cov = $(this).attr('src');
 		var fs_path = $('#detail-path').val();
 		$.get(window.app_abs+'/scrape/cover', dat, function () {
-			
+
 		});
 	});
 
@@ -58,8 +58,6 @@ $(function () {
 		});
 
 		dat = {
-			'type': $('#detail-type').val(),
-			path: fs_path,
 			cover: cov,
 			'ids': ids
 		};
@@ -68,10 +66,11 @@ $(function () {
 
 		$('#details').html('<p>Collecting and saving the selected data...</p>');
 
-		$.get(window.app_abs+'/scrape/scrape', dat, function (data) {
+		$.get(window.app_abs+'/scrape/scrape/'+$('#detail-id').val(), dat,
+			function (data) {
 			// Restore dialog contents with new details.
-			$('#detail-dialog').load(window.app_abs+'/'+dat['type']+'/detail/'
-				+$('#detail-id').val());
+			$('#detail-dialog').load(window.app_abs+'/'
+				+$('#detail-type').val()+'/detail/'+$('#detail-id').val());
 		}, 'json');
 	});
 });
@@ -100,7 +99,7 @@ function scape_find(event) {
 
 	$('#details').html('<p>Currently searching...</p>');
 
-	$.get(window.app_abs+'/scrape/find', dat, function (data) {
+	$.get(window.app_abs+'/scrape/find/'+$(this).attr('href'), dat, function (data) {
 		$('#details').html(data);
 	}, 'html');
 

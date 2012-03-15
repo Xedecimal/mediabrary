@@ -34,10 +34,7 @@ class Scrape extends Module
 			$this->type = $_GET['type'];
 			$this->title = Server::GetVar('title', '');
 
-			if ($this->type == 'movie')
-				$this->_item = new MovieEntry($this->path);
-			if ($this->type == 'tv-series')
-				$this->_item = new TVSeriesEntry($this->path);
+			$this->_item = MediaEntry::FromID($_d['q'][2]);
 
 			$t->Set('path', $this->path);
 			$t->Set('title', $this->title);
@@ -47,13 +44,12 @@ class Scrape extends Module
 		if (@$_d['q'][1] == 'scrape')
 		{
 			$ids = Server::GetVar('ids');
-			$path = Server::GetVar('path');
-			$type = Server::GetVar('type');
+			$id = $_d['q'][2];
 
 			# This is automated
 			if (empty($ids))
 			{
-				$md = MediaEntry::GetEntryByType($path, $type);
+				$md = MediaEntry::FromID($id);
 
 				$scraper = Server::GetVar('scraper');
 				if (!empty($scraper)) $ids[$scraper] = null;
@@ -65,15 +61,12 @@ class Scrape extends Module
 			}
 
 			# Collect generic information
-			$q['path'] = $path;
-			$item = MediaEntry::GetEntryByType($path, $type);
-			$ds = $_d['entry.ds']->findOne($q);
-			$ds['type'] = $type;
+			$item = MediaEntry::FromID($id);
 			if (!empty($ds)) $item->Data += $ds;
 
 			# Collect scraper information
 			foreach ($ids as $sc => $id)
-				$_d['scrape.scrapers'][$type][$sc]->Scrape($item, $id);
+				$_d['scrape.scrapers'][$item->Data['type']][$sc]->Scrape($item, $id);
 
 			# Save details
 			$_d['entry.ds']->save($item->Data, array('safe' => 1));
@@ -125,7 +118,7 @@ EOF;
 	function cb_detail_buttons($t, $a)
 	{
 		$img = Module::P('img/find.png');
-		$ret = '<a href="{{Path}}" id="a-scrape-find"><img src="'.$img.'"
+		$ret = '<a href="{{Data._id}}" id="a-scrape-find"><img src="'.$img.'"
 			alt="Find" /></a>';
 
 		if (!empty($t->vars['Data']['details']))
@@ -167,7 +160,7 @@ EOF;
 			$this->_scraper = $s;
 			$t->Set('Name', $s->Name);
 			$t->Set('Link', $s->Link);
-			$t->Set('Icon', $s->Icon);
+			$t->Set('Icon', Module::P($s->Icon));
 			$ret .= $t->GetString($g);
 		}
 

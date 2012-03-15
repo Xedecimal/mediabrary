@@ -7,15 +7,22 @@ class Discogs extends Module implements Scraper
 {
 	public $Name = 'Discogs';
 	public $Link = 'http://www.discogs.com/';
-	public $Icon = 'modules/det_discogs/icon.png';
+	public $Icon = 'modules/det_discogs/img/discogs.png';
 
-	const HTTP_HEADER = "User-Agent: Mediabrary/0.1 +http://code.google.com/p/mediabrary\r\nAccept-Encoding: gzip\r\n";
+	const HTTP_HEADER = "User-Agent: Mediabrary/0.1 +http://code.google.com/p/mediabrary\r\n";
 	const URL_SEARCH = 'http://api.discogs.com/search?f=json&type=artists&q=';
 	const URL_ARTIST = 'http://api.discogs.com/artist/{{id}}?f=json';
 
 	function __construct()
 	{
 		$this->CheckActive($this->Name);
+	}
+
+	function Link()
+	{
+		global $_d;
+
+		$_d['music.cb.check.artist']['discogs'] = array(&$this, 'cb_check_artist');
 	}
 
 	function Prepare()
@@ -33,9 +40,17 @@ class Discogs extends Module implements Scraper
 			$ret['id'] = $this->Name;
 
 			foreach ($data['images'] as $img)
-				$ret['covers'][] = $img['uri'];
+				$ret['covers'][] = 'http://'.$_SERVER['HTTP_HOST'].
+					$_d['app_abs'].'/Discogs/cover?cover='.
+						urlencode($img['uri']);
 
 			die(json_encode($ret));
+		}
+
+		if (@$_d['q'][1] == 'cover')
+		{
+			//file_get_contents($_GET['cover']);
+			die(file_get_contents($_GET['cover']));
 		}
 	}
 
@@ -46,6 +61,8 @@ class Discogs extends Module implements Scraper
 
 	function Find(&$ae, $title)
 	{
+		global $_d;
+
 		$opts['http']['header'] = Discogs::HTTP_HEADER;
 		$cx = stream_context_create($opts);
 		$t = !empty($title) ? $title : $ae->Title;
@@ -61,8 +78,7 @@ class Discogs extends Module implements Scraper
 		{
 			$ret['id'] = $res->title;
 			$ret['title'] = $res->title;
-			if (!empty($res->thumb))
-				$ret['covers'] = $res->thumb;
+			if (!empty($res->thumb)) $ret['covers'] = $_d['app_abs'].'/Discogs/cover?cover='.urlencode($res->thumb);
 			$ret['ref'] = $res->uri;
 
 			$rets[$res->title] = $ret;
@@ -86,19 +102,29 @@ class Discogs extends Module implements Scraper
 		return $res['resp']['artist'];
 	}
 
-	function Scrape(&$data, $id = null)
+	function Scrape(&$ae, $id = null)
 	{
-		if ($data['type'] == 'music-artist')
+		if ($ae->Data['type'] == 'music-artist')
 		{
-			$data['details'][$this->Name] = $this->Details($id);
+			$ae->Data['details'][$this->Name] = $this->Details($id);
 		}
 	}
 
 	function GetDetails($t, $g, $a)
 	{
+		$data = $t->vars['Data'];
+		if (empty($data['details'][$this->Name])) return;
+
 		return <<<EOF
 <p>Discogs Name: {$data['details'][$this->Name]['name']}</p>
 EOF;
+	}
+
+	function cb_check_artist($ae)
+	{
+		var_dump($ae);
+		flush();
+		die();
 	}
 }
 
