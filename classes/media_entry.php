@@ -9,7 +9,9 @@ class MediaEntry
 	# Metadata
 	public $Title;
 
-	function __construct($path, $parses = null, $bypass_checks = false)
+	public static $Types;
+
+	function __construct($path, $parses = null)
 	{
 		$this->Path = $path;
 		$this->Filename = basename($path);
@@ -81,12 +83,13 @@ class MediaEntry
 		throw new Exception('I have no idea where to save a cover for this type.');
 	}
 
-	static function FromID($id, $type = 'MediaEntry')
+	static function FromID($id)
 	{
 		global $_d;
 
 		$item = $_d['entry.ds']->findOne(array('_id' => new MongoID($id)));
-		$ret = new $type($item['path'], null, true);
+		$type = MediaEntry::$Types[$item['type']];
+		$ret = new $type($item['path']);
 		$ret->Data = $item;
 		return $ret;
 	}
@@ -124,15 +127,9 @@ class MediaEntry
 		return $ret;
 	}
 
-	static function GetEntryByType($path, $type)
+	static function RegisterType($type, $class)
 	{
-		switch ($type)
-		{
-			case 'movie':
-				return new MovieEntry($path, MovieEntry::GetFSPregs());
-			case 'tv-series':
-				return new TVSeriesEntry($path);
-		}
+		MediaEntry::$Types[$type] = $class;
 	}
 }
 
