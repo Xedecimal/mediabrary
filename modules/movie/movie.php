@@ -204,7 +204,7 @@ class Movie extends MediaLibrary
 		foreach ($this->ds as $i)
 		{
 			$dp = dirname($i['path']);
-			if (in_array($dp, $_d['config']['paths']['movie']['paths']))
+			if (in_array($dp, $_d['config']['paths']['movie']))
 				$prunes[$i['path']] = $i['_id'];
 			else $prunes[$dp] = $i['_id'];
 		}
@@ -447,7 +447,7 @@ class Movie extends MediaLibrary
 	{
 		global $_d;
 
-		foreach ($_d['config']['paths']['movie']['paths'] as $p)
+		foreach ($_d['config']['paths']['movie'] as $p)
 		{
 			$paths = scandir($p);
 			foreach ($paths as $i)
@@ -468,7 +468,7 @@ class Movie extends MediaLibrary
 	{
 		global $_d;
 
-		foreach ($_d['config']['paths']['movie']['paths'] as $p)
+		foreach ($_d['config']['paths']['movie'] as $p)
 		{
 			$files = scandir($p);
 			foreach ($files as $f)
