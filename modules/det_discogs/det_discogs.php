@@ -122,9 +122,9 @@ EOF;
 
 	function cb_check_artist($ae)
 	{
-		var_dump($ae);
-		flush();
-		die();
+		//var_dump($ae);
+		//flush();
+		//die();
 	}
 }
 
