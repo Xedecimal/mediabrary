@@ -260,8 +260,12 @@ EOD;
 		if (empty($me->Image))
 		{
 			if (dirname($me->Path) == $me->Data['root'])
-				echo "<p>Can't write TMDB cover for {$me->Path}</p>";
+			{
+				echo "<p>Can't write TMDB cover for {$me->Path} because it's in the root.</p>";
+				return;
+			}
 
+			$bigdata =
 			if (empty($me->Data['details'][$this->Name]['images']['image']))
 			{
 				$this->OutErr("Could not locate a cover.", $me);
