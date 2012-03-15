@@ -525,7 +525,7 @@ class Movie extends MediaLibrary
 			{
 				$add = new MovieEntry($i['path']);
 				$add->Data = $i;
-				$ret[$i['paths'][0]] = $add;
+				$ret[$i['path']] = $add;
 			}
 			catch (Exception $ex) { }
 		}
