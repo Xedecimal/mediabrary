@@ -20,7 +20,7 @@ class ModCheck extends Module
 	{
 		global $_d;
 
-		$_d['nav.links'][t('Tools').'/'.t('Check_Everything')] = 'check';
+		$_d['nav.links'][t('Tools').'/'.t('Check_Everything')] = '{{app_abs}}/check';
 	}
 
 	function Prepare()
