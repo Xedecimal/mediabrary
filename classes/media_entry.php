@@ -80,7 +80,7 @@ class MediaEntry
 
 	function SaveCover($url)
 	{
-		throw new Exception('I have no idea where to save a cover for this type.');
+		throw new Exception('My overloading class should save this cover itself.');
 	}
 
 	static function FromID($id)
