@@ -26,7 +26,7 @@ class ModCheck extends Module
 		foreach ($mods as $n => $m)
 		{
 			if (method_exists($m, 'Check'))
-				$_d['nav.links'][t('Tools').'/'.t('Check').'/'.$n] = '{{app_abs}}/check/'.$m->Name;
+				$_d['nav.links'][t('Tools').'/'.t('Check').'/'.$n] = '{{app_abs}}/check/'.$n;
 		}
 	}
 
@@ -45,6 +45,12 @@ class ModCheck extends Module
 			echo str_repeat(' ', 1024)."\r\n";
 			flush();
 
+			if (!empty($_d['q'][2]))
+			{
+				$mods[$_d['q'][2]]->Check();
+				flush();
+			}
+			else
 			foreach ($mods as $n => $m)
 			{
 				if (method_exists($m, 'Check')) $m->Check();
@@ -130,6 +136,8 @@ class ModCheck extends Module
 
 		$t = new Template();
 		$t->ReWrite('group', array(&$this, 'TagGroup'));
+		$type = $_d['app_abs'].'/check/run';
+		$t->Set('check_type', $type.(!empty($_d['q'][1]) ? '/'.$_d['q'][1] : ''));
 		$r['check'] = $t->ParseFile('modules/check/t_check.xml');
 		return $r;
 	}

@@ -1,5 +1,5 @@
 <div id="check">
 <script type="text/javascript" src="modules/check/_check.js"></script>
-<p><a href="#" class="button" id="a-scan">Scan Sources</a></p>
+<p><a href="{{check_type}}" class="button" id="a-scan">Scan Sources</a></p>
 <div id="output"></div>
 </div>
