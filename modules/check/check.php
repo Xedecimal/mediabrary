@@ -9,10 +9,6 @@ class ModCheck extends Module
 	{
 		global $_d;
 
-		$_d['state.ds'] = $_d['db']->state;
-		$_d['state.ds']->ensureIndex(array('module' => 1),
-			array('unique' => 1, 'dropDups' => 1, 'safe' => 1));
-
 		$this->CheckActive('check');
 	}
 
