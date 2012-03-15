@@ -4,7 +4,8 @@ class Pager extends Module
 {
 	function Get()
 	{
-		$ret['head'] = '<script type="text/javascript" src="modules/pager/pager.js" ></script>';
+		$js = Module::P('pager/pager.js');
+		$ret['head'] = '<script type="text/javascript" src="'.$js.'" ></script>';
 		return $ret;
 	}
 }
