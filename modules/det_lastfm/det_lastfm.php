@@ -7,6 +7,7 @@ class LastFM extends Module implements Scraper
 	const API_KEY = '134ea76dc66836eeb90930f9d4071fd0';
 	const API_SECRET = '1e92893183c68ef4d75829dc898de0a1';
 
+	public $Name = 'Last.fm';
 	public $Link = 'http://www.last.fm';
 	public $Icon = 'modules/det_lastfm/icon.png';
 
