@@ -245,6 +245,8 @@ EOF;
 
 	static function Process($item)
 	{
+		if (!is_file($item['path'])) return;
+
 		global $_d;
 
 		$getid3 = new GetID3;
