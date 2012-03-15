@@ -143,6 +143,12 @@ class ModCheck extends Module
 		if (!empty($t->vars['errors']))
 			return VarParser::Concat($g, $t->vars['errors']);
 	}
+
+	static function Out($msg)
+	{
+		echo '<p>'.$msg."</p>\r\n";
+		flush();
+	}
 }
 
 Module::Register('ModCheck');
