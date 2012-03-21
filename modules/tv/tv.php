@@ -449,8 +449,7 @@ class TVSeriesEntry extends MediaEntry
 				if (!isset($this->ds[$is][$ie]))
 				{
 					$ep->Data['parent'] = $this->Data['_id'];
-					echo "Adding {$this->Title} {$is}x{$ie} to database.";
-					flush();
+					ModCheck::Out("Adding {$this->Title} {$is}x{$ie} to database.");
 					$ep->SaveDS(true);
 					$this->ds[$is][$ie] = $ep->Data;
 				}
@@ -460,8 +459,7 @@ class TVSeriesEntry extends MediaEntry
 					$dep->CollectDS();
 					$dep->Data['path'] = $ep->Path;
 					$dep->SaveDS();
-					echo "Updated path {$ep->Path} on existing entry.";
-					flush();
+					ModCheck::Out("Updated path {$ep->Path} on existing entry.");
 				}
 
 				else unset($this->prunes[$ep->Data['path']]);

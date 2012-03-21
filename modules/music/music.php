@@ -79,7 +79,7 @@ class Music extends MediaLibrary
 			if (empty($ds[$p]))
 			{
 				$_d['entry.ds']->save($e->Data, array('safe' => 1));
-				Check::Out("Added missing metadata on {$p}");
+				ModCheck::Out("Added missing metadata on {$p}");
 			}
 
 			$e->Check();
