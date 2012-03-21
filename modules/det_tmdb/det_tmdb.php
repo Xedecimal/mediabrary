@@ -128,11 +128,11 @@ class TMDB extends Module implements Scraper
 		return $r;
 	}
 
-	function movie_cb_move($src_dir, $dst_dir)
+	function movie_cb_move($src, $dst_dir)
 	{
-		$src_cache = $src_dir.'/.tmdb_cache.json';
-		$dst_cache = $dst_dir.'/.tmdb_cache.json';
-		if (file_exists($src_cache)) rename($src_cache, $dst_cache);
+		$src_dir = dirname($src);
+		@rename($src_dir.'/.tmdb_cache.json', $dst_dir.'/.tmdb_cache.json');
+		@rename($src.'.tmdb_cache.json', $dst_dir.'/.tmdb_cache.json');
 	}
 
 	function movie_cb_check(&$md)
@@ -265,13 +265,15 @@ EOD;
 				return;
 			}
 
-			if (empty($me->Data['details'][$this->Name]['images']['image']))
+			$cdat = $this->LoadCache($me->Path);
+
+			if (empty($cdat['images']['image']))
 			{
-				$this->OutErr("Could not locate a cover.", $me);
+				$this->OutErr("Could not locate a cover for {$me->Path}.", $me);
 				return false;
 			}
 
-			$images = $me->Data['details'][$this->Name]['images']['image'];
+			$images = $cdat['images']['image'];
 
 			if (!empty($images))
 			foreach ($images as $img)
@@ -456,11 +458,12 @@ EOD;
 		$data = $data['movies']['movie'];
 
 		# Cache remote info.
-		$cache_file = dirname($me->Path).'/.tmdb_cache.json';
-		if (dirname($me->Path) != $me->Data['root'])
-		{
-			file_put_contents($cache_file, json_encode($data));
-		}
+		if (dirname($me->Path) == $me->Data['root'])
+			$cache_file = $me->Path.'.tmdb_cache.json';
+		else
+			$cache_file = dirname($me->Path).'/.tmdb_cache.json';
+
+		file_put_contents($cache_file, json_encode($data));
 
 		$this->Cleanup($data);
 
@@ -561,6 +564,17 @@ EOF;
 		}
 		echo "</p>\r\n";
 		flush();
+	}
+
+	private function LoadCache($path)
+	{
+		$cpath = dirname($path).'/.tmdb_cache.json';
+		if (!file_exists($cpath))
+			$cpath = $path.'.tmdb_cache.json';
+		if (!file_exists($cpath))
+			return false;
+
+		return json_decode(file_get_contents($cpath), true);
 	}
 }
 

@@ -309,6 +309,17 @@ class Movie extends MediaLibrary
 
 			$clean = true;
 
+			$ext = File::Ext($me->Path);
+
+			# Filename related
+			if (array_search($ext, MovieEntry::GetExtensions()) === false)
+			{
+				echo "<p>File {$me->Path} has an unknown extension. ($ext)</p>\r\n";
+				flush();
+				$clean = false;
+				continue;
+			}
+
 			if (!$this->CheckFile($me)) $clean = false;
 
 			foreach ($_d['movie.cb.check'] as $cb)
@@ -394,14 +405,6 @@ class Movie extends MediaLibrary
 		$ext = File::ext($me->Path);
 
 		if (empty($me->Path)) return false;
-
-		# Filename related
-		if (array_search($ext, MovieEntry::GetExtensions()) === false)
-		{
-			echo "<p>File {$me->Path} has an unknown extension. ($ext)</p>\r\n";
-			flush();
-			$clean = false;
-		}
 
 		# Title Related
 		$title = $me->Title;
@@ -714,7 +717,7 @@ class MovieEntry extends MediaEntry
 			rename($pisrc['dirname'], $pidst['dirname']);
 
 		foreach ($_d['movie.cb.move'] as $cb) call_user_func_array($cb,
-			array($pisrc['dirname'], $pidst['dirname']));
+			array($src, $pidst['dirname']));
 
 		$cover = "$pisrc[dirname]/folder.jpg";
 		$backd = "$pisrc[dirname]/backdrop.jpg";
