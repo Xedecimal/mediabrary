@@ -1,5 +1,3 @@
-#divMainMovies { background: url('img/main-movies.jpg'); }
-
 .movie-item-grid
 {
 	position: relative;
@@ -9,13 +7,6 @@
 	overflow: auto;
 	cursor: pointer;
 	background-size: 100% 100%;
-}
-
-.movie-image-grid
-{
-	position: absolute;
-	width: 185px;
-	height: 275px;
 }
 
 .movie-item-list .name {

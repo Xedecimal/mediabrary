@@ -5,9 +5,9 @@ class Music extends MediaLibrary
 	public $Name = 'music';
 	public $Names = array('music', 'music-artist', 'music-album', 'music-track');
 
-	function __construct()
+	function __construct($path)
 	{
-		parent::__construct();
+		parent::__construct($path);
 		$this->CheckActive($this->Names);
 
 		global $_d;
@@ -22,7 +22,6 @@ class Music extends MediaLibrary
 		# No music artists configured, we're done here.
 		if (empty($_d['config']['paths']['music-artist'])) return;
 
-		//$this->_thumb_path = $_d['config']['paths']['music-artist']['meta'];
 		$this->_missing_image = 'http://'.$_SERVER['HTTP_HOST'].$_d['app_abs'].
 			'/modules/music/img/missing.jpg';
 	}
@@ -147,10 +146,15 @@ class ArtistEntry extends MediaEntry
 
 	function __construct($path)
 	{
+		global $_d;
+
 		parent::__construct($path);
 
 		$this->Data['type'] = 'music-artist';
 		$this->Data['parent'] = 'Music';
+
+		$thm = $this->Path.'/cover.jpg';
+		if (file_exists($thm)) $this->Image = $_d['app_abs'].'/cover?path='.urlencode($thm);
 	}
 
 	function CollectFS($path)

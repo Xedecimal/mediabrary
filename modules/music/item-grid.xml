@@ -1,5 +1,5 @@
 <item>
-<div class="music-item" style="background: url('{{Image}}')">
+<div class="music-item" style="background-image: url('{{Image}}');">
 	<a href="detail/{{Data._id}}" class="a-music-item">{{Title}}</a>
 </div>
 </item>
