@@ -340,7 +340,7 @@ class Movie extends MediaLibrary
 	 * @param MovieEntry $movie
 	 * @return array Array of error messages.
 	 */
-	function CheckDatabaseExistence($file, $md)
+	private function CheckDatabaseExistence($file, $md)
 	{
 		global $_d;
 
@@ -353,12 +353,13 @@ class Movie extends MediaLibrary
 			'path' => Str::MakeUTF8($md->Path)));
 		if (!empty($item)) return $ret;
 
+		$ext = File::Ext($md->Path);
+		if (array_search($ext, MovieEntry::GetExtensions()) === false)
+			return $ret;
+
 		if (empty($md->Path)) return;
 		if (!isset($this->_ds[$md->Path]))
 		{
-			#$p = Str::MakeUTF8($md->Path);
-			#$md = new MovieEntry($p);
-			#file_put_contents('debug.txt', print_r($md->Data), FILE_APPEND);
 			$md->SaveDS(true);
 			echo "<p>Added new movie '{$md->Path}' to database.</p>";
 			flush();
