@@ -253,8 +253,16 @@ class TVDB extends Module implements Scraper
 			# Already aired, missing.
 			if (empty($ep['path'])
 			&& !empty($ep['season'])
+			&& !empty($ep['episode'])
 			&& strtotime($ep['details'][$this->Name]['FirstAired']) < time())
-				TV::OutErr("Missing episode {$ep['series']} {$ep['season']}x{$ep['episode']} (Aired: {$ep['details'][$this->Name]['FirstAired']})", $ep);
+			{
+				$title = @$ep['details'][$this->Name]['EpisodeName'];
+				if (empty($title)) $title = "[Yet unknown]";
+
+				ModCheck::Out("Missing episode {$ep['series']}"
+					." S{$ep['season']}E{$ep['episode']} {$title}"
+					." on {$ep['details'][$this->Name]['FirstAired']}");
+			}
 		}
 	}
 
