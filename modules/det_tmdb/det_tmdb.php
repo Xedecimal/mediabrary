@@ -34,6 +34,7 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.certification"] = 1;
 
 		$_d['movie.cb.check'][$this->Name] = array($this, 'movie_cb_check');
+		$_d['movie.cb.check_complete'][$this->Name] = array($this, 'movie_cb_check_complete');
 		$_d['movie.cb.move'][$this->Name] = array($this, 'movie_cb_move');
 
 		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
@@ -252,7 +253,47 @@ EOD;
 
 		if (!$this->CheckCover($md)) $clean = false;
 
+		# Set the score.
+
+		if (!empty($md->Data['details'][$this->Name]['votes']))
+			$md->Data['details'][$this->Name]['score'] =
+				$this->GetScore($md->Data['details'][$this->Name]);
+
 		return $clean;
+	}
+
+	function movie_cb_check_complete()
+	{
+		global $_d;
+
+		# If something changed, we need to recalculate ALL scores!
+
+		$avgs = $this->GetScoreAverages();
+
+		$q['type'] = 'movie';
+		$cols['title'] = 1;
+		$cols['details.TMDB.score'] = 1;
+		$cols['details.TMDB.rating'] = 1;
+		$cols['details.TMDB.votes'] = 1;
+		$col = $_d['entry.ds']->find($q, $cols);
+		foreach ($col as $item)
+		{
+			$score = $this->GetScore(
+				$item['details'][$this->Name]['rating'],
+				$item['details'][$this->Name]['votes'],
+				$avgs['ra'],
+				$avgs['va']);
+
+			$os = $item['details'][$this->Name]['score'];
+			if ($score != $os)
+			{
+				$qc['_id'] = $item['_id'];
+				$ci = $_d['entry.ds']->findOne($qc);
+				$ci['details'][$this->Name]['score'] = $score;
+				$_d['entry.ds']->save($ci);
+				ModCheck::Out('Updated score '.$ci['title']." from $os to $score");
+			}
+		}
 	}
 
 	function CheckCover(&$me)
@@ -571,7 +612,7 @@ EOF;
 		return json_decode(file_get_contents($cpath), true);
 	}
 
-	private function GetScore(&$data)
+	private function GetScoreAverages()
 	{
 		global $_d;
 
@@ -586,11 +627,15 @@ EOF;
 		}');
 		$opts['condition'] = array('details.TMDB.rating' => array('$exists' => 1));
 		$res = $_d['entry.ds']->group($keys, $init, $redu, $opts);
-		$ra = $res['retval'][0]['avgRate'];
-		$va = $res['retval'][0]['avgVote'];
-		$r = $data['rating'];
-		$v = $data['votes'];
 
+		return array(
+			'ra' => $res['retval'][0]['avgRate'],
+			'va' => $res['retval'][0]['avgVote']
+		);
+	}
+
+	private function GetScore($r, $v, $ra, $va)
+	{
 		return (($va * $ra) + ($v * $r) / ($va + $v));
 	}
 }
