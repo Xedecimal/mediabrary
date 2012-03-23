@@ -99,9 +99,10 @@ function scape_find(event) {
 
 	$('#details').html('<p>Currently searching...</p>');
 
-	$.get(window.app_abs+'/scrape/find/'+$(this).attr('href'), dat, function (data) {
-		$('#details').html(data);
-	}, 'html');
+	$.get(window.app_abs+'/scrape/find/'+$('#detail-id').val(), dat,
+		function (data) {
+			$('#details').html(data);
+		}, 'html');
 
 	return false;
 }
