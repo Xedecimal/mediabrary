@@ -476,24 +476,16 @@ EOD;
 
 		$me->SaveDS();
 
-		// @TODO: These values are bad, we need to fix this system.
-		//$ra = $obj['value']['rateAvg'];
-		//$va = $obj['value']['voteAvg'];
-		//$v = $item['details'][$this->Name]['votes'];
-		//$r = $item['details'][$this->Name]['rating'];
-
-		# Badass algorithm here.
-		//$item['details'][$this->Name]['score'] =
-		//	(($va * $ra) + ($v * $r) / ($va + $v));
-
 		return $me;
 	}
 
 	private function Cleanup(&$data)
 	{
-		# @TODO: Some day do something with the cast maybe.
 		unset($data['cast']);
 		unset($data['images']);
+
+		# Collect a detailed score for this item.
+		$data['score'] = $this->GetScore($data);
 	}
 
 	function GetDetails($t, $g, $a)
@@ -506,7 +498,7 @@ EOD;
 
 		if (!empty($td['url']))
 		{
-			$i['var'] = 'TMDB_URL';
+			$i['var'] = 'TMDB/URL';
 			$i['val'] = '<a href="'.$td['url'].'" target="_blank">Visit</a>';
 			$ret[] = $i;
 		}
@@ -515,7 +507,7 @@ EOD;
 		{
 			preg_match('/\?v=([^&]+)/', $td['trailer'], $m);
 			$v = $m[1];
-			$i['var'] = 'TMDB_Trailer';
+			$i['var'] = 'TMDB/Trailer';
 			$i['val'] = <<<EOF
 <object width="640" height="360">
 	<param name="movie" value="http://www.youtube.com/v/$v&hl=en_US&feature=player_embedded&version=3"></param>
@@ -527,18 +519,20 @@ EOF;
 
 		if (!empty($td['overview']))
 		{
-			$i['var'] = 'TMDB_Overview';
+			$i['var'] = 'TMDB/Overview';
 			$i['val'] = $td['overview'];
 			$ret[] = $i;
 		}
 
-		/*if (!empty($td['votes']))
+		if (!empty($td['votes']))
 		{
+			//$score = $this->GetScore($td);
+
 			$i['var'] = 'TMDB_Votes';
 			$i['val'] = $td['votes'].' votes to '.$td['rating']
 				.' rating scores '.$td['score'];
 			$ret[] = $i;
-		}*/
+		}
 
 		return VarParser::Concat($g, $ret);
 	}
@@ -575,6 +569,29 @@ EOF;
 			return false;
 
 		return json_decode(file_get_contents($cpath), true);
+	}
+
+	private function GetScore(&$data)
+	{
+		global $_d;
+
+		$keys['type'] = 1;
+		$init['avgRate'] = 0;
+		$init['avgVote'] = 0;
+		$init['count'] = 0;
+		$redu = new MongoCode('function (doc, out) {
+			out.avgRate = ((out.avgRate * out.count) + parseFloat(doc.details.TMDB.rating)) / (out.count+1);
+			out.avgVote = ((out.avgVote * out.count) + parseInt(doc.details.TMDB.votes)) / (out.count+1);
+			out.count++;
+		}');
+		$opts['condition'] = array('details.TMDB.rating' => array('$exists' => 1));
+		$res = $_d['entry.ds']->group($keys, $init, $redu, $opts);
+		$ra = $res['retval'][0]['avgRate'];
+		$va = $res['retval'][0]['avgVote'];
+		$r = $data['rating'];
+		$v = $data['votes'];
+
+		return (($va * $ra) + ($v * $r) / ($va + $v));
 	}
 }
 
