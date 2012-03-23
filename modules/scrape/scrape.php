@@ -123,10 +123,12 @@ EOF;
 
 		if (!empty($t->vars['Data']['details']))
 		{
+			$img_d = Module::P('img/database_delete.png');
+			$img_c = Module::P('movie/img/images.png');
 			$ret .= <<<EOF
-<a href="{{Data._id}}" class="a-scrape-remove"><img src="img/database_delete.png"
+<a href="{{Data._id}}" class="a-scrape-remove"><img src="$img_d"
 	alt="Remove" /></a><a href="{{Data._id}}" class="a-scrape-covers"><img
-	src="modules/movie/img/images.png" alt="Select New Cover" title="Select New Cover" /></a>
+	src="$img_c" alt="Select New Cover" title="Select New Cover" /></a>
 EOF;
 		}
 		return $ret;
