@@ -447,6 +447,13 @@ class Movie extends MediaLibrary
 		return $clean;
 	}
 
+	function CheckComplete()
+	{
+		global $_d;
+
+		foreach ($_d['movie.cb.check_complete'] as $cb) call_user_func($cb);
+	}
+
 	function CollectSingleFileGroup()
 	{
 		global $_d;
