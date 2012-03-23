@@ -11,7 +11,7 @@ class Discogs extends Module implements Scraper
 
 	const HTTP_HEADER = "User-Agent: Mediabrary/0.1 +http://code.google.com/p/mediabrary\r\n";
 	const URL_SEARCH = 'http://api.discogs.com/search?f=json&type=artists&q=';
-	const URL_ARTIST = 'http://api.discogs.com/artist/{{id}}?f=json';
+	const URL_ARTIST = 'http://api.discogs.com/artists/{{id}}';
 
 	function __construct()
 	{
@@ -100,6 +100,8 @@ class Discogs extends Module implements Scraper
 		$opts['http']['header'] = Discogs::HTTP_HEADER;
 		$cx = stream_context_create($opts);
 		$res = json_decode(file_get_contents($url, null, $cx), true);
+		$res['resp']['artist']['releases'] = json_decode(file_get_contents(
+			$res['resp']['artist']['releases_url'], null, $cx), true);
 
 		return $res['resp']['artist'];
 	}
@@ -108,7 +110,10 @@ class Discogs extends Module implements Scraper
 	{
 		if ($ae->Data['type'] == 'music-artist')
 		{
-			$ae->Data['details'][$this->Name] = $this->Details($id);
+			$cache_file = $ae->Path.'/.discogs_cache.json';
+			$det = $this->Details($id);
+			file_put_contents($cache_file, json_encode($det));
+			$ae->Data['details'][$this->Name] = $det;
 		}
 	}
 
