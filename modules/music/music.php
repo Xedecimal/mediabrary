@@ -31,7 +31,6 @@ class Music extends MediaLibrary
 		global $_d;
 
 		$_d['nav.links']['Media/Music'] = '{{app_abs}}/music/grid';
-		#$_d['nav.links']['List/Music'] = '{{app_abs}}/music/list';
 	}
 
 	function Prepare()

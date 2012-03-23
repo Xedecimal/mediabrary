@@ -76,10 +76,12 @@ class Discogs extends Module implements Scraper
 
 		foreach ($ress as $res)
 		{
+			# Fix for discogs retarded urls.
+			$url = preg_replace('/^http:\/\/www\.discogs\.comh/', 'h', $res->uri);
 			$ret['id'] = $res->title;
 			$ret['title'] = $res->title;
 			if (!empty($res->thumb)) $ret['covers'] = $_d['app_abs'].'/Discogs/cover?cover='.urlencode($res->thumb);
-			$ret['ref'] = $res->uri;
+			$ret['ref'] = $url;
 
 			$rets[$res->title] = $ret;
 		}
