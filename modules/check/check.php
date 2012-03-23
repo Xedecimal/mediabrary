@@ -41,15 +41,18 @@ class ModCheck extends Module
 			echo str_repeat(' ', 1024)."\r\n";
 			flush();
 
-			if (!empty($_d['q'][2]))
-			{
-				$mods[$_d['q'][2]]->Check();
-				flush();
-			}
-			else
-			foreach ($mods as $n => $m)
+			if (!empty($_d['q'][2])) $checkers[$_d['q'][2]] = $mods[$_d['q'][2]];
+			else foreach ($mods as $n => $m) $checkers[$n] = $m;
+
+			foreach ($checkers as $n => $m)
 			{
 				if (method_exists($m, 'Check')) $m->Check();
+				flush();
+			}
+
+			foreach ($checkers as $n => $m)
+			{
+				if (method_exists($m, 'CheckComplete')) $m->CheckComplete();
 				flush();
 			}
 
