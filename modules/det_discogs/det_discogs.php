@@ -11,7 +11,7 @@ class Discogs extends Module implements Scraper
 
 	const HTTP_HEADER = "User-Agent: Mediabrary/0.1 +http://code.google.com/p/mediabrary\r\n";
 	const URL_SEARCH = 'http://api.discogs.com/search?f=json&type=artists&q=';
-	const URL_ARTIST = 'http://api.discogs.com/artists/{{id}}';
+	const URL_ARTIST = 'http://api.discogs.com/artist/{{id}}';
 
 	function __construct()
 	{
