@@ -3,6 +3,13 @@ $(function () {
 
 	$('.but-scrape-research').live('click', scape_find);
 
+	$('.a-scrape-remove').live('click', function () {
+		$.get(window.app_abs+'/scrape/remove/'+$(this).attr('href'), function () {
+			$('#detail-dialog').dialog('destroy');
+		});
+		return false;
+	});
+
 	// A found result has been selected (not yet chosen).
 	$('.find-result').live('click', function () {
 		var name = $(this).attr('name');

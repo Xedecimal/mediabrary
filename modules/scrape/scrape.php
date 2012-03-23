@@ -83,6 +83,13 @@ class Scrape extends Module
 			die(json_encode($item));
 		}
 
+		if (@$_d['q'][1] == 'remove')
+		{
+			$q['_id'] = new MongoId($_d['q'][2]);
+			$_d['entry.ds']->remove($q);
+			die(json_encode(array('msg' => 'ok')));
+		}
+
 		# Collecting just covers from all known sources.
 		if (@$_d['q'][1] == 'covers')
 		{
