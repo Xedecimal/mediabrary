@@ -6,6 +6,11 @@ $(function () {
 			$(this).find('.movie-details').show();
 			window.current = this;
 		}
+		else
+		{
+			$(window.current).find('.movie-details').hide();
+			window.current = null;
+		}
 	});
 
 	$('.a-movie-item').live('click', function () {

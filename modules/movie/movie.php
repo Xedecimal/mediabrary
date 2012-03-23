@@ -739,6 +739,7 @@ class MovieEntry extends MediaEntry
 	}
 }
 
+MovieEntry::RegisterType('movie', 'MovieEntry');
 Module::Register('Movie');
 
 ?>

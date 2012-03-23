@@ -246,6 +246,6 @@ class TrackEntry extends MediaEntry
 	}
 }
 
-MediaEntry::RegisterType('music-trac', 'TrackEntry');
+MediaEntry::RegisterType('music-track', 'TrackEntry');
 
 ?>
