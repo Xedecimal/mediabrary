@@ -440,7 +440,10 @@ class TVSeriesEntry extends MediaEntry
 		global $_d;
 
 		if (empty($this->fs))
-			throw new CheckException("Empty series '{$this->Path}'.");
+		{
+			ModCheck::Out("Empty series '{$this->Path}'.");
+			return;
+		}
 
 		foreach ($this->fs as $is => &$eps)
 		{
