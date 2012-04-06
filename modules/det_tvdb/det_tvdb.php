@@ -128,7 +128,7 @@ class TVDB extends Module implements Scraper
 		$arr = Arr::FromXML($xml);
 		$arr['Series']['scraped'] = time();
 		if (!@file_put_contents($dst, json_encode($arr)))
-			return 'Unable to write tvdb metadata.';
+			throw new Exception("Unable to write: '$dst'");
 	}
 
 	function Find(&$tvse, $title)
