@@ -207,7 +207,10 @@ EOD;
 
 		# Check filename compliance.
 
-		$filetitle = Movie::CleanTitleForFile($md->Data['details'][$this->Name]['name']);
+		if (!empty($md->Data['details'][$this->Name]['name']))
+			$filetitle = Movie::CleanTitleForFile($md->Data['details'][$this->Name]['name']);
+		else
+			$filetitle = Movie::CleanTitleForFile($md->Title);
 
 		if (!empty($md->Data['details'][$this->Name]['released']))
 			$date = substr($md->Data['details'][$this->Name]['released'], 0, 4);
@@ -216,6 +219,7 @@ EOD;
 		$file = $md->Data['path'];
 		$ext = File::ext(basename($file));
 
+		if (empty($md->Data['root'])) { var_dump($md->Root); }
 		$pqr = preg_quote($md->Data['root']);
 
 		# Part files need their CD#
@@ -255,9 +259,9 @@ EOD;
 
 		# Set the score.
 
-		if (!empty($md->Data['details'][$this->Name]['votes']))
+		/*if (!empty($md->Data['details'][$this->Name]['votes']))
 			$md->Data['details'][$this->Name]['score'] =
-				$this->GetScore($md->Data['details'][$this->Name]);
+				$this->GetScore($md->Data['details'][$this->Name]);*/
 
 		return $clean;
 	}
@@ -278,13 +282,18 @@ EOD;
 		$col = $_d['entry.ds']->find($q, $cols);
 		foreach ($col as $item)
 		{
+			if (empty($item['details'][$this->Name]['rating'])) continue;
+			if (empty($item['details'][$this->Name]['votes'])) continue;
+
 			$score = $this->GetScore(
 				$item['details'][$this->Name]['rating'],
 				$item['details'][$this->Name]['votes'],
 				$avgs['ra'],
 				$avgs['va']);
 
-			$os = $item['details'][$this->Name]['score'];
+			if (!empty($item['details'][$this->Name]['score']))
+				$os = $item['details'][$this->Name]['score'];
+
 			if ($score != $os)
 			{
 				$qc['_id'] = $item['_id'];
@@ -526,7 +535,7 @@ EOD;
 		unset($data['images']);
 
 		# Collect a detailed score for this item.
-		$data['score'] = $this->GetScore($data);
+		#$data['score'] = $this->GetScore($data);
 	}
 
 	function GetDetails($t, $g, $a)
