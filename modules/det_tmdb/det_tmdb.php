@@ -574,7 +574,7 @@ EOF;
 			$ret[] = $i;
 		}
 
-		if (!empty($td['votes']))
+		if (!empty($td['score']))
 		{
 			//$score = $this->GetScore($td);
 
