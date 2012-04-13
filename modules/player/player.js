@@ -1,6 +1,3 @@
-<null>
-var remote_ip = '{{REMOTE_ADDR}}';
-
 $(function () {
 	$('.a-play').live('click', function () {
 		// Present options for playing this file.
@@ -22,4 +19,3 @@ $(function () {
 		return false;
 	});
 });
-</null>
