@@ -1,5 +1,6 @@
 $(function () {
 	$('#a-scan').click(function () {
+		$('#output').html('');
 		$('#output').addClass('loading');
 		startProcess($(this).attr('href'));
 		return false;
