@@ -56,14 +56,10 @@ class Config extends Module
 		$frm->AddInput(new FormInput('Database Location', 'text', 'nc[db]',
 			$_d['config']['db']));
 		$frm->AddInput('Paths');
-		$frm->AddInput(new FormInput('Movies', 'area', 'nc[paths][movie][paths]',
-			implode("\r\n", $_d['config']['paths']['movie']['paths'])));
-		$frm->AddInput(new FormInput('Movie Metadata', 'text',
-			'nc[paths][movie][meta]', $_d['config']['paths']['movie']['meta']));
-		$frm->AddInput(new FormInput('Shows', 'area', 'nc[paths][tv][paths]',
-			implode("\r\n", $_d['config']['paths']['tv']['paths'])));
-		$frm->AddInput(new FormInput('Show Metadata', 'text',
-			'nc[paths][tv][meta]', $_d['config']['paths']['tv']['meta']));
+		$frm->AddInput(new FormInput('Movies', 'area', 'nc[paths][movie]',
+			implode("\r\n", $_d['config']['paths']['movie'])));
+		$frm->AddInput(new FormInput('Shows', 'area', 'nc[paths][tv]',
+			implode("\r\n", $_d['config']['paths']['tv'])));
 		$frm->AddInput(new FormInput(null, 'submit', 'butSubmit', 'Save'));
 		return $frm->Get(array('method' => 'post', 'action' => '{{app_abs}}/configuration/save'));
 	}
