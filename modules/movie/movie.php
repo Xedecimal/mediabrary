@@ -209,12 +209,10 @@ class Movie extends MediaLibrary
 			else $prunes[$dp] = $i['_id'];
 		}
 
-		foreach ($this->fs as $p => $up) unset($prunes[$p]);
+		foreach (array_keys($this->fs) as $p) unset($prunes[$p]);
 
-		foreach ($prunes as $path => $id)
-		{
+		foreach ($prunes as $id)
 			$_d['entry.ds']->remove(array('_id' => new MongoID($id)));
-		}
 
 		### Ignore all clean items.
 
@@ -240,7 +238,8 @@ class Movie extends MediaLibrary
 		#throw new CheckException("Avoiding the next checks.");
 
 		# Collect database information
-		/*$this->_ds = array();
+		$this->_ds = array();
+		$q = array();
 		$q['type'] = 'movie';
 		$q['clean']['$exists'] = 0;
 		foreach ($_d['entry.ds']->find($q, $_d['movie.cb.query']['columns']) as $dr)
@@ -253,14 +252,13 @@ class Movie extends MediaLibrary
 				# Remove missing items
 				if (empty($p) || !file_exists($p))
 				{
-					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
-					throw new Exception("Removed database entry for non-existing '"
-						.$p."'");
+					//$_d['entry.ds']->remove(array('_id' => $dr['_id']));
+					echo "Removed database entry for non-existing '".$p."'";
 				}
 
 				$this->_ds[$p] = $dr;
 			}
-		}*/
+		}
 
 		# Iterate all known combined items.
 		/*foreach ($this->_files as $p => $movie)
@@ -712,7 +710,7 @@ class MovieEntry extends MediaEntry
 
 		# Update covers or backdrops.
 
-		$src = $this->Data['path'];
+		$src = $this->Path;
 		$pisrc = pathinfo($src);
 		$pidst = pathinfo($dst);
 
