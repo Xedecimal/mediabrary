@@ -14,8 +14,10 @@ class Incoming extends Module
 		# No incoming folders configured, we're done here.
 		if (empty($_d['config']['paths']['incoming'])) return;
 
-		$files = File::Comb($_d['config']['paths']['incoming'],
-			'/\.txt$|\.r[ra0-9]{2}$|\.sfv$|\.srt$|\.nfo$|\.torrent$|\.ico$|\.png$|\.sub$|\.idx$|\.diz$|sample|\.jpg$|\.url$/i', SCAN_FILES);
+		$files = array();
+		foreach ($_d['config']['paths']['incoming'] as $p)
+			$files += File::Comb($p,
+				'/\.txt$|\.r[ra0-9]{2}$|\.sfv$|\.srt$|\.nfo$|\.torrent$|\.ico$|\.png$|\.sub$|\.idx$|\.diz$|sample|\.jpg$|\.url$/i', SCAN_FILES);
 
 		foreach ($files as $f)
 		{
@@ -37,13 +39,13 @@ class Incoming extends Module
 			if (!empty($found))
 			{
 				$target = $this->GetTarget($found);
-				$urlfix = "movie/rename?path=".urlencode($f);
+				$urlfix = $_d['app_abs'].'/movie/rename?path='.urlencode($f);
 				$urlfix .= '&amp;target='.urlencode($target).'/'.urlencode(basename($f));
-				$msgs['Incoming'][] = "[<a href=\"$urlfix\" class=\"a-fix\">Fix</a>] Matched {$f} to a {$c} want to place it at '{$target}'.";
+				echo "[<a href=\"$urlfix\" class=\"a-fix\">Fix</a>] Matched {$f} to a {$c} want to place it at '{$target}'.";
 			}
 			else
 			{
-				//var_dump("Could not identify {$f}");
+				var_dump("Could not identify {$f}");
 			}
 		}
 	}
@@ -71,7 +73,7 @@ class Incoming extends Module
 
 		if ($found['type'] == 'MovieEntry')
 		{
-			return $_d['config']['paths']['movie']['paths'][0].'/'.$found['Title'].'('.$found['Released'].')';
+			return $_d['config']['paths']['movie'][0].'/'.$found['Title'].'('.$found['Released'].')';
 		}
 	}
 }
