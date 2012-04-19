@@ -353,7 +353,7 @@ class TVSeriesEntry extends MediaEntry
 
 			$p = $this->Path.'/'.$fn;
 
-			$ep = new TVEpisodeEntry($p);
+			$ep = new TVEpisodeEntry(utf8_encode($p));
 
 			# Possibly Metadata or unknown file.
 			if (empty($ep->Data['season']))
@@ -481,6 +481,7 @@ class TVSeriesEntry extends MediaEntry
 
 	function CheckDataset()
 	{
+		if (!empty($this->ds))
 		foreach ($this->ds as $sn => $season)
 		{
 			foreach ($season as $en => $ep)
