@@ -20,6 +20,7 @@ class Movie extends MediaLibrary
 		$_d['movie.cb.query']['columns']['title'] = 1;
 
 		$_d['movie.cb.query']['match'] = array();
+		$_d['movie.cb.check_complete'] = array();
 
 		$_d['entry-types']['movie'] = array('text' => 'Movie',
 			'icon' => '<img src="'.Module::P('movie/img/movie.png').'" />');
@@ -176,9 +177,7 @@ class Movie extends MediaLibrary
 		$ret = '';
 		if (!empty($this->details))
 		foreach ($this->details as $n => $v)
-		{
 			$ret .= $vp->ParseVars($g, array('name' => $n, 'value' => $v));
-		}
 		return $ret;
 	}
 
@@ -187,12 +186,19 @@ class Movie extends MediaLibrary
 		global $_d;
 	}
 
-	function Check()
+	function Check($clean = false)
 	{
 		global $_d;
 
-		$this->fs = $this->CollectFS();
+		# Start a fresh check
 
+		if ($clean)
+		{
+			$_d['entry.ds']->update(array('type' => 'movie'),
+				array('$unset' => array('clean' => 1)), array('safe' => 1, 'multiple' => 1));
+		}
+
+		$this->fs = $this->CollectFS();
 		$this->ds = $_d['entry.ds']->find(array('type' => 'movie'),
 			array('path' => 1));
 
@@ -233,10 +239,6 @@ class Movie extends MediaLibrary
 
 		$status = $this->CheckFS();
 
-		#return;
-		# @TODO: Bring this back to life.
-		#throw new CheckException("Avoiding the next checks.");
-
 		# Collect database information
 		$this->_ds = array();
 		$q = array();
@@ -252,8 +254,8 @@ class Movie extends MediaLibrary
 				# Remove missing items
 				if (empty($p) || !file_exists($p))
 				{
-					//$_d['entry.ds']->remove(array('_id' => $dr['_id']));
-					echo "Removed database entry for non-existing '".$p."'";
+					$_d['entry.ds']->remove(array('_id' => $dr['_id']));
+					ModCheck::Out("Removed database entry for non-existing '".$p."'");
 				}
 
 				$this->_ds[$p] = $dr;
@@ -305,15 +307,14 @@ class Movie extends MediaLibrary
 			$this->CheckDatabaseExistence($filename, $me);
 			$me->LoadDS();
 
-			$clean = true;
+			$clean = $me->Clean;
 
 			$ext = File::Ext($me->Path);
 
 			# Filename related
 			if (array_search($ext, MovieEntry::GetExtensions()) === false)
 			{
-				echo "<p>File {$me->Path} has an unknown extension. ($ext)</p>\r\n";
-				flush();
+				ModCheck::Out("File {$me->Path} has an unknown extension. ($ext)");
 				$clean = false;
 				continue;
 			}
@@ -325,8 +326,7 @@ class Movie extends MediaLibrary
 
 			if ($clean)
 			{
-				echo "<p>Marking '{$me->Path}' as clean.</p>\r\n";
-				flush();
+				ModCheck::Out("Marking '{$me->Path}' as clean.");
 				$me->Data['clean'] = true;
 				$me->SaveDS();
 			}
@@ -359,8 +359,7 @@ class Movie extends MediaLibrary
 		if (!isset($this->_ds[$md->Path]))
 		{
 			$md->SaveDS(true);
-			echo "<p>Added new movie '{$md->Path}' to database.</p>";
-			flush();
+			ModCheck::Out("Added new movie '{$md->Path}' to database.");
 		}
 
 		return $ret;
@@ -437,8 +436,7 @@ class Movie extends MediaLibrary
 		{
 			$urlfix = "movie/fix?path=".urlencode($me->Path);
 			$bn = basename($me->Path);
-			echo "<p>File '$bn' should be '$target'</p>";
-			flush();
+			ModCheck::Out("File '$bn' should be '$target'");
 			$clean = false;
 		}
 
@@ -555,6 +553,9 @@ class MovieEntry extends MediaEntry
 
 	function __construct($path, $bypass_checks = false)
 	{
+		# Innocent until proven guilty
+		$this->Clean = true;
+
 		if (!file_exists($path) && !$bypass_checks)
 			throw new Exception('File not found.');
 
@@ -643,14 +644,19 @@ class MovieEntry extends MediaEntry
 			if (count(scandir($path)) < 3)
 			{
 				rmdir($path);
-				echo "<p>Removed empty movie folder $path.</p>\r\n";
+				$this->Clean = false;
+				ModCheck::Out("Removed empty movie folder $path.");
 			}
-			else echo "<p>Not enough video files in this folder $path.</p>\r\n";
+			else
+			{
+				$this->Clean = false;
+				ModCheck::Out("Not enough video files in this folder $path.");
+			}
 		}
 		else if (count($files) > 1)
 		{
-			echo "<p>Too many video files in folder: {$path}</p>";
-			flush();
+			$this->Clean = false;
+			ModCheck::Out('Too many files in folder: <a href="file:///'.$path.'">'.$path.'</a>');
 		}
 
 		if (!empty($files)) return urldecode($files[0]);
@@ -746,5 +752,3 @@ class MovieEntry extends MediaEntry
 
 MovieEntry::RegisterType('movie', 'MovieEntry');
 Module::Register('Movie');
-
-?>

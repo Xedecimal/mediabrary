@@ -44,9 +44,12 @@ class ModCheck extends Module
 			if (!empty($_d['q'][2])) $checkers[$_d['q'][2]] = $mods[$_d['q'][2]];
 			else foreach ($mods as $n => $m) $checkers[$n] = $m;
 
+			if (@$_d['q'][3] == 'clean') $clean = true;
+			else $clean = false;
+
 			foreach ($checkers as $n => $m)
 			{
-				if (method_exists($m, 'Check')) $m->Check();
+				if (method_exists($m, 'Check')) $m->Check($clean);
 				flush();
 			}
 
@@ -155,5 +158,3 @@ class ModCheck extends Module
 }
 
 Module::Register('ModCheck');
-
-?>

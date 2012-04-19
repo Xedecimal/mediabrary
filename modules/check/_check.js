@@ -1,10 +1,11 @@
 $(function () {
-	$('#a-scan').click(function () {
+	$('.a-scan').click(function () {
 		$('#output').html('');
 		$('#output').addClass('loading');
 		startProcess($(this).attr('href'));
 		return false;
 	});
+
 	$('.a-fix').live('click', function () {
 		$(this).load($(this).attr('href'));
 		return false;
