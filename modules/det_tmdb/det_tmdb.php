@@ -34,7 +34,8 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.query']['columns']["details.{$this->Name}.certification"] = 1;
 
 		$_d['movie.cb.check'][$this->Name] = array($this, 'movie_cb_check');
-		$_d['movie.cb.check_complete'][$this->Name] = array($this, 'movie_cb_check_complete');
+		# @TODO: This happens too often.
+		#$_d['movie.cb.check_complete'][$this->Name] = array($this, 'movie_cb_check_complete');
 		$_d['movie.cb.move'][$this->Name] = array($this, 'movie_cb_move');
 
 		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
@@ -387,8 +388,7 @@ EOD;
 
 		$curcat = Server::GetVar('category');
 
-		if (!empty($cats))
-		$sizes = Math::RespectiveSize($cats);
+		if (!empty($cats)) $sizes = Math::RespectiveSize($cats);
 
 		$items = array();
 		foreach ($cats as $n => $c)
@@ -651,5 +651,3 @@ EOF;
 
 Module::Register('TMDB');
 Scrape::Reg('movie', 'TMDB');
-
-?>
