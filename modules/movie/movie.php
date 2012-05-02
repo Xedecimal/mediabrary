@@ -700,7 +700,7 @@ class MovieEntry extends MediaEntry
 
 	static function GetExtensions()
 	{
-		return array('avi', 'mkv', 'divx', 'mp4');
+		return array('avi', 'mkv', 'divx', 'mp4', 'm4v');
 	}
 
 	/**
