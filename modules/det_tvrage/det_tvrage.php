@@ -95,20 +95,19 @@ class TVRage extends Module implements Scraper
 		if ($json['totalseasons'] == 1)
 			$json['Episodelist']['Season'] = array($json['Episodelist']['Season']);
 
-		foreach ($json['Episodelist']['Season'] as $s)
+		foreach ($json['Episodelist']['Season'] as $snum => $s)
 		{
 			if (empty($s['episode'])) continue;
 
 			if (array_key_exists('epnum', $s['episode']))
 				$s['episode'] = array($s['episode']);
 
-			foreach ($s['episode'] as $ep)
+			foreach ($s['episode'] as $epnum => $ep)
 			{
 				foreach (array_keys($ep) as $k) if (empty($ep[$k])) unset($ep[$k]);
 
-				$sn = $ep['seasonnum'] = (int)$ep['seasonnum'];
-				$ep['epnum'] = (int)$ep['epnum'];
-				$en = (int)$ep['seasonnum'];
+				$sn = $ep['seasonnum'] = $snum+1;
+				$en = $ep['epnum'] = $epnum+1;
 				if (!empty($ep['airdate'])) $ep['airdate'] =
 					Database::MyDateTimestamp($ep['airdate']);
 				if (!empty($ep['rating'])) $ep['rating'] = (float)$ep['rating'];
@@ -168,7 +167,7 @@ class TVRage extends Module implements Scraper
 				if (!empty($dbep['path']))
 				{
 					# Check filename.
-					$this->CheckFilename($tvdbeps, $dbep, $ep);
+					$this->CheckFilename($tvreps, $dbep, $ep);
 				}
 			}
 		}
@@ -176,10 +175,12 @@ class TVRage extends Module implements Scraper
 
 	function CheckSeriesFilename(&$series, &$data)
 	{
+		global $_d;
+
 		$src = dirname($series->Path).'/'.basename(realpath($series->Path));
 		$title = MediaLibrary::CleanTitleForFile($data['series']);
 		$dst = dirname($series->Path).'/'.$title;
-		$url = Module::L('tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst));
+		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
 		if ($src != $dst) ModCheck::Out("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst'");
 	}
 
@@ -194,7 +195,7 @@ class TVRage extends Module implements Scraper
 		if (!empty($epname))
 			$epname = MediaLibrary::CleanTitleForFile($epname, false);
 
-		$sn = MediaLibrary::CleanTitleForFile($series['Series']['SeriesName']);
+		$sn = MediaLibrary::CleanTitleForFile($ep['series']);
 
 		$preg = '@([^/]+)/('.preg_quote($sn,'@')
 			.') - S([0-9]{2,3})E([0-9]{2,3}) - '
@@ -203,6 +204,7 @@ class TVRage extends Module implements Scraper
 		# <series> / <series> - S<season>E<episode> - <title>.avi
 		if (!preg_match($preg, $ep['path']))
 		{
+			#var_dump($ep);
 			$dir = dirname($ep['path']);
 			$ext = File::ext($ep['path']);
 			$fns = sprintf('%02d', $ep['season']);
@@ -239,16 +241,19 @@ class TVRage extends Module implements Scraper
 
 			# Already aired, missing.
 			if (empty($ep['path'])
-			&& !empty($ep['season'])
-			&& !empty($ep['episode'])
+			&& !empty($ep['details'][$this->Name]['seasonnum'])
+			&& !empty($ep['details'][$this->Name]['epnum'])
 			&& strtotime($ep['details'][$this->Name]['airdate']) < time())
 			{
 				$title = @$ep['details'][$this->Name]['title'];
 				if (empty($title)) $title = "[Yet unknown]";
 
-				ModCheck::Out("Missing episode {$ep['series']}"
-					." S{$ep['season']}E{$ep['episode']} {$title}"
-					." on {$ep['details'][$this->Name]['airdate']}");
+				ModCheck::Out(sprintf('Missing episode %s S%dE%d %s %s'
+					.' <a class="button" href="%s" target="_blank">TVRage</a>',
+					$ep['series'], $ep['details'][$this->Name]['seasonnum'],
+					$ep['details'][$this->Name]['epnum'], $title,
+					date('F j, Y', $ep['details'][$this->Name]['airdate']),
+					$ep['details'][$this->Name]['link']));
 			}
 		}
 	}
