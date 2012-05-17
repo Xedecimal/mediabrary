@@ -210,7 +210,7 @@ EOF;
 		$q['path']['$exists'] = 1;
 		$q['$or'][]['type'] = 'movie';
 		$q['$or'][]['type'] = 'tv-episode';
-		$q['$or'][]['type'] = 'music-track';
+		#$q['$or'][]['type'] = 'music-track';
 		$cols['path'] = 1;
 
 		$ents = $_d['entry.ds']->find($q);
@@ -254,20 +254,16 @@ EOF;
 		$out = $getid3->analyze($item['path']);
 		if (empty($out)) { echo 'Error loading media info.'; return; }
 
-		if (empty($out) || !empty($out['error']))
+		if (empty($out['audio']) && empty($out['video']))
 		{
-			echo "<p>Bad codec data in file '{$item['path']}'.</p>";
-			flush();
+			ModCheck::Out("Bad codec data in file '{$item['path']}'.");
 			return;
-			#$item['codec']['mtime'] = filemtime($item['path']);
-			#$_d['entry.ds']->save($item, array('safe' => 1));
 		}
 
 		$item['details']['Audio Quality'] = @$out['audio']['bitrate'] * .005;
 		$item['details']['Video Quality'] = @$out['video']['bitrate'] * .00075;
 
-		if (empty($out['audio']))
-			var_dump($out);
+		if (empty($out['audio'])) var_dump($out);
 		$res['audio'] = $out['audio'];
 		if (!empty($out['video'])) $res['video'] = $out['video'];
 		$res['duration'] = $out['playtime_seconds'];
