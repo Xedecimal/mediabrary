@@ -4,6 +4,8 @@ date_default_timezone_set('America/Los_Angeles');
 setlocale(LC_ALL, 'en_US.utf8');
 session_start();
 
+global $_d;
+
 # Libraries
 require_once('xedlib/classes/server.php');
 #Server::HandleErrors();
@@ -34,8 +36,13 @@ $_d['i18n'] = spyc_load_file("lang/{$lang}.yml");
 $mongo = new Mongo;
 $_d['db'] = $mongo->mediabrary;
 $_d['entry.ds'] = $_d['db']->entry;
-$_d['entry.ds']->ensureIndex(array('path' => 1, 'parent' => 1, 'index' => 1),
-	array('unique' => 1, 'safe' => 1));
+try
+{
+	$_d['entry.ds']->ensureIndex(array('path' => 1, 'parent' => 1, 'index' => 1),
+		array('unique' => 1, 'safe' => 1));
+}
+# This happens from time to time. Result too large.
+catch (MongoCursorException $ex) { }
 $_d['entry.ds']->ensureIndex(array('obtained' => 1));
 
 require_once('xedlib/modules/nav.php');
