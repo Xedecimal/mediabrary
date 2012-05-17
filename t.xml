@@ -21,7 +21,7 @@ window.remote_ip = '{{_SERVER.REMOTE_ADDR}}';
 </head>
 <body>
 <div id="left">
-	<img src="{{app_abs}}/img/logo.png" alt="Mediabrary" />
+	<div id="logo"><img src="{{app_abs}}/img/logo.png" alt="Mediabrary" /></div>
 	<block name="nav" />
 	<div id="notes"><block name="notify" /></div>
 </div>

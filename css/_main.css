@@ -5,6 +5,8 @@ body { height: 100%; }
 #left { width: 220px; height: 100%; position: fixed; font-size: 12px;
 		border-right: 1px dashed #888; background: #000; z-index: 1; overflow: auto; }
 
+#logo { text-align: center; }
+
 ul.nav, ul.nav ul { list-style: none; margin: 0; padding: 0 5px 0 10px; }
 
 #notes { border: 1px solid #222; background: #000; margin-top: 1em;
