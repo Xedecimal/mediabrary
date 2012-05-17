@@ -15,6 +15,7 @@ class TVRage extends Module implements Scraper
 	{
 		global $_d;
 
+		$_d['tv.cb.ignore'][] = '/\.tvrage_cache\.json/';
 		$_d['tv.cb.check.series']['TVRage'] = array(&$this, 'cb_tv_check_series');
 	}
 
