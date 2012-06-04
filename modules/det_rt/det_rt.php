@@ -73,8 +73,6 @@ class RottenTomatoes extends Module implements Scraper
 	{
 		global $_d;
 
-		$item = $_d['entry.ds']->findOne(array('path' => $md->Path));
-
 		if (empty($title)) $title = $md->Title;
 
 		if (empty($title) && !empty($item['title'])) $title = $item['title'];
