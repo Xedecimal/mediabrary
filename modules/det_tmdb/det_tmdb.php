@@ -569,7 +569,7 @@ EOF;
 
 		if (!empty($td['overview']))
 		{
-			$i['var'] = 'TMDB/Overview';
+			$i['var'] = 'TMDB-Overview';
 			$i['val'] = $td['overview'];
 			$ret[] = $i;
 		}
