@@ -182,7 +182,7 @@ class TVRage extends Module implements Scraper
 		$title = MediaLibrary::CleanTitleForFile($data['series']);
 		$dst = dirname($series->Path).'/'.$title;
 		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
-		if ($src != $dst) ModCheck::Out("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst'");
+		if ($src != $dst) ModCheck::Out("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");
 	}
 
 	function CheckFilename(&$series, $ep, $dvdbep)

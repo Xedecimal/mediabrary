@@ -228,14 +228,14 @@ class TVDB extends Module implements Scraper
 
 	function CheckDetails(&$msgs, $ep, $tvdbep)
 	{
+		global $_d;
+
 		# No TVDB data to reference
 		if (!isset($ep['details'][$this->Name]))
 		{
-			$nep = new TVEpisodeEntry($ep['path']);
-			$nep->CollectDS();
-			$nep->Data['details'][$this->Name] = $tvdbep['details'][$this->Name];
-			$nep->SaveDS();
-			TV::OutErr("Adding metadata for {$ep['path']}", $nep);
+			$ep['details'][$this->Name] = $tvdbep;
+			$_d['entry.ds']->Save($ep);
+			TV::OutErr("Adding metadata for {$ep['series']} {$ep['index']}", $nep);
 		}
 
 		# Release Date
@@ -243,10 +243,8 @@ class TVDB extends Module implements Scraper
 		{
 			if (empty($ep['released']))
 			{
-				$nep = new TVEpisodeEntry($ep['path']);
-				$nep->CollectDS();
-				$nep->Data['released'] = $ep['details'][$this->Name]['FirstAired'];
-				$nep->SaveDS();
+				$ep['released'] = $ep['details'][$this->Name]['FirstAired'];
+				$_d['entry.ds']->Save($ep);
 				TV::OutErr("Filled release date for {$ep['path']}", $nep);
 			}
 
