@@ -203,7 +203,7 @@ class TVDB extends Module implements Scraper
 					$tve->Data['season'] = $s;
 					$tve->Data['episode'] = $e;
 					$tve->Data['index'] = sprintf('S%02dE%02d', $s, $e);
-					$tve->Title = $ep['title'];
+					$tve->Title = @$ep['title'];
 					$tve->Data['parent'] = $series->Data['_id'];
 					$dbep = $tve->Data;
 					$tve->SaveDS(true);
@@ -233,9 +233,9 @@ class TVDB extends Module implements Scraper
 		# No TVDB data to reference
 		if (!isset($ep['details'][$this->Name]))
 		{
-			$ep['details'][$this->Name] = $tvdbep;
+			$ep['details'][$this->Name] = $tvdbep['details'][$this->Name];
 			$_d['entry.ds']->Save($ep);
-			TV::OutErr("Adding metadata for {$ep['series']} {$ep['index']}", $nep);
+			ModCheck::Out("Adding metadata for {$ep['series']} {$ep['index']}");
 		}
 
 		# Release Date
@@ -245,7 +245,7 @@ class TVDB extends Module implements Scraper
 			{
 				$ep['released'] = $ep['details'][$this->Name]['FirstAired'];
 				$_d['entry.ds']->Save($ep);
-				TV::OutErr("Filled release date for {$ep['path']}", $nep);
+				ModCheck::Out("Filled release date for {$ep['path']}");
 			}
 
 			# Already aired, missing.
@@ -266,11 +266,13 @@ class TVDB extends Module implements Scraper
 
 	function CheckSeriesFilename(&$series, &$data)
 	{
+		global $_d;
+
 		$src = dirname($series->Path).'/'.basename(realpath($series->Path));
 		$title = MediaLibrary::CleanTitleForFile($data['Series']['SeriesName']);
 		$dst = dirname($series->Path).'/'.$title;
-		$url = Module::L('tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst));
-		if ($src != $dst) TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst'");
+		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
+		if ($src != $dst) TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");
 	}
 
 	function CheckFilename(&$series, $ep, $dvdbep)
@@ -299,7 +301,7 @@ class TVDB extends Module implements Scraper
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
 			$url = $_d['app_abs'].'/tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext");
-			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"", $ep);
+			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\" on {$this->Name}", $ep);
 			return false;
 		}
 	}

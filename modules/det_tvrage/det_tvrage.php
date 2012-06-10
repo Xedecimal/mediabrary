@@ -168,7 +168,8 @@ class TVRage extends Module implements Scraper
 				if (!empty($dbep['path']))
 				{
 					# Check filename.
-					$this->CheckFilename($tvreps, $dbep, $ep);
+					//@TODO: Find a way to make this reliable.
+					//$this->CheckFilename($tvreps, $dbep, $ep);
 				}
 			}
 		}
@@ -212,7 +213,7 @@ class TVRage extends Module implements Scraper
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
 			$url = $_d['app_abs'].'/tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext");
-			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\"", $ep);
+			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\" on {$this->Name}", $ep);
 			return false;
 		}
 	}
@@ -241,7 +242,8 @@ class TVRage extends Module implements Scraper
 			}
 
 			# Already aired, missing.
-			if (empty($ep['path'])
+			# @TODO: Make this more reliable.
+			/*if (empty($ep['path'])
 			&& !empty($ep['details'][$this->Name]['seasonnum'])
 			&& !empty($ep['details'][$this->Name]['epnum'])
 			&& strtotime($ep['details'][$this->Name]['airdate']) < time())
@@ -255,7 +257,7 @@ class TVRage extends Module implements Scraper
 					$ep['details'][$this->Name]['epnum'], $title,
 					date('F j, Y', $ep['details'][$this->Name]['airdate']),
 					$ep['details'][$this->Name]['link']));
-			}
+			}*/
 		}
 	}
 }
