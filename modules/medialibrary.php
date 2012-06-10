@@ -61,6 +61,8 @@ class MediaLibrary extends Module
 
 	static function CleanTitleForFile($title, $trans_the = true)
 	{
+		$title = mb_convert_encoding($title, 'ISO-8859-1', 'UTF-8');
+
 		// Literal cleanups.
 		$reps = array('/' => ' ', ': ' => ' - ', ':' => '-', '?' => '_', '*' => '_', '"' => "'");
 

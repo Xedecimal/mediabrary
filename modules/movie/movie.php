@@ -279,17 +279,7 @@ class Movie extends MediaLibrary
 			}
 
 			if ($toterrs += $errors > 100) break;
-
-			# If we can, mark this movie clean to skip further checks.
-			if (empty($errors) && isset($md) && @$file['fs_part'] < 2)
-			{
-				$_d['entry.ds']->update(array('_id' => $md->Data['_id']),
-					array('$set' => array('mov_clean' => true))
-				);
-			}
 		}*/
-
-		//$this->CheckOrphanMedia($msgs);
 
 		//$msgs['Stats'][] = 'Checked '.count($this->_ds).' known movie files.';
 	}
@@ -306,6 +296,7 @@ class Movie extends MediaLibrary
 			$me->Data['root'] = dirname($filename);
 			$this->CheckDatabaseExistence($filename, $me);
 			$me->LoadDS();
+			$this->CheckDatabase($filename, $me);
 
 			$clean = $me->Clean;
 
@@ -347,8 +338,9 @@ class Movie extends MediaLibrary
 		# This is multipart, we only keep track of the first item.
 		if (!empty($md->Part)) return $ret;
 
-		$item = $_d['entry.ds']->findOne(array(
-			'path' => Str::MakeUTF8($md->Path)));
+		$q['path'] = $md->Path;
+		$item = $_d['entry.ds']->findOne($q);
+
 		if (!empty($item)) return $ret;
 
 		$ext = File::Ext($md->Path);
@@ -356,16 +348,17 @@ class Movie extends MediaLibrary
 			return $ret;
 
 		if (empty($md->Path)) return;
-		if (!isset($this->_ds[$md->Path]))
+
+		if (!isset($md->Data['_id']))
 		{
 			$md->SaveDS(true);
-			ModCheck::Out("Added new movie '{$md->Path}' to database.");
+			ModCheck::Out("Added new movie '{$q['path']}' to database.");
 		}
 
 		return $ret;
 	}
 
-	function CheckDatabase($p, $md, &$msgs)
+	function CheckDatabase($p, $md)
 	{
 		global $_d;
 
@@ -373,14 +366,17 @@ class Movie extends MediaLibrary
 		if (!empty($md->Title) && $md->Title != @$md->Data['title'])
 		{
 			# Save the file title to the database.
-			$md->Data['title'] = $md->Title;
+			$md->Data['title'] = mb_convert_encoding($md->Title, 'utf8');
 			$md->SaveDS();
 		}
 
 		# The database does not have a release date.
-		if (!empty($md->Released) && $md->Released != @$md->Data['released'])
+		if (
+			!empty($md->Released) &&
+			($md->Released != @$md->Data['released'] || is_string($md->Data['released']))
+		)
 		{
-			$md->Data['released'] = $md->Released;
+			$md->Data['released'] = (int)$md->Released;
 			$md->SaveDS();
 		}
 

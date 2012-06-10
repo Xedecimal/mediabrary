@@ -522,7 +522,7 @@ EOD;
 		# Try to set the release date on the movie.
 		if (!empty($data['released']))
 		if (preg_match('/(\d{4})/', $data['released'], $m))
-			$me->Data['released'] = $m[1];
+			$me->Data['released'] = (int)$m[1];
 
 		$me->SaveDS();
 
