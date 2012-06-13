@@ -476,6 +476,8 @@ class TVSeriesEntry extends MediaEntry
 
 	function TagItem($t, $g, $a)
 	{
+		$items = array();
+
 		if (!empty($this->ds))
 		{
 			foreach ($this->ds as $ss)
@@ -544,12 +546,13 @@ class TVEpisodeEntry extends MediaEntry
 	{
 		global $_d;
 
-		$this->Data = $_d['entry.ds']->findOne(array(
+		$dat = $_d['entry.ds']->findOne(array(
 			'type' => $this->Type,
 			'series' => $this->series,
 			'season' => (int)$this->season,
 			'episode' => (int)$this->episode
 		));
+		if (!empty($dat)) $this->Data = $dat;
 	}
 
 	static function GetFSPregs()
