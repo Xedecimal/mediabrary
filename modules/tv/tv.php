@@ -150,20 +150,17 @@ class TV extends MediaLibrary
 
 	function Check()
 	{
-		global $_d;
-		$this->CheckFilesystem($msgs);
-		$this->CheckDatabase($msgs);
+		$this->CheckFilesystem();
+		$this->CheckDatabase();
 	}
 
-	function CheckFilesystem(&$msgs)
+	function CheckFilesystem()
 	{
-		global $_d;
-
 		$this->fs = $this->CollectFS();
 		foreach ($this->fs as $tvse) $tvse->Check();
 	}
 
-	function CheckDatabase(&$msgs)
+	function CheckDatabase()
 	{
 		global $_d;
 
@@ -171,7 +168,7 @@ class TV extends MediaLibrary
 
 		# Database checks
 
-		foreach ($ds as $s => $series)
+		foreach ($ds as $series)
 		{
 			if (!file_exists($series->Path)
 			|| basename(realpath($series->Path)) != basename($series->Path))
@@ -181,9 +178,9 @@ class TV extends MediaLibrary
 			}
 
 			if (!empty($series->ds))
-			foreach ($series->ds as $se => $season)
+			foreach ($series->ds as $season)
 			{
-				foreach ($season as $ep => $episode)
+				foreach ($season as $episode)
 				{
 					if (!empty($episode['path']))
 					if (!file_exists($episode['path']))
@@ -274,7 +271,7 @@ class TV extends MediaLibrary
 		return $ret;
 	}
 
-	static function OutErr($msg, $me = null)
+	static function OutErr($msg)
 	{
 		echo "<p>$msg</p>\r\n";
 		flush();
@@ -308,8 +305,6 @@ class TVSeriesEntry extends MediaEntry
 
 	function Get()
 	{
-		global $_d;
-
 		$this->CollectDS();
 
 		$t = new Template();
@@ -369,8 +364,6 @@ class TVSeriesEntry extends MediaEntry
 
 	function Check()
 	{
-		global $_d;
-
 		$this->fs = $this->CollectFS();
 		$this->CollectDS();
 
@@ -402,15 +395,13 @@ class TVSeriesEntry extends MediaEntry
 
 	function CheckOrphans()
 	{
-		global $_d;
-
 		$this->prunes = array();
 		$changed = false;
 
 		if (!empty($this->ds))
-		foreach ($this->ds as $sn => $season)
+		foreach ($this->ds as $season)
 		{
-			foreach ($season as $en => $ep)
+			foreach ($season as $ep)
 			{
 				# Check filesystem for this db entry.
 				if (!empty($ep['path']))
@@ -461,7 +452,7 @@ class TVSeriesEntry extends MediaEntry
 					$dep = new TVEpisodeEntry($ep->Path);
 					$dep->CollectDS();
 					$dep->Data['path'] = $ep->Path;
-					$dep->SaveDS();
+					$dep->SaveDS(true);
 					ModCheck::Out("Updated path {$ep->Path} on existing entry.");
 				}
 
@@ -481,23 +472,14 @@ class TVSeriesEntry extends MediaEntry
 
 	function CheckDataset()
 	{
-		if (!empty($this->ds))
-		foreach ($this->ds as $sn => $season)
-		{
-			foreach ($season as $en => $ep)
-			{
-			}
-		}
 	}
 
 	function TagItem($t, $g, $a)
 	{
-		$vp = new VarParser();
-
 		if (!empty($this->ds))
 		{
-			foreach ($this->ds as $s => $ss)
-			foreach ($ss as $e => $es)
+			foreach ($this->ds as $ss)
+			foreach ($ss as $es)
 			{
 				$es['url'] = !empty($es['path']) ? urlencode($es['path']) : '';
 				$items[] = $es;
@@ -583,7 +565,7 @@ class TVEpisodeEntry extends MediaEntry
 				4 => 'title'),
 			# path/{series}/{series} Season {season} Episode {episode} - {title}.ext
 			'#/([^/]+)/([^/-]+)\s*Season ([0-9]{1,3})\s+Episode ([0-9]{1,3})\s*-\s*(.*)\.[^.]+$#i' => array(
-				2 => 'series',
+				1 => 'series',
 				3 => 'season',
 				4 => 'episode',
 				5 => 'title'),
@@ -698,9 +680,6 @@ class ModTVEpisode extends MediaLibrary
 
 	static function GetExistingEpisodes($series)
 	{
-		global $_d;
-		$tvi = new ModTVEpisode;
-
 		$exts = TVEpisodeEntry::GetExtensions();
 
 		$ret = array();
@@ -772,7 +751,6 @@ class ModTVEpisode extends MediaLibrary
 				{
 					$sname = basename($series);
 					$query = rawurlencode("$sname S{$snp}E{$enp}");
-					$ser = rawurlencode($series);
 					$aired = date('m/d/Y', $ep['aired']);
 					$rout = "$series S{$snp}E{$enp} - {$aired}";
 					$rout .= ' - <a href="http://www.torrentz.eu/search?q='.$query.'" target="_blank">TZ</a>';
