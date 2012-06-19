@@ -116,9 +116,7 @@ class TVDB extends Module implements Scraper
 
 	public function GetDetails($t, $g, $a) { }
 
-	public function GetName() {
-
-	}
+	public function GetName() { }
 
 	public function Scrape(&$item, $id = null)
 	{
@@ -293,15 +291,18 @@ class TVDB extends Module implements Scraper
 			.preg_quote($epname, '@').'\.([^.]+)$@';
 
 		# <series> / <series> - S<season>E<episode> - <title>.avi
-		if (!preg_match($preg, $ep['path']))
+		if (!preg_match($preg, utf8_decode($ep['path'])))
 		{
 			$dir = dirname($ep['path']);
 			$ext = File::ext($ep['path']);
 			$fns = sprintf('%02d', $ep['season']);
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
-			$url = $_d['app_abs'].'/tv/rename?path='.urlencode($ep['path']).'&amp;target='.urlencode("$dir/$fname.$ext");
-			TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> File {$ep['path']} has invalid name, should be \"$dir/$fname.$ext\" on {$this->Name}", $ep);
+			$outname = utf8_encode("$dir/$fname.$ext");
+			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode("$dir/$fname.$ext");
+			ModCheck::Out('<a href="'.$url.'" class="a-fix button">Fix</a>'
+				.' Episode '.$ep['path'].' has invalid name, should be "'
+				.utf8_encode($outname).'" on '.$this->Name.'.');
 			return false;
 		}
 	}
