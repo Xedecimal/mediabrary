@@ -24,6 +24,8 @@ function createRequestObject() {
 }
 
 function startProcess(dataUrl) {
+	prevDataLength = 0;
+	nextLine = null;
 	http = createRequestObject();
 	http.open('get', dataUrl);
 	http.onreadystatechange = handleResponse;
