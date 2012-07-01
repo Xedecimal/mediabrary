@@ -36,7 +36,8 @@ class TMDB extends Module implements Scraper
 		$_d['movie.cb.check'][$this->Name] = array($this, 'movie_cb_check');
 		# @TODO: This happens too often.
 		#$_d['movie.cb.check_complete'][$this->Name] = array($this, 'movie_cb_check_complete');
-		$_d['movie.cb.move'][$this->Name] = array($this, 'movie_cb_move');
+		$_d['movie.cb.move'][$this->Name] = array(&$this, 'movie_cb_move');
+		$_d['cb.detail.buttons'][$this->Name] = array(&$this, 'cb_detail_buttons');
 
 		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
 	}
@@ -366,6 +367,15 @@ EOD;
 			new MongoRegex("/$q/i");
 		$ret['$or'][]["details.{$this->Name}.name"] = new MongoRegex("/$q/i");
 		return $ret;
+	}
+
+	function cb_detail_buttons($t, $g)
+	{
+		if (empty($t->vars['Data']['details'][$this->Name])) return;
+
+		$td = $t->vars['Data']['details'][$this->Name];
+
+		return '<a href="'.$td['url'].'" target="_blank"><img src="'.$this->Icon.'" alt="'.$this->Name.'" /></a>';
 	}
 
 	function filter_cb_filters()
