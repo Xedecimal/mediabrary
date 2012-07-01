@@ -1,0 +1,7 @@
+<div id="discover">
+<script type="text/javascript" src="modules/discover/discover.js"></script>
+<p>
+	<a href="discover/scan?XDEBUG_PROFILE" class="button a-scan">Scan Network</a>
+</p>
+<div id="output"></div>
+</div>
