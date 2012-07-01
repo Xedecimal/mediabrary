@@ -14,7 +14,7 @@ class ModRoulette extends Module
 
 	function cb_head()
 	{
-		$js = Module::P('roulette/js.js');
+		$js = Module::P('roulette/roulette.js');
 		return <<<EOF
 <script type="text/javascript" src="$js"></script>
 EOF;
