@@ -33,7 +33,7 @@ class ViewList extends Module
 
 		global $_d;
 
-		$this->_q = Server::GetVar('q');
+		$this->_q = array_merge($_GET['q'], $_POST['q']);
 
 		if (@$_d['q'][1] == 'items')
 		{
@@ -79,7 +79,7 @@ class ViewList extends Module
 			->sort($this->_sort)
 			->skip($this->_page*$this->_limit)
 			->limit($this->_limit)
-			;
+		;
 
 		$res = array();
 		foreach ($cr as $i)
