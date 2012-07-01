@@ -33,7 +33,9 @@ class ViewList extends Module
 
 		global $_d;
 
-		$this->_q = array_merge($_GET['q'], $_POST['q']);
+		$this->_q = array();
+		if (!empty($_GET['q'])) $this->_q += @$_GET['q'];
+		if (!empty($_POST['q'])) $this->_q += $_POST['q'];
 
 		if (@$_d['q'][1] == 'items')
 		{
@@ -65,14 +67,20 @@ class ViewList extends Module
 				$this->_q[$qk] = call_user_func($this->_trans[$qk], $qv);
 
 		$m = array();
-		if (!empty($this->_q))
-		foreach ($this->_q as $col => $q)
-		{
-			if (empty($q)) continue;
 
-			if (is_string($q))
-				$m[$col] = new MongoRegex('/'.preg_quote($q).'/i');
-			else $m[$col] = $q;
+		if (!empty($this->_q))
+		{
+			$wheres = '';
+			$ix = 0;
+			foreach ($this->_q as $col => $q)
+			{
+				if (empty($q)) continue;
+
+				$wheres .= $ix++ > 0 ? ' &&' : '';
+				if (is_string($q))
+					$wheres .= ' /'.preg_quote($q).'/i.test(this.'.$col.')';
+			}
+			$m['$where'] = new MongoCode($wheres);
 		}
 
 		$cr = $_d['entry.ds']->find($m)
