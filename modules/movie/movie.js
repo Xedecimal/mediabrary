@@ -23,12 +23,13 @@ $(function () {
 
 function movieDetail(id)
 {
-	$('<div id="detail-dialog" />').dialog({
-		width: '80%',
-		height: 500,
-		position: 'top',
-		title: 'Movie Details',
+	$.get(app_abs+'/movie/detail/'+id).success(function (data) {
+		$(data).dialog({
+			width: '80%',
+			height: 500,
+			position: 'top',
 
-		close: function () { $('#detail-dialog').remove(); }
-	}).load(app_abs+'/movie/detail/'+id);
+			close: function () { $('#detail-dialog').remove(); }
+		});
+	});
 }

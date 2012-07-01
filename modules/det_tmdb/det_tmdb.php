@@ -556,23 +556,18 @@ EOD;
 
 		$ret = array();
 
-		if (!empty($td['url']))
-		{
-			$i['var'] = 'TMDB/URL';
-			$i['val'] = '<a href="'.$td['url'].'" target="_blank">Visit</a>';
-			$ret[] = $i;
-		}
-
 		if (!empty($td['trailer']))
 		{
 			preg_match('/\?v=([^&]+)/', $td['trailer'], $m);
 			$v = $m[1];
-			$i['var'] = 'TMDB/Trailer';
+			$i['var'] = 'TMDB-Trailer';
 			$i['val'] = <<<EOF
-<object width="640" height="360">
+<div class="tmdb-trailer" style="display: none">
+	<object width="640" height="360">
 	<param name="movie" value="http://www.youtube.com/v/$v&hl=en_US&feature=player_embedded&version=3"></param>
 	<param name="allowFullScreen" value="true"></param><param name="allowScriptAccess" value="always"></param>
 	<embed src="http://www.youtube.com/v/$v&hl=en_US&feature=player_embedded&version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="360"></embed></object>
+</div>
 EOF;
 			$ret[] = $i;
 		}
