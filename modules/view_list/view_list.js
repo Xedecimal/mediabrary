@@ -60,5 +60,5 @@ $(function () {
 
 function clearItems() {
 	sub['page'] = 0;
-	$('.table-list tbody').load('view_list/items', sub);
+	$('.table-list tbody').load('view_list/items'+document.location.search, sub);
 }
