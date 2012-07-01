@@ -48,7 +48,7 @@ $(function () {
 			($(window).scrollTop() + $(window).height())) {
 			page_loading = true;
 			sub['page']++;
-			$.get('view_list/items', sub, function (d) {
+			$.get('view_list/items'+document.location.search, sub, function (d) {
 				if (d) {
 					$('.table-list tbody').append(d);
 					page_loading = false;
