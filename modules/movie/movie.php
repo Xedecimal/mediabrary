@@ -598,7 +598,7 @@ class MovieEntry extends MediaEntry
 		$thm_path = dirname($this->Path).'/folder.jpg';
 
 		if (file_exists($thm_path))
-			$this->Image = $_d['app_abs'].'/cover?path='.rawurlencode($thm_path);
+			$this->Image = $_d['app_abs'].'/cover2.php?path='.rawurlencode($thm_path);
 	}
 
 	function LoadDir($path)
