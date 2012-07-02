@@ -48,8 +48,15 @@ $(function () {
 	$('.save-cover').live('click', function () {
 		var cov = $(this).attr('src');
 		var fs_path = $('#detail-path').val();
-		$.get(window.app_abs+'/scrape/cover', dat, function () {
 
+		var dat = {
+			path: fs_path,
+			cover: cov
+		}
+
+		$.get(window.app_abs+'/scrape/cover', dat, function () {
+			$('#detail-dialog').load(window.app_abs+'/'
+				+$('#detail-type').val()+'/detail/'+$('#detail-id').val());
 		});
 	});
 

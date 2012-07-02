@@ -1,2 +1,3 @@
 .scrape-set { float: left; width: 400px; }
+.save-cover { background: url('../movie/img/loading.jpg'); }
 #div-covers { clear: both; }

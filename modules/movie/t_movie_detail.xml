@@ -1,4 +1,5 @@
 <div id="detail-wrap" title="Details for {{Path}}">
+	<callback ds="_d" name="cb.detail.head" type="movie" />
 	<div class="movie-buttons"><a
 		href="movie/down/{{fs_filename}}"><img src="movie/img/save_as.png"
 		alt="Download" /></a><callback ds="_d" name="cb.detail.buttons" type="movie" /></div>
@@ -13,6 +14,6 @@
 	</callback>
 	</div>
 
-	<p><a href="#" class="cover-prev">&laquo;</a> Cover <a href="#" class="cover-next">&raquo;</a></p>
+
 	<p><a href="#" class="back-prev">&laquo;</a> Backdrop <a href="#" class="back-next">&raquo;</a></p>
 </div>

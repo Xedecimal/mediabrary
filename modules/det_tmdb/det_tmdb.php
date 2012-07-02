@@ -38,6 +38,7 @@ class TMDB extends Module implements Scraper
 		#$_d['movie.cb.check_complete'][$this->Name] = array($this, 'movie_cb_check_complete');
 		$_d['movie.cb.move'][$this->Name] = array(&$this, 'movie_cb_move');
 		$_d['cb.detail.buttons'][$this->Name] = array(&$this, 'cb_detail_buttons');
+		$_d['cb.detail.head'][$this->Name] = array(&$this, 'cb_detail_head');
 
 		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
 	}
@@ -84,6 +85,35 @@ class TMDB extends Module implements Scraper
 				}
 			}
 			die();
+		}
+
+		if (@$_d['q'][1] == 'newcover')
+		{
+			$dir = dirname($_GET['path']);
+			$cache = $dir.'/.tmdb_cache.json';
+			$txt = file_get_contents($cache);
+			$jsn = json_decode($txt, true);
+
+			$cx = $jsn['images']['index'];
+			if (!isset($cx)) $cx = 0;
+
+			#var_dump($jsn['images']['image']);
+			foreach ($jsn['images']['image'] as $ix => $img)
+			{
+				if ($img['@attributes']['type'] == 'poster' &&
+					$img['@attributes']['size'] == 'cover')
+					$images[] = $img['@attributes']['url'];
+			}
+
+			if (++$cx >= count($images)) $cx = 0;
+
+			#file_put_contents($dir.'/folder.jpg',
+			#	file_get_contents($images[$cx]));
+			$out = array('cover' => $images[$cx]);
+
+			$jsn['images']['index'] = $cx;
+			file_put_contents($cache, json_encode($jsn));
+			die(json_encode($out));
 		}
 	}
 
@@ -378,6 +408,15 @@ EOD;
 		return '<a href="'.$td['url'].'" target="_blank"><img src="'.$this->Icon.'" alt="'.$this->Name.'" /></a>';
 	}
 
+	function cb_detail_head($t, $g)
+	{
+		$css = Module::P('det_tmdb/tmdb_movie_details.css');
+		$js = Module::P('det_tmdb/tmdb_movie_details.js');
+
+		return '<link type="text/css" rel="stylesheet" href="'.$css.'" />'
+			.'<script type="text/javascript" src="'.$js.'"></script>';
+	}
+
 	function filter_cb_filters()
 	{
 		global $_d;
@@ -492,11 +531,19 @@ EOD;
 	{
 		$ret = array();
 
-		foreach ($item->Data['details'][$this->Name]['images']['image'] as $i)
-			if ($i['@attributes']['type'] == 'poster')
+		$json = $this->GetCache($item->Path);
+
+		foreach ($json['images']['image'] as $i)
+			if ($i['@attributes']['type'] == 'poster' &&
+				$i['@attributes']['size'] == 'cover')
 				$ret[] = $i['@attributes']['url'];
 
 		return $ret;
+	}
+
+	function GetCache($path)
+	{
+		return json_decode(file_get_contents(dirname($path).'/.tmdb_cache.json'), true);
 	}
 
 	function Details($id)
@@ -550,19 +597,29 @@ EOD;
 
 	function GetDetails($t, $g, $a)
 	{
+		global $_d;
+
 		if (empty($t->vars['Data']['details'][$this->Name])) return;
 
 		$td = &$t->vars['Data']['details'][$this->Name];
 
 		$ret = array();
 
+		$ret[] = array(
+			'var' => 'tmdb-cover',
+			'val' => '<img src="'.$t->vars['Image'].'" alt="Cover" id="tmdb-cover-image" /><br />
+<p><a href="#" id="cover-prev">&laquo;</a>
+<a href="#" id="cover-next">&raquo;</a></p>'
+		);
+
 		if (!empty($td['trailer']))
 		{
 			preg_match('/\?v=([^&]+)/', $td['trailer'], $m);
 			$v = $m[1];
-			$i['var'] = 'TMDB-Trailer';
+			$i['var'] = 'tmdb-trailer';
 			$i['val'] = <<<EOF
-<div class="tmdb-trailer" style="display: none">
+<a href="#" id="tmdb-trailer-toggle">Trailer</a>
+<div id="tmdb-trailer-video" style="display: none">
 	<object width="640" height="360">
 	<param name="movie" value="http://www.youtube.com/v/$v&hl=en_US&feature=player_embedded&version=3"></param>
 	<param name="allowFullScreen" value="true"></param><param name="allowScriptAccess" value="always"></param>
@@ -575,7 +632,7 @@ EOF;
 		if (!empty($td['overview']))
 		{
 			$i['var'] = 'TMDB-Overview';
-			$i['val'] = $td['overview'];
+			$i['val'] = '<p>'.$td['overview'].'</p>';
 			$ret[] = $i;
 		}
 

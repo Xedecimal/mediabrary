@@ -106,6 +106,14 @@ class Scrape extends Module
 			}
 			die(json_encode($covers));
 		}
+
+		if (@$_d['q'][1] == 'cover')
+		{
+			$dir = dirname($_GET['path']);
+			file_put_contents($dir.'/folder.jpg',
+				file_get_contents($_GET['cover']));
+			die();
+		}
 	}
 
 	function Get()
