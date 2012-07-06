@@ -300,9 +300,15 @@ class TVDB extends Module implements Scraper
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
 			$outname = utf8_encode("$dir/$fname.$ext");
 			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode("$dir/$fname.$ext");
+
+			$tvdblink = "http://thetvdb.com/?tab=episode";
+			$tvdblink .= "&seriesid={$ep['details'][$this->Name]['seriesid']}";
+			$tvdblink .= "&seasonid={$ep['details'][$this->Name]['seasonid']}";
+			$tvdblink .= "&id={$ep['details'][$this->Name]['id']}";
+
 			ModCheck::Out('<a href="'.$url.'" class="a-fix button">Fix</a>'
 				.' Episode '.$ep['path'].' has invalid name, should be "'
-				.utf8_encode($outname).'" on '.$this->Name.'.');
+				.utf8_encode($outname).'" on <a href="'.$tvdblink.'" target="_blank" class="button">'.$this->Name.'</a>.');
 			return false;
 		}
 	}
