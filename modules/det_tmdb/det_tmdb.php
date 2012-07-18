@@ -607,7 +607,7 @@ EOD;
 
 		$ret[] = array(
 			'var' => 'tmdb-cover',
-			'val' => '<img src="'.$t->vars['Image'].'" alt="Cover" id="tmdb-cover-image" /><br />
+			'val' => '<img src="'.@$t->vars['Image'].'" alt="Cover" id="tmdb-cover-image" /><br />
 <p><a href="#" id="cover-prev">&laquo;</a>
 <a href="#" id="cover-next">&raquo;</a></p>'
 		);
