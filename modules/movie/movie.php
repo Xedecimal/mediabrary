@@ -293,22 +293,22 @@ class Movie extends MediaLibrary
 		{
 			# See if we need to do anything with this entry.
 			$me = new MovieEntry($filename, MovieEntry::GetFSPregs());
-			$me->Data['root'] = dirname($filename);
-			$this->CheckDatabaseExistence($filename, $me);
-			$me->LoadDS();
-			$this->CheckDatabase($filename, $me);
-
-			$clean = $me->Clean;
-
-			$ext = File::Ext($me->Path);
 
 			# Filename related
+			$ext = File::Ext($me->Path);
 			if (array_search($ext, MovieEntry::GetExtensions()) === false)
 			{
 				ModCheck::Out("File {$me->Path} has an unknown extension. ($ext)");
 				$clean = false;
 				continue;
 			}
+
+			$me->Data['root'] = dirname($filename);
+			$this->CheckDatabaseExistence($filename, $me);
+			$me->LoadDS();
+			$this->CheckDatabase($filename, $me);
+
+			$clean = $me->Clean;
 
 			if (!$this->CheckFile($me)) $clean = false;
 
