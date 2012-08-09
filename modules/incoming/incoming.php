@@ -39,13 +39,14 @@ class Incoming extends Module
 			if (!empty($found))
 			{
 				$target = $this->GetTarget($found);
+                $fullpath = $target.'/'.basename($f);
 				$urlfix = $_d['app_abs'].'/movie/rename?path='.urlencode($f);
-				$urlfix .= '&amp;target='.urlencode($target).'/'.urlencode(basename($f));
-				echo "[<a href=\"$urlfix\" class=\"a-fix\">Fix</a>] Matched {$f} to a {$c} want to place it at '{$target}'.";
+				$urlfix .= '&amp;target='.urlencode($fullpath);
+                ModCheck::Out("<a href=\"$urlfix\" class=\"a-fix button\">Fix</a> Matched {$f} to a {$c} want to place it at '{$fullpath}'.");
 			}
 			else
 			{
-				var_dump("Could not identify {$f}");
+				ModCheck::Out("Could not identify {$f}");
 			}
 		}
 	}
@@ -56,7 +57,7 @@ class Incoming extends Module
 
 		if ($found['type'] == 'TVEpisodeEntry')
 		{
-			foreach ($_d['config']['paths']['tv-series']['paths'] as $p)
+			foreach ($_d['config']['paths']['tv'] as $p)
 			{
 				$dirs = File::Comb($p, null, SCAN_DIRS);
 				$sims = array();
@@ -73,7 +74,7 @@ class Incoming extends Module
 
 		if ($found['type'] == 'MovieEntry')
 		{
-			return $_d['config']['paths']['movie'][0].'/'.$found['Title'].'('.$found['Released'].')';
+			return $_d['config']['paths']['movie'][0].'/'.$found['Title'].' ('.$found['Released'].')';
 		}
 	}
 }
