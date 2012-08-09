@@ -70,10 +70,10 @@ class MediaEntry
 		if (!empty($this->Data['paths']))
 			foreach ($this->Data['paths'] as $ix => $p)
 				if ($p == $this->Data['path'])
-					$this->Data['paths'][$ix] = $target;
+					$this->Data['paths'][$ix] = utf8_encode($target);
 
 		$ret = rename($this->Data['path'], $target);
-		$this->Data['path'] = $target;
+		$this->Data['path'] = utf8_encode($target);
 		$this->SaveDS();
 		return $ret;
 	}
