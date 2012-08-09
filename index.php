@@ -39,7 +39,7 @@ $_d['entry.ds'] = $_d['db']->entry;
 try
 {
 	$_d['entry.ds']->ensureIndex(array('path' => 1, 'parent' => 1, 'index' => 1),
-		array('unique' => 1, 'safe' => 1));
+		array('unique' => 1, 'safe' => 1, 'sparse' => 1));
 }
 # This happens from time to time. Result too large.
 catch (MongoCursorException $ex) { }
