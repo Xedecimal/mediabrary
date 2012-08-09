@@ -6,7 +6,7 @@ class TVDB extends Module implements Scraper
 
 	const _tvdb_key = '138419DAB0A9141D';
 	const _tvdb_find = 'http://www.thetvdb.com/api/GetSeries.php?seriesname=';
-	const _tvdb_api = 'http://www.thetvdb.com/api/138419DAB0A9141D/';
+	const _tvdb_api = 'http://www.thetvdb.com/api/138419DAB0A9141D';
 
 	# http://www.thetvdb.com/api/138419DAB0A9141D/mirrors.xml
 	# http://www.thetvdb.com/api/138419DAB0A9141D/series/75897/banners.xml
@@ -267,6 +267,7 @@ class TVDB extends Module implements Scraper
 		global $_d;
 
 		$src = dirname($series->Path).'/'.basename(realpath($series->Path));
+		if (empty($data['Series']['SeriesName'])) return;
 		$title = MediaLibrary::CleanTitleForFile($data['Series']['SeriesName']);
 		$dst = dirname($series->Path).'/'.$title;
 		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
@@ -308,7 +309,7 @@ class TVDB extends Module implements Scraper
 
 			ModCheck::Out('<a href="'.$url.'" class="a-fix button">Fix</a>'
 				.' Episode '.$ep['path'].' has invalid name, should be "'
-				.utf8_encode($outname).'" on <a href="'.$tvdblink.'" target="_blank" class="button">'.$this->Name.'</a>.');
+				.$outname.'" on <a href="'.$tvdblink.'" target="_blank" class="button">'.$this->Name.'</a>.');
 			return false;
 		}
 	}
@@ -332,7 +333,6 @@ class TVDB extends Module implements Scraper
 				return $info['Series']['id'];
 		}
 		else $info = array();
-		var_dump('NO SID!');
 		$file_title = "$path/.title.txt";
 		if (file_exists($file_title)) $realname = file_get_contents($file_title);
 		else $realname = basename($path);
@@ -376,6 +376,7 @@ class TVDB extends Module implements Scraper
 
 		$ret['Series'] = $info['Series'];
 
+		if (!empty($info['Episode']))
 		foreach ($info['Episode'] as $ep)
 		{
 			$sn = (int)$ep['SeasonNumber'];
