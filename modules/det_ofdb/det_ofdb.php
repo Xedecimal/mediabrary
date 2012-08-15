@@ -47,7 +47,6 @@ class OFDB extends Module implements Scraper
 	# Scraper Implementation
 
 	function CanAuto() { return false; }
-	function GetName() { return 'OFDB'; }
 
 	function Find(&$md, $title)
 	{

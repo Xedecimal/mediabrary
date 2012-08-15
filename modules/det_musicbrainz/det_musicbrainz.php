@@ -14,8 +14,6 @@ class MusicBrainz extends Module implements Scraper
 
 	public function GetDetails($t, $g, $a) { }
 
-	public function GetName() { }
-
 	public function Scrape(&$item, $id = null) { }
 }
 

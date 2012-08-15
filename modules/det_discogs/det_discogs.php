@@ -56,7 +56,6 @@ class Discogs extends Module implements Scraper
 
 	# Scraper Implementation
 
-	function GetName() { return $this->Name; }
 	function CanAuto() { return false; }
 
 	function Find(&$ae, $title)

@@ -203,7 +203,6 @@ Module::Register('Scrape');
 
 interface Scraper
 {
-	function GetName();
 	function CanAuto();
 	function Find(&$me, $title);
 	function GetCovers($item);

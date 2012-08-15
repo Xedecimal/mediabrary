@@ -466,7 +466,6 @@ EOD;
 
 	# Scraper Implementation
 
-	function GetName() { return 'The Movie DB'; }
 	function CanAuto() { return true; }
 
 	function FindXML($title)

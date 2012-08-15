@@ -123,7 +123,6 @@ class TVRage extends Module implements Scraper
 	public function CanAuto() {}
 	public function Details($id) {}
 	public function GetDetails($t, $g, $a) {}
-	public function GetName() {}
 	public function Scrape(&$item, $id = null) {}
 
 	# Checking

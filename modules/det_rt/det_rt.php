@@ -67,8 +67,6 @@ class RottenTomatoes extends Module implements Scraper
 
 	function CanAuto() { return false; }
 
-	function GetName() { return 'Rotten Tomatoes'; }
-
 	function Find(&$md, $title)
 	{
 		global $_d;
