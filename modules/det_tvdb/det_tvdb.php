@@ -290,15 +290,15 @@ class TVDB extends Module implements Scraper
 			.preg_quote($epname, '@').'\.([^.]+)$@';
 
 		# <series> / <series> - S<season>E<episode> - <title>.avi
-		if (!preg_match($preg, utf8_decode($ep['path'])))
+		if (!preg_match($preg, $ep['path']))
 		{
 			$dir = dirname($ep['path']);
 			$ext = File::ext($ep['path']);
 			$fns = sprintf('%02d', $ep['season']);
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
-			$outname = utf8_encode("$dir/$fname.$ext");
-			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode("$dir/$fname.$ext");
+			$outname = "$dir/$fname.$ext";
+			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode($outname);
 
 			$tvdblink = "http://thetvdb.com/?tab=episode";
 			$tvdblink .= "&seriesid={$ep['details'][$this->Name]['seriesid']}";

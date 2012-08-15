@@ -320,7 +320,7 @@ class TVSeriesEntry extends MediaEntry
 		# Collect this series.
 		$this->Data = $_d['entry.ds']->findOne(array(
 			'type' => $this->Type,
-			'path' => $this->Path
+			'path' => utf8_encode($this->Path)
 		));
 
 		# Collect all these episodes.
@@ -348,7 +348,7 @@ class TVSeriesEntry extends MediaEntry
 
 			$p = $this->Path.'/'.$fn;
 
-			$ep = new TVEpisodeEntry(utf8_encode($p));
+			$ep = new TVEpisodeEntry($p);
 
 			# Possibly Metadata or unknown file.
 			if (empty($ep->Data['season']))
@@ -451,7 +451,7 @@ class TVSeriesEntry extends MediaEntry
 				{
 					$dep = new TVEpisodeEntry($ep->Path);
 					$dep->CollectDS();
-					$dep->Data['path'] = $ep->Path;
+					$dep->Data['path'] = utf8_encode($ep->Path);
 					$dep->SaveDS(true);
 					ModCheck::Out("Updated path {$ep->Path} on existing entry.");
 				}
@@ -527,7 +527,7 @@ class TVEpisodeEntry extends MediaEntry
 		if (!empty($path))
 		{
 			$dat = MediaEntry::ScrapeFS($path, TVEpisodeEntry::GetFSPregs());
-			$this->Data['path'] = $path;
+			$this->Data['path'] = utf8_encode($path);
 			if (!empty($dat['title']))
 				$this->Data['title'] = Str::MakeUTF8($dat['title']);
 			if (!empty($dat['series']))

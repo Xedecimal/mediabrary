@@ -13,6 +13,8 @@ class MediaEntry
 
 	function __construct($path, $parses = null)
 	{
+		if (!file_exists($path))
+			throw new Exception('This file does not exist.');
 		$this->Path = $path;
 		$this->Filename = basename($path);
 		$this->Ext = File::ext($this->Filename);
@@ -34,8 +36,8 @@ class MediaEntry
 		}
 		else $this->Title = $this->Filename;
 
-		if (!empty($path)) $this->Data['path'] = Str::MakeUTF8($path);
-		if (!empty($this->Title)) $this->Data['title'] = Str::MakeUTF8($this->Title);
+		if (!empty($path)) $this->Data['path'] = utf8_encode($path);
+		if (!empty($this->Title)) $this->Data['title'] = utf8_encode($this->Title);
 		if (!empty($this->Type)) $this->Data['type'] = $this->Type;
 	}
 
@@ -43,12 +45,13 @@ class MediaEntry
 	{
 		global $_d;
 		$this->Data = $_d['entry.ds']->findOne(array(
-			'path' => Str::MakeUTF8($this->Path)));
+			'path' => utf8_encode($this->Path)));
 	}
 
 	function SaveDS($bypass_id = false)
 	{
 		global $_d;
+        
 		if (!isset($this->Data['_id']) && !$bypass_id)
 			throw new Exception("No ID set and not bypassing.");
 		if (empty($this->Data['title']) && empty($this->Data['index']))
@@ -72,7 +75,7 @@ class MediaEntry
 				if ($p == $this->Data['path'])
 					$this->Data['paths'][$ix] = utf8_encode($target);
 
-		$ret = rename($this->Data['path'], $target);
+		$ret = rename($this->Path, utf8_decode($target));
 		$this->Data['path'] = utf8_encode($target);
 		$this->SaveDS();
 		return $ret;
