@@ -176,13 +176,14 @@ class TVRage extends Module implements Scraper
 
 	function CheckSeriesFilename(&$series, &$data)
 	{
-		global $_d;
+	    #TODO: Some day implement this again.
+		/*global $_d;
 
 		$src = dirname($series->Path).'/'.basename(realpath($series->Path));
 		$title = MediaLibrary::CleanTitleForFile($data['series']);
 		$dst = dirname($series->Path).'/'.$title;
 		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
-		if ($src != $dst) ModCheck::Out("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");
+		if ($src != $dst) ModCheck::Out("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");*/
 	}
 
 	function CheckFilename(&$series, $ep, $dvdbep)
@@ -233,12 +234,13 @@ class TVRage extends Module implements Scraper
 		# Release Date
 		if (!empty($ep['details'][$this->Name]['airdate']))
 		{
-			if (empty($ep['released']))
+		    # @TODO: Maybe implement this again some day.
+			/*if (empty($ep['released']))
 			{
 				$ep['released'] = $ep['details'][$this->Name]['airdate'];
 				//$nep->SaveDS();
-				ModCheck::Out("TODO: NOT Filled release date for {$ep['series']} {$ep['season']}x{$ep['episode']}");
-			}
+				ModCheck::Out("TODO: NOT Filled release date for {$ep['series']} {$ep['season']}x{$ep['episode']} to {$ep['released']}");
+			}*/
 
 			# Already aired, missing.
 			# @TODO: Make this more reliable.
