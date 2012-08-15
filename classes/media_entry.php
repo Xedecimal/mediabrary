@@ -13,8 +13,6 @@ class MediaEntry
 
 	function __construct($path, $parses = null)
 	{
-		if (!file_exists($path))
-			throw new Exception('This file does not exist.');
 		$this->Path = $path;
 		$this->Filename = basename($path);
 		$this->Ext = File::ext($this->Filename);
