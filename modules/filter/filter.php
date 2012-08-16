@@ -153,16 +153,19 @@ class ModFilter extends Module
 	{
 		global $_d;
 
-		$filters = U::RunCallbacks($_d['filter.cb.filters']);
-		foreach ($filters as $n => &$v)
+		$filters = U::RunCallbacks(@$_d['filter.cb.filters']);
+
+		if (!empty($filters))
 		{
-			if (is_string($v)) $v = array('href' => $v, 'class' => 'a-filter');
-			if (is_array($v) && isset($v['class']))
-				$v['class'] .= ' a-filter';
-			$v['class'] = 'a-filter';
+			foreach ($filters as $n => &$v)
+			{
+				if (is_string($v)) $v = array('href' => $v, 'class' => 'a-filter');
+				if (is_array($v) && isset($v['class']))
+					$v['class'] .= ' a-filter';
+				$v['class'] = 'a-filter';
+			}
+			return ModNav::GetLinks(ModNav::LinkTree($filters), 'filter');
 		}
-		return ModNav::GetLinks(ModNav::LinkTree($filters), 'filter');
-		return VarParser::Concat($g, $filters);
 	}
 }
 
@@ -188,5 +191,3 @@ class FilterReleased
 Filter::Register(new FilterReleased);
 
 Module::Register('ModFilter');
-
-?>

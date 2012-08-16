@@ -40,7 +40,7 @@ class TMDB extends Module implements Scraper
 		$_d['cb.detail.buttons'][$this->Name] = array(&$this, 'cb_detail_buttons');
 		$_d['cb.detail.head'][$this->Name] = array(&$this, 'cb_detail_head');
 
-		$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
+		//$_d['filter.cb.filters'][$this->Name] = array(&$this, 'filter_cb_filters');
 	}
 
 	function Prepare()
