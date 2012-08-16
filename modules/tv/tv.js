@@ -1,5 +1,5 @@
 $(function () {
-	$('.a-tv-item').live('click', function () {
+	$(document).on('click', '.a-tv-item', function () {
 		$('<div id="detail-dialog" />').dialog({
 			'modal': true,
 			width: '80%',
@@ -8,9 +8,13 @@ $(function () {
 			title: 'Details for '+$(this).attr('title'),
 
 			close: function () { $('#detail-dialog').remove(); }
-		}).load('tv-series/detail/'+$(this).attr('href'));
+		}).load(app_abs+'/tv-series/detail/'+$(this).attr('href'));
 
 		return false;
+	});
+	
+	$(document).on('click', '.a-remove', function () {
+		$(this).load($(this).attr('href'));
 	});
 
 	$('#a-tv-scrape-all').click(function () {
