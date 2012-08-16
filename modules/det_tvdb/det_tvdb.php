@@ -298,16 +298,23 @@ class TVDB extends Module implements Scraper
 			$fne = sprintf('%02d', $ep['episode']);
 			$fname = "$sn - S{$fns}E{$fne} - {$epname}";
 			$outname = "$dir/$fname.$ext";
+
 			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode($outname);
+			$but_fix = '<a href="'.$url.'" class="a-fix button">Fix</a>';
+			
+			$url = $_d['app_abs']."/entry/remove/{$ep['_id']}";
+			$but_remove = '<a href="'.$url.'" class="a-remove button halt">Remove</a>';
 
 			$tvdblink = "http://thetvdb.com/?tab=episode";
 			$tvdblink .= "&seriesid={$ep['details'][$this->Name]['seriesid']}";
 			$tvdblink .= "&seasonid={$ep['details'][$this->Name]['seasonid']}";
 			$tvdblink .= "&id={$ep['details'][$this->Name]['id']}";
+			$but_tvdb = '<a href="'.$tvdblink.'" target="_blank" class="button">'.$this->Name.'</a>';
 
-			ModCheck::Out('<a href="'.$url.'" class="a-fix button">Fix</a>'
-				.' Episode '.$ep['path'].' has invalid name, should be "'
-				.$outname.'" on <a href="'.$tvdblink.'" target="_blank" class="button">'.$this->Name.'</a>.');
+			$but_details = '<a href="'.$ep['parent'].'" class="a-tv-item button">Series Details</a>';
+
+			ModCheck::Out("{$but_fix} {$but_remove} Episode {$ep['path']} has invalid name,
+				should be '{$outname}' on {$but_tvdb} {$but_details}.");
 			return false;
 		}
 	}
