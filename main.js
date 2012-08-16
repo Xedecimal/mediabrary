@@ -5,8 +5,10 @@ window.refreshAll = function() {
 };
 
 $(function () {
-	$('.shower').live('click', function () {
+	$(document).on('click', '.shower', function () {
 		$('#'+$(this).attr('href')).toggle();
 		return false;
 	});
+
+	$(document).on('click', '.halt', function (e) { e.preventDefault(); })
 });
