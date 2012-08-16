@@ -726,7 +726,8 @@ class MovieEntry extends MediaEntry
 
 		# Rename without case sensitivity
 		else if ($pisrc['dirname'] != $pidst['dirname'])
-			rename($pisrc['dirname'], $pidst['dirname']);
+			if (!file_exists($pidst['dirname']))
+				rename($pisrc['dirname'], $pidst['dirname']);
 
 		foreach ($_d['movie.cb.move'] as $cb) call_user_func_array($cb,
 			array($src, $pidst['dirname']));
