@@ -1,7 +1,9 @@
 <?php
 
-class MediaEntry
+class MediaEntry extends Module
 {
+	public $Name = 'entry';
+
 	# Filesystem
 	public $Path;
 	public $Filename;
@@ -13,6 +15,8 @@ class MediaEntry
 
 	function __construct($path, $parses = null)
 	{
+		parent::__construct();
+
 		$this->Path = $path;
 		$this->Filename = basename($path);
 		$this->Ext = File::ext($this->Filename);
@@ -37,6 +41,26 @@ class MediaEntry
 		if (!empty($path)) $this->Data['path'] = utf8_encode($path);
 		if (!empty($this->Title)) $this->Data['title'] = utf8_encode($this->Title);
 		if (!empty($this->Type)) $this->Data['type'] = $this->Type;
+	}
+
+	###
+	# Module
+	#
+	
+	function Prepare()
+	{
+		global $_d;
+
+		if (!$this->Active) return;
+		
+		if (@$_d['q'][1] == 'remove')
+		{
+			if (empty($_d['q'][2])) die('Invalid ID');
+
+			$_d['entry.ds']->Remove(array('_id' => new MongoId($_d['q'][2])));
+			
+			die('Removed.');
+		}
 	}
 
 	function LoadDS()
@@ -134,4 +158,4 @@ class MediaEntry
 	}
 }
 
-?>
+Module::Register('MediaEntry');
