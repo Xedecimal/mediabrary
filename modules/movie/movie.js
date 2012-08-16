@@ -1,5 +1,5 @@
 $(function () {
-	$('.movie-item').live('hover', function (e) {
+	$('#movie-items').on('hover', '.movie-item', function (e) {
 		if (e.type == 'mouseenter') {
 			$(window.current).find('.movie-details').hide();
 			$(this).find('.movie-details').show();
@@ -11,9 +11,9 @@ $(function () {
 		}
 	});
 
-	$('.a-movie-item').live('click', function () {
+	$('#movie-items').on('click', '.a-movie-item', function (e) {
 		movieDetail($(this).attr('href').match(/([^/?]+)\?.*$/)[1]);
-		return false;
+		e.preventDefault();
 	});
 
 	$('#movie-items').load('movie/items');

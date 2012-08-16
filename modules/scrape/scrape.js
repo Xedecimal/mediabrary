@@ -45,7 +45,7 @@ $(function () {
 		return false;
 	});
 
-	$('.save-cover').live('click', function () {
+	$(document).on('click', '.save-cover', function () {
 		var cov = $(this).attr('src');
 		var fs_path = $('#detail-path').val();
 
