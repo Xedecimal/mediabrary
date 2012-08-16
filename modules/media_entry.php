@@ -97,7 +97,7 @@ class MediaEntry extends Module
 				if ($p == $this->Data['path'])
 					$this->Data['paths'][$ix] = utf8_encode($target);
 
-		$ret = rename($this->Path, utf8_decode($target));
+		$ret = rename($this->Path, $target);
 		$this->Data['path'] = utf8_encode($target);
 		$this->SaveDS();
 		return $ret;
