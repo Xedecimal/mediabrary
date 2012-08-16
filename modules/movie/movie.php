@@ -362,6 +362,8 @@ class Movie extends MediaLibrary
 	{
 		global $_d;
 
+		if (empty($md->Data['_id'])) return;
+
 		# The database does not match the filename.
 		if (!empty($md->Title) && $md->Title != @$md->Data['title'])
 		{
