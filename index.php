@@ -23,7 +23,6 @@ require_once('xedlib/3rd/spyc.php');
 
 # Local requirements
 require_once('modules/medialibrary.php');
-require_once('classes/media_entry.php');
 require_once('classes/check_exception.php');
 
 if (!file_exists('config/config.yml'))
@@ -39,7 +38,7 @@ $_d['entry.ds'] = $_d['db']->entry;
 try
 {
 	$_d['entry.ds']->ensureIndex(array('path' => 1, 'parent' => 1, 'index' => 1),
-		array('unique' => 1, 'safe' => 1, 'sparse' => 1));
+		array('unique' => 1, 'safe' => 1, 'sparse' => 1, 'dropDups' => 1));
 }
 # This happens from time to time. Result too large.
 catch (MongoCursorException $ex) { }
