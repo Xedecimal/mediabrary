@@ -54,15 +54,31 @@ class TMDB extends Module implements Scraper
 			$id = Server::GetVar('id');
 
 			# Collect Information
-			$xml = self::Details($id);
-			$sx = simplexml_load_string($xml);
-			$covers = $sx->xpath('//movies/movie/images/image[@size="cover"]');
+			
+			$md = MediaEntry::FromID($id);
+			$json = $this->GetCache($md->Path);
 
-			# Process Information
-			$ret = array('id' => $this->Name);
-			foreach ($covers as $c)
-				$ret['covers'][] = (string)$c['url'];
+			foreach ($json['images']['image'] as $img)
+				if ($img['@attributes']['size'] == 'cover')
+					$ret['covers'][] = $img['@attributes']['url'];
 
+			die(json_encode($ret));
+		}
+		
+		if (@$_d['q'][1] == 'backdrops')
+		{
+			$id = $_d['q'][2];
+			
+			$md = MediaEntry::FromID($id);
+			$json = $this->GetCache($md->Path);
+
+			foreach ($json['images']['image'] as $img)
+			{
+				if ($img['@attributes']['type'] == 'backdrop'
+				&& $img['@attributes']['size'] == 'w1280')
+					$ret[] = $img['@attributes']['url'];
+			}
+			
 			die(json_encode($ret));
 		}
 
@@ -85,35 +101,6 @@ class TMDB extends Module implements Scraper
 				}
 			}
 			die();
-		}
-
-		if (@$_d['q'][1] == 'newcover')
-		{
-			$dir = dirname($_GET['path']);
-			$cache = $dir.'/.tmdb_cache.json';
-			$txt = file_get_contents($cache);
-			$jsn = json_decode($txt, true);
-
-			$cx = $jsn['images']['index'];
-			if (!isset($cx)) $cx = 0;
-
-			#var_dump($jsn['images']['image']);
-			foreach ($jsn['images']['image'] as $ix => $img)
-			{
-				if ($img['@attributes']['type'] == 'poster' &&
-					$img['@attributes']['size'] == 'cover')
-					$images[] = $img['@attributes']['url'];
-			}
-
-			if (++$cx >= count($images)) $cx = 0;
-
-			#file_put_contents($dir.'/folder.jpg',
-			#	file_get_contents($images[$cx]));
-			$out = array('cover' => $images[$cx]);
-
-			$jsn['images']['index'] = $cx;
-			file_put_contents($cache, json_encode($jsn));
-			die(json_encode($out));
 		}
 	}
 
@@ -600,9 +587,7 @@ EOD;
 
 		$ret[] = array(
 			'var' => 'tmdb-cover',
-			'val' => '<img src="'.@$t->vars['Image'].'" alt="Cover" id="tmdb-cover-image" /><br />
-<p><a href="#" id="cover-prev">&laquo;</a>
-<a href="#" id="cover-next">&raquo;</a></p>'
+			'val' => '<a href="'.$t->vars['Data']['_id'].'" class="a-scrape-covers"><img src="'.@$t->vars['Image'].'" alt="Cover" id="tmdb-cover-image" /></a>'
 		);
 
 		if (!empty($td['trailer']))
