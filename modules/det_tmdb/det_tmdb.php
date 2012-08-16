@@ -364,13 +364,6 @@ EOD;
 				$types[$atrs['type']][$atrs['size']][] = $atrs;
 			}
 
-			foreach ($types as $type => &$sizes)
-				foreach ($sizes as $size => &$imgs)
-					usort($imgs, function ($a, $b) {
-						return ($a['width']+$a['height']) <
-							($b['width']+$b['height']);
-					});
-
 			if (!empty($types['poster']['cover']))
 			{
 				$poster = file_get_contents($types['poster']['cover'][0]['url']);
@@ -559,6 +552,7 @@ EOD;
 			if (empty($keys)) return $me;
 			$id = $keys[0];
 		}
+
 		# Collect remote data
 		$data = Arr::FromXML(self::Details($id));
 		$data = $data['movies']['movie'];
