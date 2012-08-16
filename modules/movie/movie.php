@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__).'/../media_entry.php');
+
 class Movie extends MediaLibrary
 {
 	public $Name = 'movie';
