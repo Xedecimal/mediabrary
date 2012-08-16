@@ -21,12 +21,18 @@ $(function () {
 
 function movieDetail(id) {
 	$.ajax({url: app_abs+'/movie/detail/'+id, dataType: 'text'}).done(function (data) {
-		$('<div id="detail-dialog" />').dialog({
+		$div = $(data).filter('div');
+
+		$div.dialog({
 			width: '80%',
 			height: 500,
 			position: 'top',
 
-			close: function () { $('#detail-dialog').remove() }
-		}).append(data);
+			close: function () { $('#detail-dialog').remove(); }
+		});
+		
+		$(data).filter('script').appendTo($div);
+		
+		// @TODO: Bring the javascript back.
 	});
 }

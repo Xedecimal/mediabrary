@@ -1,4 +1,4 @@
-<div id="detail-wrap" title="Details for {{Path}}">
+<div id="detail-dialog" title="Details for {{Path}}">
 	<callback ds="_d" name="cb.detail.head" type="movie" />
 	<div class="movie-buttons"><a
 		href="movie/down/{{fs_filename}}"><img src="movie/img/save_as.png"
@@ -14,6 +14,5 @@
 	</callback>
 	</div>
 
-
-	<p><a href="#" class="back-prev">&laquo;</a> Backdrop <a href="#" class="back-next">&raquo;</a></p>
+	<p><a href="#" id="a-back-prev">&laquo;</a> Backdrop <a href="#" id="a-back-next">&raquo;</a></p>
 </div>
