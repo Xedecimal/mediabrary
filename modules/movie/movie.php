@@ -368,7 +368,7 @@ class Movie extends MediaLibrary
 		if (!empty($md->Title) && $md->Title != @$md->Data['title'])
 		{
 			# Save the file title to the database.
-			$md->Data['title'] = mb_convert_encoding($md->Title, 'utf8');
+			$md->Data['title'] = utf8_encode($md->Title);
 			$md->SaveDS();
 		}
 

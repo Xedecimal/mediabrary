@@ -290,7 +290,7 @@ class TVDB extends Module implements Scraper
 			.preg_quote($epname, '@').'\.([^.]+)$@';
 
 		# <series> / <series> - S<season>E<episode> - <title>.avi
-		if (!preg_match($preg, $ep['path']))
+		if (!preg_match($preg, utf8_decode($ep['path'])))
 		{
 			$dir = dirname($ep['path']);
 			$ext = File::ext($ep['path']);
