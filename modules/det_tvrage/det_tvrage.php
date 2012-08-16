@@ -135,6 +135,7 @@ class TVRage extends Module implements Scraper
 
 		$this->CheckSeriesFilename($series, $tvreps);
 
+		if (!empty($tvreps['eps']))
 		foreach ($tvreps['eps'] as $s => $eps)
 		{
 			foreach ($eps as $e => $ep)
