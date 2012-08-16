@@ -99,7 +99,9 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		if (@$_d['q'][0] != 'tv' && @$_d['q'][0] != 'tv-series') return;
+		$ret['head'] = '<script type="text/javascript" src="'.Module::P('modules/tv/tv.js').'" />';
+
+		if (@$_d['q'][0] != 'tv' && @$_d['q'][0] != 'tv-series') return $ret;
 
 		$this->_items = TV::CollectDS();
 
@@ -150,6 +152,8 @@ class TV extends MediaLibrary
 
 	function Check()
 	{
+		global $_d;
+		
 		$this->CheckFilesystem();
 		$this->CheckDatabase();
 	}
