@@ -72,13 +72,17 @@ class TMDB extends Module implements Scraper
 			$md = MediaEntry::FromID($id);
 			$json = $this->GetCache($md->Path);
 
+			if (isset($md->Data['details'][$this->Name]['backdrop']))
+				$ret['backdrop-sel'] = $md->Data['details'][$this->Name]['backdrop'];
+			else $ret['backdrop-sel'] = 0;
+
 			foreach ($json['images']['image'] as $img)
 			{
 				if ($img['@attributes']['type'] == 'backdrop'
 				&& $img['@attributes']['size'] == 'w1280')
-					$ret[] = $img['@attributes']['url'];
+					$ret['backdrops'][] = $img['@attributes']['url'];
 			}
-			
+
 			die(json_encode($ret));
 		}
 
