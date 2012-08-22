@@ -8,7 +8,7 @@ class Subs extends Module
 	{
 		global $_d;
 
-		$_d['movie.cb.buttons']['subs'] = array(&$this, 'cb_movie_buttons');
+		$_d['cb.detail.buttons']['subs'] = array(&$this, 'cb_movie_buttons');
 	}
 
 	function Prepare()
@@ -18,8 +18,9 @@ class Subs extends Module
 
 		$path = $_GET['path'];
 		$title = $_GET['title'];
+		$date = $_GET['date'];
 		$pinfo = pathinfo($path);
-		$target = $pinfo['dirname'].'/subtitles/'.$pinfo['filename'].'.srt';
+		$target = $pinfo['dirname'].'/'.$pinfo['filename'].'.srt';
 
 		###
 		### thesubdb.com
@@ -51,13 +52,13 @@ class Subs extends Module
 		###
 
 		$xml = file_get_contents('http://api.allsubs.org/index.php?search='
-			.rawurlencode(str_replace(' - ', ' ', $title)).'&language=en&limit=1');
+			.rawurlencode(str_replace(' - ', ' ', $title).' '.$date).'&language=en&limit=1');
 
 		$sx = simplexml_load_string($xml);
 		foreach ($sx->xpath('//items/item') as $i)
 		{
 			$url = str_replace('subs-download', 'subs-download2', (string)$i->link);
-			#@TODO: php devs really need stream based zip support!
+			# @TODO: php devs really need stream based zip support!
 			file_put_contents('tmp.zip', file_get_contents($url));
 			$za = new ZipArchive;
 			$za->open('tmp.zip');
@@ -67,13 +68,16 @@ class Subs extends Module
 			unlink('tmp.zip');
 		}
 
+		die(json_encode(array('result' => 'success')));
 		//http://www.allsubs.org//subs-download2/X-Men+First+Class/3782502//
 		//http://www.allsubs.org/subs-download/X-Men+Origins+-+Wolverine/1835746/
 	}
 
 	function cb_movie_buttons()
 	{
-		return '<a href="{{Path}}" id="a-get-subs">Get Subs</a>';
+		return '<a href="{{Path}}" id="a-get-subs"><img src="'
+			.Module::P('subs/img/cc.jpg')
+			.'" alt="Download Subtitles" title="Download Subtitles"/></a>';
 	}
 
 	function Get()

@@ -7,6 +7,8 @@
 	<input type="hidden" id="detail-type" value="movie" />
 	<input type="hidden" id="detail-id" value="{{Data._id}}" />
 	<input type="hidden" id="detail-path" value="{{Path}}" />
+	<input type="hidden" id="detail-title" value="{{Title}}" />
+	<input type="hidden" id="detail-date" value="{{Released}}" />
 
 	<div id="details">
 	<callback ds="_d" name="cb.detail.entry" type="movie">
