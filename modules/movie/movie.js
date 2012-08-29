@@ -11,7 +11,7 @@ $(function () {
 		}
 	});
 
-	$('#movie-items').on('click', '.a-movie-item', function (e) {
+	$(document).on('click', '.a-movie-item', function (e) {
 		movieDetail($(this).attr('href').match(/([^/?]+)\?.*$/)[1]);
 		e.preventDefault();
 	});
@@ -30,9 +30,9 @@ function movieDetail(id) {
 
 			close: function () { $('#detail-dialog').remove(); }
 		});
-		
+
 		$(data).filter('script').appendTo($div);
-		
+
 		// @TODO: Bring the javascript back.
 	});
 }

@@ -54,7 +54,7 @@ class TMDB extends Module implements Scraper
 			$id = Server::GetVar('id');
 
 			# Collect Information
-			
+
 			$md = MediaEntry::FromID($id);
 			$json = $this->GetCache($md->Path);
 
@@ -64,11 +64,11 @@ class TMDB extends Module implements Scraper
 
 			die(json_encode($ret));
 		}
-		
+
 		if (@$_d['q'][1] == 'backdrops')
 		{
 			$id = $_d['q'][2];
-			
+
 			$md = MediaEntry::FromID($id);
 			$json = $this->GetCache($md->Path);
 
@@ -342,7 +342,11 @@ EOD;
 
 			if (empty($cdat['images']['image']))
 			{
-				$this->OutErr("Could not locate a cover for {$me->Path}.", $me);
+				global $_d;
+
+				$urlunfix = "{$_d['app_abs']}/$this->Name/remove?id={$me->Data['_id']}";
+				$butunfix = '<a href="'.$urlunfix.'" class="a-fix button">Unfix</a>';
+				$this->OutErr("{$butunfix} Could not locate a cover for {$me->Path}.", $me);
 				return false;
 			}
 
@@ -464,7 +468,7 @@ EOD;
 		return $sx_movies;
 	}
 
-	function Find(&$md, $title)
+	function Find(&$md, $title = null)
 	{
 		global $_d;
 
@@ -475,7 +479,7 @@ EOD;
 		else if (empty($title) && !empty($item['title']))
 			$title = $item['title'];
 		else if (empty($title))
-			$fs = MediaEntry::ScrapeFS($path, MovieEntry::GetFSPregs());
+			$fs = MediaEntry::ScrapeFS($md->Path, MovieEntry::GetFSPregs());
 
 		$url = TMDB_FIND.rawurlencode($title);
 		try { $xml = file_get_contents($url);}
