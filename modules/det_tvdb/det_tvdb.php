@@ -125,6 +125,10 @@ class TVDB extends Module implements Scraper
 		$arr['Series']['scraped'] = time();
 		if (!@file_put_contents($dst, json_encode($arr)))
 			throw new Exception("Unable to write: '$dst'");
+
+		# Clean up all episodes and allow them to be replaced.
+		global $_d;
+		$_d['entry.ds']->remove(array('parent' => new MongoId($item->Data['_id'])));
 	}
 
 	function Find(&$tvse, $title)
@@ -301,7 +305,7 @@ class TVDB extends Module implements Scraper
 
 			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode($outname);
 			$but_fix = '<a href="'.$url.'" class="a-fix button">Fix</a>';
-			
+
 			$url = $_d['app_abs']."/entry/remove/{$ep['_id']}";
 			$but_remove = '<a href="'.$url.'" class="a-remove button halt">Remove</a>';
 
