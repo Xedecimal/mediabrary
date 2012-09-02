@@ -32,7 +32,5 @@ function movieDetail(id) {
 		});
 
 		$(data).filter('script').appendTo($div);
-
-		// @TODO: Bring the javascript back.
 	});
 }
