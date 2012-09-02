@@ -145,7 +145,8 @@ class TV extends MediaLibrary
 		$t = new Template();
 		$t->Set($this->_vars);
 		$t->Set('needed', $needed);
-		return $t->ParseFile($this->_template);
+		$ret['tv'] = $t->ParseFile($this->_template);
+		return $ret;
 	}
 
 	# Checks
@@ -153,7 +154,7 @@ class TV extends MediaLibrary
 	function Check()
 	{
 		global $_d;
-		
+
 		$this->CheckFilesystem();
 		$this->CheckDatabase();
 	}

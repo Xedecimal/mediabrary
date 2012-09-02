@@ -1,4 +1,4 @@
-<div id="tv-series">
+<div id="detail-dialog" title="{{Data.title}}">
 <callback ds="_d" name="tv.cb.buttons" />
 
 <input type="hidden" id="detail-type" value="tv-series" />

@@ -1,18 +1,9 @@
 $(function () {
-	$(document).on('click', '.a-tv-item', function () {
-		$('<div id="detail-dialog" />').dialog({
-			'modal': true,
-			width: '80%',
-			height: 600,
-			position: 'top',
-			title: 'Details for '+$(this).attr('title'),
-
-			close: function () { $('#detail-dialog').remove(); }
-		}).load(app_abs+'/tv-series/detail/'+$(this).attr('href'));
-
-		return false;
+	$(document).on('click', '.a-tv-item', function (e) {
+		seriesDetail($(this).attr('href'));
+		e.preventDefault();
 	});
-	
+
 	$(document).on('click', '.a-remove', function () {
 		$(this).load($(this).attr('href'));
 	});
@@ -35,3 +26,19 @@ $(function () {
 
 	$('#tv-items').load(window.app_abs+'/tv/items');
 });
+
+function seriesDetail(id) {
+	$.ajax({url: app_abs+'/tv/detail/'+id, dataType: 'text'}).done(function (data) {
+		$div = $(data).filter('div');
+
+		$div.dialog({
+			width: '80%',
+			height: 500,
+			position: 'top',
+
+			close: function () { $('#detail-dialog').remove(); }
+		});
+
+		$(data).filter('script').appendTo($div);
+	});
+}
