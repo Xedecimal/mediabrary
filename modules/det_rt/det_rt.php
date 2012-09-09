@@ -141,9 +141,9 @@ class RottenTomatoes extends Module implements Scraper
 
 	function cb_movie_move($src_dir, $dst_dir)
 	{
-		$src_cache = $src_dir.'/.rt_cache.json';
-		$dst_cache = $dst_dir.'/.rt_cache.json';
-		if (file_exists($src_cache)) rename($src_cache, $dst_cache);
+		$src_dir = dirname($src_dir);
+		@rename($src_dir.'/.rt_cache.json', $dst_dir.'/.rt_cache.json');
+		@rename($src_dir.'.rt_cache.json', $dst_dir.'/.rt_cache.json');
 	}
 
 	function cb_movie_check(&$md)
@@ -237,5 +237,3 @@ EOD;
 
 Module::Register('RottenTomatoes');
 Scrape::Reg('movie', 'RottenTomatoes');
-
-?>
