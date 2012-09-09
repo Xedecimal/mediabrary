@@ -96,5 +96,3 @@ class OFDB extends Module implements Scraper
 
 Module::Register('OFDB');
 Scrape::Reg('movie', 'OFDB');
-
-?>

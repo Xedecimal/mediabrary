@@ -9,7 +9,7 @@ define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_K
 class TMDB extends Module implements Scraper
 {
 	public $Name = 'TMDB';
-	public $Link = 'http://www.themoviedb.org/';
+	public $Link = 'http://www.themoviedb.org';
 	public $Icon = 'modules/det_tmdb/icon.png';
 
 	function __construct()
@@ -482,11 +482,7 @@ EOD;
 			$fs = MediaEntry::ScrapeFS($md->Path, MovieEntry::GetFSPregs());
 
 		$url = TMDB_FIND.rawurlencode($title);
-		try { $xml = file_get_contents($url);}
-		catch (Exception $ex)
-		{
-			die(json_encode(array('msg' => 'Exceptions work!')));
-		}
+		$xml = file_get_contents($url);
 
 		if (empty($xml)) return;
 
@@ -541,6 +537,7 @@ EOD;
 
 	function Scrape(&$me, $id = null)
 	{
+		# Automatically scraping
 		if ($id == null)
 		{
 			$keys = array_keys($this->Find($me->Data['path']));
