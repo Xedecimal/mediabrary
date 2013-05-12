@@ -4,10 +4,10 @@ $(function () {
 			path: $(this).attr('href'),
 			title: $('#detail-title').val(),
 			date: $('#detail-date').val()
-		},
-		function (data) {
-			if (data.result == 'success') alert('Done deal!');
-		}, 'json');
+		}, function (data) {
+			$('#details').html(data);
+		}, 'html');
+
 		return false;
 	});
 });
