@@ -120,11 +120,8 @@ class Scrape extends Module
 	{
 		$js = Module::P('scrape/scrape.js');
 		$css = Module::P('scrape/scrape.css');
-		$r['head'] = <<<EOF
-<script type="text/javascript" src="$js"></script>
-<link type="text/css" rel="stylesheet" href="$css" />
-EOF;
-
+		$r['head'] = '<link type="text/css" rel="stylesheet" href="'.$css.'" />';
+		$r['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
 		return $r;
 	}
 

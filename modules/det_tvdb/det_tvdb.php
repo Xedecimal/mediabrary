@@ -119,6 +119,7 @@ class TVDB extends Module implements Scraper
 	public function Scrape(&$item, $id = null)
 	{
 		$dst = $item->Data['path'].'/.tvdb_cache.json';
+		if (empty($id)) throw new Exception('Missing the ID.');
 		$src = self::_tvdb_api."/series/{$id}/all/en.xml";
 		$xml = file_get_contents($src);
 		$arr = Arr::FromXML($xml);

@@ -1,5 +1,5 @@
 $(function () {
-	$('#a-get-subs').live('click', function () {
+	$(document).on('click', '#a-get-subs', function () {
 		$.get('subs/get', {
 			path: $(this).attr('href'),
 			title: $('#detail-title').val(),

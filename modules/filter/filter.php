@@ -100,6 +100,9 @@ class ModFilter extends Module
 		$r['head'] = '<link type="text/css" rel="stylesheet"
 			href="'.Module::P('filter/filter.css').'" />';
 
+		$js = Module::P('filter/filter.js');
+		$r['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
+
 		if (!$this->Active) return $r;
 
 		if (@$_d['q'][1] == 'get')

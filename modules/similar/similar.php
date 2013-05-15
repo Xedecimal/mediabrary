@@ -29,13 +29,11 @@ class ModSimilar extends Module
 	{
 		global $_d;
 
-		$js = Module::P('similar/js.js');
-		$css = Module::P('similar/css.css');
+		$js = Module::P('similar/similar.js');
+		$css = Module::P('similar/similar.css');
 
-		$ret['head'] =  <<<EOF
-<script type="text/javascript" src="$js"></script>
-<link type="text/css" rel="stylesheet" href="$css" />
-EOF;
+		$ret['head'] = '<link type="text/css" rel="stylesheet" href="'.$css.'" />';
+		$ret['js'] =  '<script type="text/javascript" src="'.$js.'"></script>';
 
 		return $ret;
 	}

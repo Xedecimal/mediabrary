@@ -99,7 +99,7 @@ class TV extends MediaLibrary
 	{
 		global $_d;
 
-		$ret['head'] = '<script type="text/javascript" src="'.Module::P('modules/tv/tv.js').'" />';
+		$ret['js'] = '<script type="text/javascript" src="'.Module::P('modules/tv/tv.js').'" />';
 
 		if (@$_d['q'][0] != 'tv' && @$_d['q'][0] != 'tv-series') return $ret;
 

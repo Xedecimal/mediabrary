@@ -6,18 +6,16 @@ class ModRoulette extends Module
 	{
 		global $_d;
 
-		$_d['cb.head']['roulette'] = array(&$this, 'cb_head');
 		$_d['movie.cb.head']['roulette'] = array(&$this, 'cb_movie_head');
 		$_d['movie.cb.buttons']['roulette'] = array(&$this, 'cb_movie_buttons');
 		$_d['tv.cb.buttons']['roulette'] = array(&$this, 'cb_tv_buttons');
 	}
 
-	function cb_head()
+	function Get()
 	{
 		$js = Module::P('roulette/roulette.js');
-		return <<<EOF
-<script type="text/javascript" src="$js"></script>
-EOF;
+		$ret['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
+		return $ret;
 	}
 
 	function cb_movie_head()

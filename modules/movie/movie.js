@@ -1,15 +1,15 @@
 $(function () {
-	$('#movie-items').on('hover', '.movie-item', function (e) {
-		if (e.type == 'mouseenter') {
+	$('#movie-items').on({
+		mouseenter: function () {
 			$(window.current).find('.movie-details').hide();
 			$(this).find('.movie-details').show();
 			window.current = this;
-		}
-		else {
+		},
+		mouseleave: function() {
 			$(window.current).find('.movie-details').hide();
 			window.current = null;
 		}
-	});
+	}, '.movie-item');
 
 	$(document).on('click', '.a-movie-item', function (e) {
 		movieDetail($(this).attr('href').match(/([^/?]+)\?.*$/)[1]);

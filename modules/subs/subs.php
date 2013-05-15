@@ -42,7 +42,7 @@ class Subs extends Module
 
 	function Get()
 	{
-		$ret['head'] = '<script type="text/javascript"
+		$ret['js'] = '<script type="text/javascript"
 			src="'.Module::P('subs/subs.js').'"></script>';
 
 		return $ret;

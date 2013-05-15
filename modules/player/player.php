@@ -80,7 +80,8 @@ class ModPlayer extends Module
 
 	function Get()
 	{
-		return '<script type="text/javascript" src="{{app_abs}}/modules/player/player.js"></script>';
+		$ret['js'] = '<script type="text/javascript" src="{{app_abs}}/modules/player/player.js"></script>';
+		return $ret;
 	}
 
 	/**

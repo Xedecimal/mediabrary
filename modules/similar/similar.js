@@ -1,5 +1,5 @@
 $(function () {
-	$('#a-similar').live('click', function () {
+	$(document).on('click', '#a-similar', function () {
 		if ($('#movie-details').length > 0)
 			$('#movie-details').load('similar', {'s': $(this).attr('href')});
 		else

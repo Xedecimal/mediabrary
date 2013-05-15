@@ -79,7 +79,8 @@ class MediaEntry extends Module
 		if (empty($this->Data['title']) && empty($this->Data['index']))
 			throw new Exception('No title or index set!');
 
-		return $_d['entry.ds']->save($this->Data, array('safe' => 1));
+		try { return $_d['entry.ds']->save($this->Data, array('safe' => 1)); }
+		catch (MongoCursorException $ex) { var_dump($ex); var_dump($this->Data); die(); }
 	}
 
 	function Remove()
@@ -131,7 +132,7 @@ class MediaEntry extends Module
 
 	static function ScrapeFS($path, $pregs)
 	{
-		// Collect path based metadata.
+		# Collect path based metadata.
 
 		$mx = 0;
 		foreach ($pregs as $preg => $matches)

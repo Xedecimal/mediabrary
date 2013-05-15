@@ -34,6 +34,13 @@ class ModSearch extends Module
 			$_d['movie.cb.query']['order'] = array($s => -1);
 	}
 
+	function Get()
+	{
+		$js = Module::P('search/search.js');
+		$r['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
+		return $r;
+	}
+
 	function movie_cb_head()
 	{
 		$t = new Template();

@@ -1,5 +1,5 @@
 $(function () {
-	$('#a-roulette').live('click', function () {
+	$(document).on('click', '#a-roulette', function () {
 		var ix = parseInt(Math.random()*$('.a-movie-item').length);
 		$('.a-movie-item:eq('+ix+')').trigger('click');
 		return false;

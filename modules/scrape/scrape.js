@@ -1,9 +1,9 @@
 $(function () {
-	$('#a-scrape-find').live('click', scape_find);
+	$(document).on('click', '#a-scrape-find', scape_find);
 
-	$('.but-scrape-research').live('click', scape_find);
+	$(document).on('click', '.but-scrape-research', scape_find);
 
-	$('.a-scrape-remove').live('click', function () {
+	$(document).on('click', '.a-scrape-remove', function () {
 		$.get(window.app_abs+'/scrape/remove/'+$(this).attr('href'), function () {
 			$('#detail-dialog').dialog('destroy');
 		});
@@ -11,7 +11,7 @@ $(function () {
 	});
 
 	// A found result has been selected (not yet chosen).
-	$('.find-result').live('click', function () {
+	$(document).on('click', '.find-result', function () {
 		var name = $(this).attr('name');
 		$('.covers-'+name).hide(500, function () {$(this).remove()});
 
@@ -28,7 +28,7 @@ $(function () {
 		);
 	});
 
-	$('.a-scrape-covers').live('click', function () {
+	$(document).on('click', '.a-scrape-covers', function () {
 		var id = $(this).attr('href');
 
 		var dat = { type: $('#detail-type').val(), 'id': id };
@@ -60,7 +60,7 @@ $(function () {
 		});
 	});
 
-	$('.scrape-cover').live('click', function () {
+	$(document).on('click', '.scrape-cover', function () {
 		var fs_path = $('#detail-path').val();
 
 		var cov = $(this).attr('src');

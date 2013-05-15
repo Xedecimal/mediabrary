@@ -1,5 +1,5 @@
 $(function () {
-	$('#tmdb-aRemove').live('click', function () {
+	$(document).on('click', '#tmdb-aRemove', function () {
 		if (confirm('Are you sure?'))
 		{
 			$.get('movie/remove/', {id: $(this).attr('href')}, function () {
@@ -9,7 +9,7 @@ $(function () {
 		return false;
 	});
 
-	$('.tmdb-aScrape').live('click', function () {
+	$(document).on('click', '.tmdb-aScrape', function () {
 		m_id = $(this).attr('id');
 		path = $(this).attr('href');
 		$('div[title="'+path+'"]').css('background-image', 'url("modules/movie/img/loading.jpg")');
@@ -23,12 +23,12 @@ $(function () {
 		return false;
 	});
 
-	$('#tmdb-aCovers').live('click', function () {
+	$(document).on('click', '#tmdb-aCovers', function () {
 		$('#movie-details').load('tmdb/covers/'+$(this).attr('href'));
 		return false;
 	});
 
-	$('.tmdb-aCover').live('click', function () {
+	$(document).on('click', '.tmdb-aCover', function () {
 		id = $(this).attr('href');
 		img = $(this).find('img').attr('src');
 		$.get('movie/cover/'+id, {image: img}, function (data) {
@@ -39,7 +39,7 @@ $(function () {
 		return false;
 	});
 
-	$('.tmdb-aFixCover').live('click', function () {
+	$(document).on('click', '.tmdb-aFixCover', function () {
 		$(this).load('tmdb/fixCover', {path: $(this).attr('href')});
 		return false;
 	});

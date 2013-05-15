@@ -1,17 +1,17 @@
 <html doctype="html5">
 <head>
 <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 <title>Mediabrary</title>
 <script type="text/javascript">var urlParms = <?php unset($_GET['rw']); echo json_encode($_GET); ?></script>
 <script type="text/javascript">
 window.app_abs = '{{app_abs}}';
 window.remote_ip = '{{_SERVER.REMOTE_ADDR}}';
 </script>
-<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.js"></script>
-<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.ui.js"></script>
-<script type="text/javascript" src="{{app_abs}}/main.js"></script>
 
+<link rel="stylesheet" href="{{app_abs}}/css/bootstrap.min.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/dot-luv/jquery.ui.css" />
+<link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/xedlib/css/form.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/css.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/_main.css" />
@@ -27,5 +27,14 @@ window.remote_ip = '{{_SERVER.REMOTE_ADDR}}';
 </div>
 <div id="content"><block name="default" /></div>
 <!-- <block name="foot" /> -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.js"></script>
+<script type="text/javascript" src="{{app_abs}}/xedlib/js/jquery.ui.js"></script>
+
+<script src="{{app_abs}}/js/vendor/bootstrap.min.js"></script>
+
+<script src="{{app_abs}}/js/main.js"></script>
+<block name="js" />
 </body>
 </html>

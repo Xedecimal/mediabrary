@@ -49,6 +49,8 @@ class ModRate extends Module
 
 	function Get()
 	{
+		$js = Module::P('rate/rate.js');
+		$ret['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
 		global $_d;
 	}
 
