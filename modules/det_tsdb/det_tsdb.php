@@ -25,7 +25,8 @@ class TSDB extends Module implements Scraper
 			'user_agent' => 'SubDB/1.0 (Mediabrary/0.1; http://code.google.com/p/mediabrary)'
 		));
 		$ctx = stream_context_create($opts);
-		$data = file_get_contents('http://api.thesubdb.com/?action=search&hash='.$hash, false, $ctx);
+		$data = @file_get_contents('http://api.thesubdb.com/?action=search&hash='.$hash, false, $ctx);
+		if (empty($data)) return null;
 
 		$results = array();
 		foreach (explode(',', $data) as $lang)
