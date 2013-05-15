@@ -152,9 +152,9 @@ class ModCheck extends Module
 			return VarParser::Concat($g, $t->vars['errors']);
 	}
 
-	static function Out($msg)
+	static function Out($msg, $left = null)
 	{
-		echo '<p>'.$msg."</p>\r\n";
+		echo '<div class="check-result row-fluid"><div class="span2">'.$left.'</div><pre class="span10">'.$msg."</pre></div>\r\n";
 		flush();
 	}
 }
