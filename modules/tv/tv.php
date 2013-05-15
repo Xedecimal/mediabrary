@@ -116,10 +116,12 @@ class TV extends MediaLibrary
 		{
 			$ret = '';
 			session_write_close();
-			foreach (TV::$scrapers as $s)
-				$ret .= call_user_func(array($s, 'Find'), Server::GetVar('series'), true);
-			return $ret;
-			die();
+			$tvse = TVSeriesEntry::FromID(Server::GetVar('series'));
+
+			foreach ($_d['scrape.scrapers']['tv'] as $s)
+				$ret .= call_user_func_array(array($s, 'Find'), array(&$tvse, true));
+
+			die($ret);
 		}
 		else if (@$_d['q'][1] == 'items')
 		{
