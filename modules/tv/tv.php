@@ -91,7 +91,7 @@ class TV extends MediaLibrary
 			$md->LoadDS();
 
 			if (!$md->Rename($target)) die('Error!');
-			else die('Done.');
+			else die(json_encode(array('success' => 1)));
 		}
 	}
 
