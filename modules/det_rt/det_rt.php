@@ -55,7 +55,7 @@ class RottenTomatoes extends Module implements Scraper
 		global $_d;
 
 		$js = Module::P('modules/det_rt/rt_check.js');
-		$ret['head'] = '<script type="text/javascript" src="'.$js.'"></script>';
+		$ret['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
 
 		if (@$_d['q'][0] == 'check') return $ret;
 	}
