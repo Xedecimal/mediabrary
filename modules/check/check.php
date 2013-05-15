@@ -134,6 +134,8 @@ class ModCheck extends Module
 
 		$css = Module::P('modules/check/check.css');
 		$r['head'] = '<link type="text/css" rel="stylesheet" href="'.$css.'" />';
+		$js = Module::P('modules/check/_check.js');
+		$r['js'] = '<script type="text/javascript" src="'.$js.'"></script>';
 		global $mods;
 
 		$t = new Template();
