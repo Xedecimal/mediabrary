@@ -16,10 +16,15 @@ window.remote_ip = '{{_SERVER.REMOTE_ADDR}}';
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/css.css" />
 <link rel="stylesheet" type="text/css" href="{{app_abs}}/css/_main.css" />
 
+<script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+
 <callback ds="_d" name="cb.head" />
 <block name="head" />
 </head>
 <body>
+<!--[if lt IE 7]>
+    <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+<![endif]-->
 <div id="left">
 	<div id="logo"><a href="{{app_abs}}/"><img src="{{app_abs}}/img/logo.png" alt="Mediabrary" /></a></div>
 	<block name="nav" />
