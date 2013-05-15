@@ -1,7 +1,7 @@
 <div id="check">
 <p>
-	<a href="{{check_type}}" class="button a-scan">Quick Scan</a>
-	<a href="{{check_type}}/clean" class="button a-scan">Full Scan</a>
+	<a href="{{check_type}}" class="btn btn-primary a-scan">Quick Scan</a>
+	<a href="{{check_type}}/clean" class="btn a-scan">Full Scan</a>
 </p>
 <div id="output"></div>
 </div>
