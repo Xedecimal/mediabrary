@@ -274,7 +274,7 @@ class TVDB extends Module implements Scraper
 		$title = MediaLibrary::CleanTitleForFile($data['Series']['SeriesName']);
 		$dst = dirname($series->Path).'/'.$title;
 		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
-		if ($src != $dst) TV::OutErr("<a href=\"$url\" class=\"a-fix button\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");
+		if ($src != $dst) TV::OutErr("<a href=\"$url\" class=\"a-fix btn\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");
 	}
 
 	function CheckFilename(&$series, $ep, $dvdbep)
@@ -305,21 +305,20 @@ class TVDB extends Module implements Scraper
 			$outname = "$dir/$fname.$ext";
 
 			$url = $_d['app_abs'].'/tv/rename?path='.urlencode(utf8_decode($ep['path'])).'&amp;target='.urlencode($outname);
-			$but_fix = '<a href="'.$url.'" class="a-fix button">Fix</a>';
+			$but_fix = '<a href="'.$url.'" class="a-fix btn btn-mini btn-primary">&nbsp;<i class="icon-ok icon-white"></i>&nbsp;</a>';
 
 			$url = $_d['app_abs']."/entry/remove/{$ep['_id']}";
-			$but_remove = '<a href="'.$url.'" class="a-remove button halt">Remove</a>';
+			$but_remove = '<a href="'.$url.'" class="a-remove btn btn-mini btn-danger halt">&nbsp;<i class="icon-trash icon-white"></i>&nbsp;</a>';
 
 			$tvdblink = "http://thetvdb.com/?tab=episode";
 			$tvdblink .= "&seriesid={$ep['details'][$this->Name]['seriesid']}";
 			$tvdblink .= "&seasonid={$ep['details'][$this->Name]['seasonid']}";
 			$tvdblink .= "&id={$ep['details'][$this->Name]['id']}";
-			$but_tvdb = '<a href="'.$tvdblink.'" target="_blank" class="button">'.$this->Name.'</a>';
+			$but_tvdb = '<a href="'.$tvdblink.'" target="_blank" class="btn btn-mini btn-info"><i class="icon-globe icon-white"></i> '.$this->Name.'</a>';
 
-			$but_details = '<a href="'.$ep['parent'].'" class="a-tv-item button">Series Details</a>';
+			$but_details = '<a href="'.$ep['parent'].'" class="a-tv-item btn btn-mini btn-info">Details</a>';
 
-			ModCheck::Out("{$but_fix} {$but_remove} Episode {$ep['path']} has invalid name,
-				should be '{$outname}' on {$but_tvdb} {$but_details}.");
+			ModCheck::Out(basename(File::GetFile($ep['path']))."<br />{$fname}", "Rename Episode<br /> {$but_fix} {$but_remove} {$but_tvdb} {$but_details}");
 			return false;
 		}
 	}
