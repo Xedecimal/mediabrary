@@ -2,15 +2,19 @@
 
 require_once(dirname(__FILE__).'/../scrape/scrape.php');
 
+define('TMDB_FILE_CONF', '.tmdb.config.json');
 define('TMDB_KEY', '263e2042d04c1989170721f79e675028');
-define('TMDB_FIND', 'http://api.themoviedb.org/2.1/Movie.search/en/xml/'.TMDB_KEY.'/');
-define('TMDB_INFO', 'http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/'.TMDB_KEY.'/');
+define('TMDB_CONFIG', 'http://api.themoviedb.org/3/configuration');
+define('TMDB_FIND', 'http://api.themoviedb.org/3/search/movie');
+define('TMDB_INFO', 'http://api.themoviedb.org/3/movie/');
+
+define('TMDB_MOVIE', 'http://www.themoviedb.org/movie/');
 
 class TMDB extends Module implements Scraper
 {
 	public $Name = 'TMDB';
 	public $Link = 'http://www.themoviedb.org';
-	public $Icon = 'modules/det_tmdb/icon.png';
+	public $Icon = 'modules/det_tmdb/img/tmdb.png';
 
 	function __construct()
 	{
@@ -55,12 +59,14 @@ class TMDB extends Module implements Scraper
 
 			# Collect Information
 
-			$md = MediaEntry::FromID($id);
-			$json = $this->GetCache($md->Path);
+			/*$md = MediaEntry::FromID($id);
+			$json = $this->GetCache($md->Path);*/
 
-			foreach ($json['images']['image'] as $img)
-				if ($img['@attributes']['size'] == 'cover')
-					$ret['covers'][] = $img['@attributes']['url'];
+			$q['append_to_response'] = 'images';
+			$dat = json_decode(TMDB::TMDBMovie($id, $q));
+
+			foreach ($dat->images->posters as $img)
+				$ret['covers'][] = TMDB::TMDBImageURL($img);
 
 			die(json_encode($ret));
 		}
@@ -211,23 +217,6 @@ class TMDB extends Module implements Scraper
 			}
 		}
 
-		# @TODO: Check for certification.
-
-		/*if (empty($md->Data['details'][$this->Name]['certification']))
-		{
-			$uep = urlencode($md->Data['path']);
-			$url = "{{app_abs}}/scrape/scrape?path={$uep}";
-			$surl = $md->Data['details'][$this->Name]['url'];
-			$imdbid = $md->Data['details'][$this->Name]['imdb_id'];
-
-			echo <<<EOD
-<a href="{$url}" class="a-fix">Scrape</a> No certification for {$md->Title}
-- <a href="{$surl}" target="_blank">{$this->Name}</a>
-- <a href="http://www.imdb.com/title/{$imdbid}" target="_blank">IMDB</a>
-EOD;
-			$clean = false;
-		}*/
-
 		# Check filename compliance.
 
 		if (!empty($md->Data['details'][$this->Name]['name']))
@@ -235,8 +224,8 @@ EOD;
 		else
 			$filetitle = Movie::CleanTitleForFile($md->Title);
 
-		if (!empty($md->Data['details'][$this->Name]['released']))
-			$date = substr($md->Data['details'][$this->Name]['released'], 0, 4);
+		if (!empty($md->Data['details'][$this->Name]['release_date']))
+			$date = substr($md->Data['details'][$this->Name]['release_date'], 0, 4);
 		else $date = '';
 
 		$file = $md->Data['path'];
@@ -393,7 +382,7 @@ EOD;
 
 		$td = $t->vars['Data']['details'][$this->Name];
 
-		return '<a href="'.$td['url'].'" target="_blank"><img src="'.$this->Icon.'" alt="'.$this->Name.'" /></a>';
+		return '<a href="'.TMDB_MOVIE.$td['id'].'" target="_blank"><img src="'.Module::P($this->Icon).'" alt="'.$this->Name.'" /></a>';
 	}
 
 	function cb_detail_head($t, $g)
@@ -456,10 +445,64 @@ EOD;
 
 	function CanAuto() { return true; }
 
+	# This is meant to send a proper acceptable request to TMDB in leu of file_get_contents.
+
+	static function TMDBQuery($url, $uri)
+	{
+		$opts['http']['header'] = 'Accept: application/json';
+		$ctx = stream_context_create($opts);
+		$uri = '?'.http_build_query($uri);
+		return file_get_contents($url.$uri, false, $ctx);
+	}
+
+	static function TMDBFind($query, $year = null)
+	{
+		$vars['api_key'] = TMDB_KEY;
+		$vars['query'] = $query;
+		if (!empty($year)) $vars['year'] = $year;
+		return TMDB::TMDBQuery(TMDB_FIND, $vars);
+	}
+
+	static function TMDBMovie($id, $append)
+	{
+		$append['api_key'] = TMDB_KEY;
+		return TMDB::TMDBQuery(TMDB_INFO.$id, $append);
+	}
+
+	static function TMDBConfig()
+	{
+		$grab = function()
+		{
+			$data = json_decode(TMDB::TMDBQuery(TMDB_CONFIG, array('api_key' => TMDB_KEY)));
+			$data->updated = time();
+			file_put_contents(TMDB_FILE_CONF, json_encode($data));
+			return $data;
+		};
+
+		# Grab a new configuration
+		if (file_exists(TMDB_FILE_CONF))
+			$conf = json_decode(file_get_contents(TMDB_FILE_CONF));
+		else
+			$conf = $grab();
+
+		# Week
+		if (time() - $conf->updated >= 604800) $conf = $grab();
+
+		return $conf;
+	}
+
+	static function TMDBImageURL($img)
+	{
+		$config = TMDB::TMDBConfig();
+		return $config->images->base_url.'w185'.$img->file_path;
+	}
+
 	function FindXML($title)
 	{
 		$title = urlencode(trim($title));
-		$xml = @file_get_contents(TMDB_FIND.$title);
+		$vars['key'] = TMDB_KEY;
+		$vars['query'] = $title;
+		$xml = @file_get_contents(VarParser::Parse(TMDB_FIND, $vars));
 		if (empty($xml)) return null;
 
 		$sx = simplexml_load_string($xml);
@@ -481,29 +524,21 @@ EOD;
 		else if (empty($title))
 			$fs = MediaEntry::ScrapeFS($md->Path, MovieEntry::GetFSPregs());
 
-		$url = TMDB_FIND.rawurlencode($title);
-		$xml = file_get_contents($url);
+		$json = $this->TMDBFind(rawurlencode($title));
 
-		if (empty($xml)) return;
+		if (empty($json)) return;
 
-		$sx = simplexml_load_string($xml);
-		$sx_movies = $sx->xpath('//movies/movie');
+		$data = json_decode($json);
 
 		$ret = array();
-		if (!empty($sx_movies))
-		foreach ($sx_movies as $sx_movie)
+		foreach ($data->results as $result)
 		{
-			$covers = array();
-			foreach ($sx_movie->xpath('images/image[@size="cover"]') as $c)
-				$covers[] = (string)$c['url'];
-
-			$id = (string)$sx_movie->id;
-			$ret[$id] = array(
-				'id' => $id,
-				'title' => $sx_movie->name,
-				'date' => $sx_movie->released,
-				'covers' => implode('|', $covers),
-				'ref' => (string)$sx_movie->url
+			$ret[$result->id] = array(
+				'id' => $result->id,
+				'title' => $result->title,
+				'date' => $result->release_date,
+				'covers' => $result->poster_path,
+				'ref' => 'http://www.themoviedb.org/movie/'.$result->id
 			);
 		}
 
@@ -531,8 +566,8 @@ EOD;
 
 	function Details($id)
 	{
-		$ctx = stream_context_create(array('http' => array('timeout' => 3)));
-		return file_get_contents(TMDB_INFO.$id, false, $ctx);
+		$q['api_key'] = TMDB_KEY;
+		return TMDB::TMDBQuery(TMDB_INFO.$id, $q);
 	}
 
 	function Scrape(&$me, $id = null)
@@ -546,8 +581,7 @@ EOD;
 		}
 
 		# Collect remote data
-		$data = Arr::FromXML(self::Details($id));
-		$data = $data['movies']['movie'];
+		$data = json_decode(self::Details($id), true);
 
 		# Cache remote info.
 		if (dirname($me->Path) == $me->Data['root'])
@@ -562,9 +596,9 @@ EOD;
 		$me->Data['details'][$this->Name] = $data;
 
 		# Try to set the release date on the movie.
-		if (!empty($data['released']))
-		if (preg_match('/(\d{4})/', $data['released'], $m))
-			$me->Data['released'] = (int)$m[1];
+		if (!empty($data['release_date']))
+		if (preg_match('/(\d{4})/', $data['release_date'], $m))
+			$me->Data['release_date'] = (int)$m[1];
 
 		$me->SaveDS();
 
@@ -573,9 +607,6 @@ EOD;
 
 	private function Cleanup(&$data)
 	{
-		unset($data['cast']);
-		unset($data['images']);
-
 		# Collect a detailed score for this item.
 		#$data['score'] = $this->GetScore($data);
 	}
