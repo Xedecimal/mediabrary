@@ -7,7 +7,15 @@ $(function () {
 	});
 
 	$('.a-fix').live('click', function () {
-		$(this).load($(this).attr('href'));
+		$but = $(this);
+		$but.addClass('disabled');
+		$.ajax({
+			url: $(this).attr('href'),
+			success: function () {
+				$but.removeClass('btn-primary').addClass('btn-success');
+			}
+		});
+
 		return false;
 	});
 });
