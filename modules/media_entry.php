@@ -80,7 +80,7 @@ class MediaEntry extends Module
 			throw new Exception('No title or index set!');
 
 		try { return $_d['entry.ds']->save($this->Data, array('safe' => 1)); }
-		catch (MongoCursorException $ex) { var_dump($ex); var_dump($this->Data); die(); }
+		catch (MongoCursorException $ex) { var_dump($this->Data); die(); }
 	}
 
 	function Remove()
