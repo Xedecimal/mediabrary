@@ -360,7 +360,7 @@ class TVSeriesEntry extends MediaEntry
 			# Possibly Metadata or unknown file.
 			if (empty($ep->Data['season']))
 			{
-				TV::OutErr("Unable to identify episode: {$ep->Path}", $ep);
+				ModCheck::Out("Unable to identify episode: {$ep->Path}");
 				continue;
 			}
 
