@@ -258,9 +258,12 @@ class TVDB extends Module implements Scraper
 				$title = @$ep['details'][$this->Name]['EpisodeName'];
 				if (empty($title)) $title = "[Yet unknown]";
 
-				ModCheck::Out("Missing episode {$ep['series']}"
-					." S{$ep['season']}E{$ep['episode']} {$title}"
-					." on {$ep['details'][$this->Name]['FirstAired']}");
+				ModCheck::Out(sprintf('Missing episode %s S%02dE%02d %s on %s',
+					$ep['series'],
+					$ep['season'],
+					$ep['episode'],
+					$title,
+					$ep['details'][$this->Name]['FirstAired']));
 			}
 		}
 	}
