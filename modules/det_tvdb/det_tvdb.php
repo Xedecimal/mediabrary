@@ -277,7 +277,7 @@ class TVDB extends Module implements Scraper
 		$title = MediaLibrary::CleanTitleForFile($data['Series']['SeriesName']);
 		$dst = dirname($series->Path).'/'.$title;
 		$url = $_d['app_abs'].'/tv/rename?path='.urlencode($src).'&amp;target='.urlencode($dst);
-		if ($src != $dst) TV::OutErr("<a href=\"$url\" class=\"a-fix btn\">Fix</a> Series '$src' should be '$dst' on {$this->Name}");
+		if ($src != $dst) ModCheck::Out("$src<br />$dst", 'Rename Series<br /><a href="'.$url.'" class="a-fix btn btn-mini btn-primary">&nbsp;<i class="icon-ok icon-white"></i>&nbsp;</a>');
 	}
 
 	function CheckFilename(&$series, $ep, $dvdbep)
